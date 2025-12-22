@@ -7,7 +7,7 @@ API backend do Folki construída com NestJS, PostgreSQL e Docker.
 - Docker
 - Docker Compose
 - Make
-- VS Code (recomendado)
+- VS Code (extremamente recomendado)
 
 ## Setup Inicial
 
