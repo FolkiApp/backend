@@ -2,6 +2,8 @@
 
 API backend do Folki construída com NestJS, PostgreSQL e Docker.
 
+![CI](https://github.com/seu-usuario/folki/actions/workflows/ci.yml/badge.svg)
+
 ## Pré-requisitos
 
 - Docker
