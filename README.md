@@ -19,11 +19,6 @@ API backend do Folki construída com NestJS, PostgreSQL e Docker.
    cp .env.example .env
    ```
 
-   Edite o arquivo `.env` e configure as variáveis necessárias:
-   - `DATABASE_URL`: URL de conexão com o PostgreSQL
-   - `NODE_ENV`: Ambiente de execução (development/production)
-   - `API_KEY`: Chave de API para endpoints administrativos
-
    **⚠️ IMPORTANTE:**
    - O arquivo `.env` é ignorado pelo git e contém suas credenciais reais
    - NUNCA commite credenciais reais no repositório
@@ -55,7 +50,14 @@ make down        # Para os serviços
 make test        # Roda os testes
 make test-cov    # Roda os testes com cobertura e abre o relatório
 make clean       # Remove tudo incluindo volumes do banco
+make lint        # Formata código
 ```
+
+## Antes de fazer um PR! Importante!
+
+- Utilize o make lint para lintar o código. Ele não é aceito no CI caso o código não siga os padrões de projeto.
+
+- Rode o comando de test-cov para validar se a sua cobertura de testes é ok. Devemos ter no mínimo 80% de cobertura e todos os testes devem passar.
 
 ## Mudanças no Schema do Banco
 

@@ -83,6 +83,9 @@
       "!**/*.entity.ts",
       "!**/*.filter.ts",
       "!**/*.guard.ts",
+      "!**/*.interceptor.ts",
+      "!**/exceptions/**",
+      "!**/scrap-jupiter.service.ts",
       "!prisma/**",
       "!main.ts"
     ],

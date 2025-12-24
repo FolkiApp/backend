@@ -35,3 +35,6 @@ db-seed:
 	@echo "Running database seed..."
 	docker-compose exec -T postgres psql -U postgres -d folki < prisma/seed.sql
 	@echo "Seed completed successfully!"
+
+lint:
+	npm run lint
