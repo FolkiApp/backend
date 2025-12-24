@@ -56,6 +56,7 @@ jobs:
           # Calcula cobertura apenas dos arquivos alterados
           TOTAL_LINES=0
           COVERED_LINES=0
+          FILE_DETAILS=""
           
           while IFS= read -r file; do
             if [ -z "$file" ]; then
@@ -76,6 +77,16 @@ jobs:
               echo "  Found: $COVERED/$TOTAL lines"
               TOTAL_LINES=$((TOTAL_LINES + TOTAL))
               COVERED_LINES=$((COVERED_LINES + COVERED))
+              
+              # Calcula porcentagem do arquivo
+              if [ $TOTAL -gt 0 ]; then
+                FILE_PCT=$(echo "scale=2; ($COVERED * 100) / $TOTAL" | bc)
+              else
+                FILE_PCT=0
+              fi
+              
+              # Adiciona detalhes do arquivo
+              FILE_DETAILS="${FILE_DETAILS}${file}|${COVERED}|${TOTAL}|${FILE_PCT}\n"
             else
               echo "  Not found in coverage: $ABSOLUTE_PATH"
             fi
@@ -93,18 +104,8 @@ jobs:
           echo "percentage=$COVERAGE" >> $GITHUB_OUTPUT
           echo "total_lines=$TOTAL_LINES" >> $GITHUB_OUTPUT
           echo "covered_lines=$COVERED_LINES" >> $GITHUB_OUTPUT
-          echo "Final coverage: $COVERAGE%"
-        env:
-          GH_TOKEN: ${{ github.token }}
-
-      - name: Comment PR with coverage
-        if: github.event_name == 'pull_request'
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const coverage = parseFloat('${{ steps.coverage.outputs.percentage }}');
-            const totalLines = parseInt('${{ steps.coverage.outputs.total_lines }}');
-            const coveredLines = parseInt('${{ steps.coverage.outputs.covered_lines }}');
+          echo "file_details<<EOF" >> $GITHUB_OUTPUT
+          ecconst fileDetails = `${{ steps.coverage.outputs.file_details }}`;
             
             if (totalLines === 0) {
               const body = `## ℹ️ Cobertura de Testes
@@ -118,6 +119,37 @@ jobs:
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 body: body
+              });
+              return;
+            }
+            
+            const emoji = coverage >= 90 ? '✅' : '⚠️';
+            const status = coverage >= 90 ? 'Excelente!' : 'Atenção';
+            
+            // Processa detalhes dos arquivos
+            let tableRows = '';
+            if (fileDetails && fileDetails.trim()) {
+              const files = fileDetails.trim().split('\n').filter(line => line);
+              for (const line of files) {
+                const [file, covered, total, pct] = line.split('|');
+                if (!file) continue;
+                
+                const filePct = parseFloat(pct);
+                const fileEmoji = filePct >= 90 ? '✅' : filePct >= 70 ? '⚠️' : '❌';
+                tableRows += `| ${fileEmoji} | \`${file}\` | ${filePct.toFixed(2)}% | ${covered}/${total} |\n`;
+              }
+            }
+            
+            let body = `## ${emoji} Cobertura de Testes - ${status}
+            
+            **Cobertura dos Arquivos Alterados:** ${coverage.toFixed(2)}%
+            **Linhas Cobertas:** ${coveredLines}/${totalLines}
+            
+            ${coverage >= 90 ? '✨ Cobertura acima de 90%! Continue assim!' : '⚠️ Cobertura abaixo de 90%. Considere adicionar mais testes.'}`;
+            
+            if (tableRows) {
+              body += `\n\n### 📊 Detalhes por Arquivo\n\n| Status | Arquivo | Cobertura | Linhas |\n|--------|---------|-----------|--------|\n${tableRows}`;
+            }  body: body
               });
               return;
             }
