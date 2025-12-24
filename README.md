@@ -15,52 +15,48 @@ API backend do Folki construída com NestJS, PostgreSQL e Docker.
 
 2. O projeto já vem com `.env.dev` configurado para desenvolvimento com valores padrão
 
-3. Se precisar de variáveis customizadas, crie seu próprio `.env`:
+3. Suba os serviços:
+
    ```bash
-   cp .env.example .env
+   make up
    ```
 
-## Como Rodar
+Pronto! O backend está rodando em:
 
-```bash
-make up
-```
-
-Isso vai subir:
-
-- Backend em `http://localhost:3000`
-- PostgreSQL em `localhost:5432`
-- Swagger em `http://localhost:3000/api`
+- Backend: `http://localhost:3000`
+- PostgreSQL: `localhost:5432`
+- Swagger: `http://localhost:3000/api`
 
 ## Comandos
 
 ```bash
-make up        # Inicia os serviços
-make down      # Para os serviços
-make rebuild   # Rebuilda o backend (após adicionar dependências)
-make test      # Roda os testes
-make clean     # Remove tudo incluindo volumes do banco
+make up          # Inicia os serviços (já cria as tabelas automaticamente)
+make down        # Para os serviços
+make test        # Roda os testes
+make test-cov    # Roda os testes com cobertura e abre o relatório
+make clean       # Remove tudo incluindo volumes do banco
 ```
+
+## Mudanças no Schema do Banco
+
+Quando você editar o `prisma/schema.prisma`, rode:
+
+```bash
+make db-migrate
+```
+
+Vai pedir um nome para a migration (ex: "add_new_field"). Isso aplica as mudanças no banco.
 
 ## Configuração do VS Code
 
-### Format on Save
-
 O projeto já vem com as configurações de format on save em `.vscode/settings.json`.
 
-1. Instale as extensões recomendadas (o VS Code vai sugerir automaticamente quando abrir o projeto):
-   - Prettier - Code formatter
-   - ESLint
+Instale as extensões recomendadas (o VS Code vai sugerir automaticamente):
 
-2. Pronto! Os arquivos serão formatados automaticamente ao salvar.
+- Prettier - Code formatter
+- ESLint
 
-Se não funcionar, reinicie o VS Code.
-
-### Formatar manualmente
-
-```bash
-npm run format
-```
+Pronto! Os arquivos serão formatados automaticamente ao salvar.
 
 ## Hot Reload
 
@@ -69,11 +65,3 @@ Qualquer alteração no código reflete automaticamente no container.
 ## Documentação da API
 
 Acesse `http://localhost:3000/api` para ver a documentação Swagger.
-
-## Após adicionar dependências no package.json
-
-```bash
-make rebuild
-```
-
-Isso rebuilda o backend mantendo os dados do banco.
