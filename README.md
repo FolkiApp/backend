@@ -39,8 +39,9 @@ API backend do Folki construída com NestJS, PostgreSQL e Docker.
 Pronto! O backend está rodando em:
 
 - Backend: `http://localhost:3000`
+- API: `http://localhost:3000/api`
 - PostgreSQL: `localhost:5432`
-- Swagger: `http://localhost:3000/api`
+- Swagger: `http://localhost:3000/docs`
 
 ## Comandos
 
@@ -94,4 +95,4 @@ Qualquer alteração no código reflete automaticamente no container.
 
 ## Documentação da API
 
-Acesse `http://localhost:3000/api` para ver a documentação Swagger.
+Acesse `http://localhost:3000/docs` para ver a documentação Swagger.
