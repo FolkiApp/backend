@@ -4,6 +4,9 @@ import { ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { ApiKeyGuard } from './common/guards/api-key.guard';
+import { AuthGuard } from './common/guards/auth.guard';
+import { PrismaService } from './prisma/prisma.service';
+import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -18,8 +21,14 @@ async function bootstrap() {
 
   app.useGlobalFilters(new HttpExceptionFilter());
 
+  app.useGlobalInterceptors(new LoggingInterceptor());
+
   const reflector = app.get(Reflector);
-  app.useGlobalGuards(new ApiKeyGuard(reflector));
+  const prisma = app.get(PrismaService);
+  app.useGlobalGuards(
+    new ApiKeyGuard(reflector),
+    new AuthGuard(reflector, prisma),
+  );
 
   const config = new DocumentBuilder()
     .setTitle('Folki API')
@@ -34,6 +43,15 @@ async function bootstrap() {
       },
       'api-key',
     )
+    .addBearerAuth(
+      {
+        type: 'http',
+        scheme: 'bearer',
+        bearerFormat: 'JWT',
+        description: 'Token JWT para autenticação de usuários',
+      },
+      'bearer',
+    )
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
@@ -41,4 +59,4 @@ async function bootstrap() {
 
   await app.listen(process.env.PORT ?? 3000);
 }
-bootstrap();
+void bootstrap();

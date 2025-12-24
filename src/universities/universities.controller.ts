@@ -1,10 +1,5 @@
 import { Controller, Get, Post, Body } from '@nestjs/common';
-import {
-  ApiTags,
-  ApiOperation,
-  ApiCreatedResponse,
-  ApiSecurity,
-} from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiSecurity } from '@nestjs/swagger';
 import { FindAllUniversitiesService } from './services/find-all-universities.service';
 import { CreateUniversityService } from './services/create-university.service';
 import { UniversityResponseDto } from './dto/university-response.dto';
@@ -40,10 +35,6 @@ export class UniversitiesController {
   @ApiSecurity('api-key')
   @ApiOperation({
     summary: 'Cria uma nova universidade',
-  })
-  @ApiCreatedResponse({
-    description: 'Universidade criada com sucesso',
-    type: UniversityResponseDto,
   })
   async create(
     @Body() createUniversityDto: CreateUniversityDto,
