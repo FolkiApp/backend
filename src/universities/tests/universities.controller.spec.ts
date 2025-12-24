@@ -85,9 +85,7 @@ describe('UniversitiesController', () => {
         slug: createDto.slug,
       };
 
-      mockCreateUniversityService.execute.mockResolvedValue(
-        createdUniversity,
-      );
+      mockCreateUniversityService.execute.mockResolvedValue(createdUniversity);
 
       const result = await controller.create(createDto);
 
