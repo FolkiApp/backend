@@ -11,19 +11,32 @@ export class CreateUniversityService {
   constructor(private readonly universityRepository: UniversityRepository) {}
 
   async execute(data: CreateUniversityDto): Promise<University> {
-    this.logger.log(`Creating university with slug: ${data.slug}`);
+    this.logger.log({
+      message: 'Creating university',
+      slug: data.slug,
+      name: data.name,
+    });
 
     const existingUniversity = await this.universityRepository.findBySlug(
       data.slug,
     );
 
     if (existingUniversity) {
-      this.logger.warn(`University with slug ${data.slug} already exists`);
+      this.logger.warn({
+        message: 'University already exists',
+        slug: data.slug,
+        existingId: existingUniversity.id,
+      });
       throw new UniversityAlreadyExistsException();
     }
 
     const university = await this.universityRepository.create(data);
-    this.logger.log(`University created with id: ${university.id}`);
+    this.logger.log({
+      message: 'University created',
+      id: university.id,
+      slug: university.slug,
+      name: university.name,
+    });
 
     return university;
   }

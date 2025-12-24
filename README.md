@@ -35,6 +35,12 @@ API backend do Folki construída com NestJS, PostgreSQL e Docker.
    make up
    ```
 
+4. Após subir, adicione dados seed no banco de dados:
+
+   ```bash
+   make db-seed
+   ```
+
 Pronto! O backend está rodando em:
 
 - Backend: `http://localhost:3000`
@@ -60,6 +66,14 @@ make db-migrate
 ```
 
 Vai pedir um nome para a migration (ex: "add_new_field"). Isso aplica as mudanças no banco.
+
+## Adição de nova library
+
+Quando você instalar uma nova lib, rode o rebuild.
+
+```bash
+make rebuild
+```
 
 ## Configuração do VS Code
 

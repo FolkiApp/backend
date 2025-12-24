@@ -10,17 +10,23 @@ export class FindAllUniversitiesService {
   constructor(private readonly universityRepository: UniversityRepository) {}
 
   async execute(): Promise<University[]> {
-    this.logger.log('Executing findAll universities');
+    this.logger.log({ message: 'Executing findAll universities' });
     return this.findAll();
   }
 
   async findAll(): Promise<University[]> {
     try {
       const universities = await this.universityRepository.findAll();
-      this.logger.log(`Found ${universities.length} universities`);
+      this.logger.log({
+        message: 'Found universities',
+        count: universities.length,
+      });
       return universities;
     } catch (error) {
-      this.logger.error('Error finding all universities', error);
+      this.logger.error({
+        message: 'Error finding all universities',
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
       throw new UniversityFetchException();
     }
   }
