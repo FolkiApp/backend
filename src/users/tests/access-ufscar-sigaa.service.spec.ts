@@ -151,7 +151,7 @@ describe('AccessUFSCarSigaaService', () => {
 
       (global.fetch as jest.Mock).mockResolvedValue({
         ok: true,
-        json: async () => mockResponse,
+        json: () => Promise.resolve(mockResponse),
       });
 
       mockInstituteRepository.findOrCreate.mockResolvedValue({
@@ -226,7 +226,7 @@ describe('AccessUFSCarSigaaService', () => {
 
       (global.fetch as jest.Mock).mockResolvedValue({
         ok: true,
-        json: async () => mockResponse,
+        json: () => Promise.resolve(mockResponse),
       });
 
       mockInstituteRepository.findOrCreate.mockResolvedValue({ id: 1 });
@@ -283,7 +283,7 @@ describe('AccessUFSCarSigaaService', () => {
 
       (global.fetch as jest.Mock).mockResolvedValue({
         ok: true,
-        json: async () => mockResponse,
+        json: () => Promise.resolve(mockResponse),
       });
 
       mockInstituteRepository.findOrCreate.mockResolvedValue({ id: 1 });
@@ -335,7 +335,7 @@ describe('AccessUFSCarSigaaService', () => {
 
       (global.fetch as jest.Mock).mockResolvedValue({
         ok: true,
-        json: async () => mockResponse,
+        json: () => Promise.resolve(mockResponse),
       });
 
       mockInstituteRepository.findOrCreate.mockResolvedValue({ id: 1 });
@@ -388,7 +388,7 @@ describe('AccessUFSCarSigaaService', () => {
 
       (global.fetch as jest.Mock).mockResolvedValue({
         ok: true,
-        json: async () => mockResponse,
+        json: () => Promise.resolve(mockResponse),
       });
 
       mockInstituteRepository.findOrCreate.mockResolvedValue({ id: 1 });
