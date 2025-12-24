@@ -30,46 +30,14 @@ jobs:
         run: npm run lint:check
 
       - name: Run tests with coverage
-        run: npm run test:cov -- --coverage --coverageReporters=json-summary
+        run: npm run test:cov
 
-      - name: Extract coverage for changed files
+      - name: Extract coverage
         id: coverage
-        if: github.event_name == 'pull_request'
         run: |
-          # Pega os arquivos alterados no PR
-          CHANGED_FILES=$(gh pr view ${{ github.event.pull_request.number }} --json files --jq '.files[].path' | grep -E '\.(ts|js)$' | grep -v '.spec.ts' | grep -v '.test.ts')
-          
-          # Calcula cobertura apenas dos arquivos alterados
-          TOTAL_LINES=0
-          COVERED_LINES=0
-          
-          while IFS= read -r file; do
-            # Remove 'src/' do início do caminho se existir
-            CLEAN_FILE=$(echo "$file" | sed 's|^src/||')
-            
-            # Busca no coverage-summary.json
-            FILE_COV=$(cat coverage/coverage-summary.json | jq -r ".\"src/$CLEAN_FILE\".lines // .\"$file\".lines // empty")
-            
-            if [ ! -z "$FILE_COV" ]; then
-              TOTAL=$(echo $FILE_COV | jq -r '.total')
-              COVERED=$(echo $FILE_COV | jq -r '.covered')
-              TOTAL_LINES=$((TOTAL_LINES + TOTAL))
-              COVERED_LINES=$((COVERED_LINES + COVERED))
-            fi
-          done <<< "$CHANGED_FILES"
-          
-          if [ $TOTAL_LINES -gt 0 ]; then
-            COVERAGE=$(echo "scale=2; ($COVERED_LINES * 100) / $TOTAL_LINES" | bc)
-          else
-            COVERAGE=100
-          fi
-          
+          COVERAGE=$(cat coverage/coverage-summary.json | jq -r '.total.lines.pct')
           echo "percentage=$COVERAGE" >> $GITHUB_OUTPUT
-          echo "total_lines=$TOTAL_LINES" >> $GITHUB_OUTPUT
-          echo "covered_lines=$COVERED_LINES" >> $GITHUB_OUTPUT
-          echo "Changed files coverage: $COVERAGE%"
-        env:
-          GH_TOKEN: ${{ github.token }}
+          echo "Coverage: $COVERAGE%"
 
       - name: Comment PR with coverage
         if: github.event_name == 'pull_request'
@@ -77,15 +45,12 @@ jobs:
         with:
           script: |
             const coverage = parseFloat('${{ steps.coverage.outputs.percentage }}');
-            const totalLines = parseInt('${{ steps.coverage.outputs.total_lines }}');
-            const coveredLines = parseInt('${{ steps.coverage.outputs.covered_lines }}');
             const emoji = coverage >= 90 ? '✅' : '⚠️';
             const status = coverage >= 90 ? 'Excelente!' : 'Atenção';
             
             const body = `## ${emoji} Cobertura de Testes - ${status}
             
-            **Cobertura dos Arquivos Alterados:** ${coverage.toFixed(2)}%
-            **Linhas Cobertas:** ${coveredLines}/${totalLines}
+            **Cobertura Total:** ${coverage.toFixed(2)}%
             
             ${coverage >= 90 ? '✨ Cobertura acima de 90%! Continue assim!' : '⚠️ Cobertura abaixo de 90%. Considere adicionar mais testes.'}
             `;
