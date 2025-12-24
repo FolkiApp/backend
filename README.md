@@ -96,3 +96,63 @@ Qualquer alteração no código reflete automaticamente no container.
 ## Documentação da API
 
 Acesse `http://localhost:3000/docs` para ver a documentação Swagger.
+
+## Arquitetura do Projeto
+
+O projeto segue a arquitetura modular do NestJS com separação clara de responsabilidades:
+
+```
+src/
+├── app.module.ts                 # Módulo raiz da aplicação
+├── main.ts                       # Bootstrap da aplicação
+├── users/                        # Módulo
+│   ├── users.module.ts
+│   ├── users.controller.ts
+│   ├── services/                 # Serviços de domínio
+│   │   ├── authenticate-user.service.ts
+│   │   ├── find-user-by-id.service.ts
+│   │   ├── access-ufscar-sigaa.service.ts
+│   │   └── scrap-jupiter.service.ts
+│   ├── repositories/             # Camada de acesso a dados
+│   │   ├── user.repository.ts
+│   │   └── user-subject.repository.ts
+│   ├── dto/                      # Data Transfer Objects
+│   ├── entities/                 # Entidades de domínio
+|   └── exceptions/               # Exceptions customizadas (não existe em users, mas veja universities para um exemplo)
+│   └── tests/                    # Testes unitários
+| ...
+```
+
+### Camadas da Arquitetura
+
+1. **Controllers**: Recebem as requisições HTTP e delegam para os serviços
+2. **Services**: Contêm a lógica de negócio e orquestração (pasta `services/`)
+3. **Repositories**: Abstração da camada de dados com Prisma (pasta `repositories/`)
+4. **DTOs**: Validação e transformação de dados de entrada/saída (pasta `dto/`)
+5. **Entities**: Representação do domínio da aplicação (pasta `entities/`)
+6. **Exceptions**: Tratamento de erros específicos do domínio (pasta `exceptions/`)
+7. **Tests**: Testes unitários separados (pasta `tests/`)
+
+### Padrões Utilizados
+
+- **Dependency Injection**: Todos os serviços e repositórios são injetáveis
+- **Repository Pattern**: Abstração do acesso a dados
+- **Service Layer**: Lógica de negócio separada dos controllers
+- **DTO Pattern**: Validação e transformação de dados com class-validator
+- **Exception Filters**: Tratamento global de erros
+- **Guards**: Autenticação JWT
+- **Interceptors**: Logging e transformação de respostas
+
+### Boas Práticas
+
+- Sempre crie testes para repositories e services
+- Use DTOs para validação de entrada com class-validator
+- Adicione documentação Swagger com `@Api*` decorators
+- Mantenha os services focados em lógica de negócio
+- Use repositories para abstrair acesso a dados
+- Crie exceções customizadas em `exceptions/` quando necessário
+- Organize os testes na pasta `tests/` separada
+- Siga a estrutura de pastas existente: `services/`, `repositories/`, `dto/`, `entities/`, `exceptions/`, `tests/`
+- Use logging estruturado com contexto para facilitar debugging
+- Sempre rode `make lint` antes de fazer PR
+- Mantenha cobertura de testes acima de 80%
