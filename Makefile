@@ -1,4 +1,4 @@
-.PHONY: up down rebuild clean test db-migrate
+.PHONY: up down rebuild clean test test-cov db-migrate
 
 up:
 	docker-compose up --build -d
@@ -11,6 +11,11 @@ clean:
 
 test:
 	npm test
+
+test-cov:
+	npm run test:cov
+	@echo "\nAbrindo relatório de cobertura..."
+	open coverage/lcov-report/index.html
 
 db-migrate:
 	@read -p "Nome da migration: " name; \

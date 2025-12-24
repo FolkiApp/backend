@@ -33,6 +33,7 @@ Pronto! O backend está rodando em:
 make up          # Inicia os serviços (já cria as tabelas automaticamente)
 make down        # Para os serviços
 make test        # Roda os testes
+make test-cov    # Roda os testes com cobertura e abre o relatório
 make clean       # Remove tudo incluindo volumes do banco
 ```
 
