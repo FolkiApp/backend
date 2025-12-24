@@ -32,42 +32,82 @@ jobs:
       - name: Run tests with coverage
         run: npm run test:cov
 
+      - name: Debug coverage files
+        if: github.event_name == 'pull_request'
+        run: |
+          echo "=== Files in coverage-summary.json ==="
+          cat coverage/coverage-summary.json | jq 'keys[]'
+          echo ""
+          echo "=== Changed files in PR ==="
+          gh pr view ${{ github.event.pull_request.number }} --json files --jq '.files[].path'
+        env:
+          GH_TOKEN: ${{ github.token }}
+
       - name: Extract coverage for changed files
         id: coverage
         if: github.event_name == 'pull_request'
         run: |
           # Pega os arquivos alterados no PR
-          CHANGED_FILES=$(gh pr view ${{ github.event.pull_request.number }} --json files --jq '.files[].path' | grep -E '\.(ts|js)$' | grep -v '.spec.ts' | grep -v '.test.ts')
+          CHANGED_FILES=$(gh pr view ${{ github.event.pull_request.number }} --json files --jq '.files[].path' | grep -E '\.(ts|js)$' | grep -v '.spec.ts' | grep -v '.test.ts' | grep -v '.module.ts' | grep -v '.entity.ts' | grep -v '.filter.ts')
+          
+          echo "Changed files (filtered):"
+          echo "$CHANGED_FILES"
           
           # Calcula cobertura apenas dos arquivos alterados
           TOTAL_LINES=0
           COVERED_LINES=0
+          FILE_DETAILS=""
           
           while IFS= read -r file; do
-            # Remove 'src/' do início do caminho se existir
-            CLEAN_FILE=$(echo "$file" | sed 's|^src/||')
+            if [ -z "$file" ]; then
+              continue
+            fi
             
-            # Busca no coverage-summary.json
-            FILE_COV=$(cat coverage/coverage-summary.json | jq -r ".\"src/$CLEAN_FILE\".lines // .\"$file\".lines // empty")
+            echo "Processing: $file"
+            
+            # Constrói o path absoluto (coverage-summary.json usa paths absolutos)
+            ABSOLUTE_PATH="$PWD/$file"
+            
+            # Tenta encontrar no coverage-summary.json
+            FILE_COV=$(cat coverage/coverage-summary.json | jq -r ".[\"$ABSOLUTE_PATH\"].lines // empty")
             
             if [ ! -z "$FILE_COV" ]; then
               TOTAL=$(echo $FILE_COV | jq -r '.total')
               COVERED=$(echo $FILE_COV | jq -r '.covered')
+              echo "  Found: $COVERED/$TOTAL lines"
               TOTAL_LINES=$((TOTAL_LINES + TOTAL))
               COVERED_LINES=$((COVERED_LINES + COVERED))
+              
+              # Calcula porcentagem do arquivo
+              if [ $TOTAL -gt 0 ]; then
+                FILE_PCT=$(echo "scale=2; ($COVERED * 100) / $TOTAL" | bc)
+              else
+                FILE_PCT=0
+              fi
+              
+              # Adiciona detalhes do arquivo
+              FILE_DETAILS="${FILE_DETAILS}${file}|${COVERED}|${TOTAL}|${FILE_PCT}\n"
+            else
+              echo "  Not found in coverage: $ABSOLUTE_PATH"
             fi
           done <<< "$CHANGED_FILES"
+          
+          echo "Total: $COVERED_LINES/$TOTAL_LINES"
           
           if [ $TOTAL_LINES -gt 0 ]; then
             COVERAGE=$(echo "scale=2; ($COVERED_LINES * 100) / $TOTAL_LINES" | bc)
           else
-            COVERAGE=100
+            # Se não há linhas para cobrir, considera como sem impacto
+            COVERAGE=0
           fi
           
           echo "percentage=$COVERAGE" >> $GITHUB_OUTPUT
           echo "total_lines=$TOTAL_LINES" >> $GITHUB_OUTPUT
           echo "covered_lines=$COVERED_LINES" >> $GITHUB_OUTPUT
-          echo "Changed files coverage: $COVERAGE%"
+          echo "file_details<<EOF" >> $GITHUB_OUTPUT
+          echo -e "$FILE_DETAILS" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+          echo "Final coverage: $COVERAGE%"
         env:
           GH_TOKEN: ${{ github.token }}
 
@@ -79,16 +119,51 @@ jobs:
             const coverage = parseFloat('${{ steps.coverage.outputs.percentage }}');
             const totalLines = parseInt('${{ steps.coverage.outputs.total_lines }}');
             const coveredLines = parseInt('${{ steps.coverage.outputs.covered_lines }}');
+            const fileDetails = `${{ steps.coverage.outputs.file_details }}`;
+            
+            if (totalLines === 0) {
+              const body = `## ℹ️ Cobertura de Testes
+              
+              Nenhum arquivo relevante para cobertura foi alterado neste PR.
+              (Arquivos ignorados: testes, módulos, entities, filters)
+              `;
+              
+              github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: body
+              });
+              return;
+            }
+            
             const emoji = coverage >= 90 ? '✅' : '⚠️';
             const status = coverage >= 90 ? 'Excelente!' : 'Atenção';
             
-            const body = `## ${emoji} Cobertura de Testes - ${status}
+            // Processa detalhes dos arquivos
+            let tableRows = '';
+            if (fileDetails && fileDetails.trim()) {
+              const files = fileDetails.trim().split('\n').filter(line => line);
+              for (const line of files) {
+                const [file, covered, total, pct] = line.split('|');
+                if (!file) continue;
+                
+                const filePct = parseFloat(pct);
+                const fileEmoji = filePct >= 90 ? '✅' : filePct >= 70 ? '⚠️' : '❌';
+                tableRows += `| ${fileEmoji} | \`${file}\` | ${filePct.toFixed(2)}% | ${covered}/${total} |\n`;
+              }
+            }
+            
+            let body = `## ${emoji} Cobertura de Testes - ${status}
             
             **Cobertura dos Arquivos Alterados:** ${coverage.toFixed(2)}%
             **Linhas Cobertas:** ${coveredLines}/${totalLines}
             
-            ${coverage >= 90 ? '✨ Cobertura acima de 90%! Continue assim!' : '⚠️ Cobertura abaixo de 90%. Considere adicionar mais testes.'}
-            `;
+            ${coverage >= 90 ? '✨ Cobertura acima de 90%! Continue assim!' : '⚠️ Cobertura abaixo de 90%. Considere adicionar mais testes.'}`;
+            
+            if (tableRows) {
+              body += `\n\n### 📊 Detalhes por Arquivo\n\n| Status | Arquivo | Cobertura | Linhas |\n|--------|---------|-----------|--------|\n${tableRows}`;
+            }
             
             github.rest.issues.createComment({
               issue_number: context.issue.number,
