@@ -64,11 +64,11 @@ jobs:
             
             echo "Processing: $file"
             
-            # Remove src/ do início se existir
-            CLEAN_FILE="${file#src/}"
+            # Constrói o path absoluto (coverage-summary.json usa paths absolutos)
+            ABSOLUTE_PATH="$PWD/$file"
             
             # Tenta encontrar no coverage-summary.json
-            FILE_COV=$(cat coverage/coverage-summary.json | jq -r ".[\"$file\"].lines // .[\"$CLEAN_FILE\"].lines // empty")
+            FILE_COV=$(cat coverage/coverage-summary.json | jq -r ".[\"$ABSOLUTE_PATH\"].lines // empty")
             
             if [ ! -z "$FILE_COV" ]; then
               TOTAL=$(echo $FILE_COV | jq -r '.total')
@@ -77,7 +77,7 @@ jobs:
               TOTAL_LINES=$((TOTAL_LINES + TOTAL))
               COVERED_LINES=$((COVERED_LINES + COVERED))
             else
-              echo "  Not found in coverage - file might be ignored or new"
+              echo "  Not found in coverage: $ABSOLUTE_PATH"
             fi
           done <<< "$CHANGED_FILES"
           
