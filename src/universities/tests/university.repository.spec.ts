@@ -9,6 +9,8 @@ describe('UniversityRepository', () => {
   const mockPrismaService = {
     university: {
       findMany: jest.fn(),
+      findUnique: jest.fn(),
+      create: jest.fn(),
     },
   };
 
@@ -63,6 +65,73 @@ describe('UniversityRepository', () => {
 
       expect(result).toEqual([]);
       expect(prismaService.university.findMany).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('findBySlug', () => {
+    it('deve retornar universidade quando slug existe', async () => {
+      const mockUniversity = {
+        id: 1,
+        name: 'Universidade A',
+        slug: 'universidade-a',
+      };
+
+      mockPrismaService.university.findUnique.mockResolvedValue(mockUniversity);
+
+      const result = await repository.findBySlug('universidade-a');
+
+      expect(result).toEqual(mockUniversity);
+      expect(prismaService.university.findUnique).toHaveBeenCalledWith({
+        where: { slug: 'universidade-a' },
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+        },
+      });
+    });
+
+    it('deve retornar null quando slug não existe', async () => {
+      mockPrismaService.university.findUnique.mockResolvedValue(null);
+
+      const result = await repository.findBySlug('inexistente');
+
+      expect(result).toBeNull();
+      expect(prismaService.university.findUnique).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('create', () => {
+    it('deve criar uma nova universidade', async () => {
+      const createData = {
+        name: 'Nova Universidade',
+        slug: 'nova-universidade',
+        logo: 'https://logo.com/nova.png',
+      };
+
+      const createdUniversity = {
+        id: 1,
+        name: createData.name,
+        slug: createData.slug,
+      };
+
+      mockPrismaService.university.create.mockResolvedValue(createdUniversity);
+
+      const result = await repository.create(createData);
+
+      expect(result).toEqual(createdUniversity);
+      expect(prismaService.university.create).toHaveBeenCalledWith({
+        data: {
+          name: createData.name,
+          slug: createData.slug,
+          logo: createData.logo,
+        },
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+        },
+      });
     });
   });
 });
