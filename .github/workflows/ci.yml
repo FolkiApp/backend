@@ -105,7 +105,21 @@ jobs:
           echo "total_lines=$TOTAL_LINES" >> $GITHUB_OUTPUT
           echo "covered_lines=$COVERED_LINES" >> $GITHUB_OUTPUT
           echo "file_details<<EOF" >> $GITHUB_OUTPUT
-          ecconst fileDetails = `${{ steps.coverage.outputs.file_details }}`;
+          echo -e "$FILE_DETAILS" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+          echo "Final coverage: $COVERAGE%"
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+      - name: Comment PR with coverage
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const coverage = parseFloat('${{ steps.coverage.outputs.percentage }}');
+            const totalLines = parseInt('${{ steps.coverage.outputs.total_lines }}');
+            const coveredLines = parseInt('${{ steps.coverage.outputs.covered_lines }}');
+            const fileDetails = `${{ steps.coverage.outputs.file_details }}`;
             
             if (totalLines === 0) {
               const body = `## ℹ️ Cobertura de Testes
@@ -149,21 +163,7 @@ jobs:
             
             if (tableRows) {
               body += `\n\n### 📊 Detalhes por Arquivo\n\n| Status | Arquivo | Cobertura | Linhas |\n|--------|---------|-----------|--------|\n${tableRows}`;
-            }  body: body
-              });
-              return;
             }
-            
-            const emoji = coverage >= 90 ? '✅' : '⚠️';
-            const status = coverage >= 90 ? 'Excelente!' : 'Atenção';
-            
-            const body = `## ${emoji} Cobertura de Testes - ${status}
-            
-            **Cobertura dos Arquivos Alterados:** ${coverage.toFixed(2)}%
-            **Linhas Cobertas:** ${coveredLines}/${totalLines}
-            
-            ${coverage >= 90 ? '✨ Cobertura acima de 90%! Continue assim!' : '⚠️ Cobertura abaixo de 90%. Considere adicionar mais testes.'}
-            `;
             
             github.rest.issues.createComment({
               issue_number: context.issue.number,
