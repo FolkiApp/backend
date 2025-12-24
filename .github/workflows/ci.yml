@@ -32,6 +32,17 @@ jobs:
       - name: Run tests with coverage
         run: npm run test:cov
 
+      - name: Debug coverage files
+        if: github.event_name == 'pull_request'
+        run: |
+          echo "=== Files in coverage-summary.json ==="
+          cat coverage/coverage-summary.json | jq 'keys[]'
+          echo ""
+          echo "=== Changed files in PR ==="
+          gh pr view ${{ github.event.pull_request.number }} --json files --jq '.files[].path'
+        env:
+          GH_TOKEN: ${{ github.token }}
+
       - name: Extract coverage for changed files
         id: coverage
         if: github.event_name == 'pull_request'
@@ -39,7 +50,7 @@ jobs:
           # Pega os arquivos alterados no PR
           CHANGED_FILES=$(gh pr view ${{ github.event.pull_request.number }} --json files --jq '.files[].path' | grep -E '\.(ts|js)$' | grep -v '.spec.ts' | grep -v '.test.ts' | grep -v '.module.ts' | grep -v '.entity.ts' | grep -v '.filter.ts')
           
-          echo "Changed files:"
+          echo "Changed files (filtered):"
           echo "$CHANGED_FILES"
           
           # Calcula cobertura apenas dos arquivos alterados
