@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { FindAllUniversitiesService } from '../services/find-all-universities.service';
 import { UniversityRepository } from '../repositories/university.repository';
+import { UniversityFetchException } from '../exceptions/university-fetch.exception';
 
 describe('FindAllUniversitiesService', () => {
   let service: FindAllUniversitiesService;
@@ -52,6 +53,16 @@ describe('FindAllUniversitiesService', () => {
       const result = await service.execute();
 
       expect(result).toEqual([]);
+      expect(repository.findAll).toHaveBeenCalledTimes(1);
+    });
+
+    it('deve lançar UniversityFetchException quando ocorrer erro no repositório', async () => {
+      mockUniversityRepository.findAll.mockRejectedValue(
+        new Error('Database error'),
+      );
+
+      await expect(service.execute()).rejects.toThrow(UniversityFetchException);
+
       expect(repository.findAll).toHaveBeenCalledTimes(1);
     });
   });
