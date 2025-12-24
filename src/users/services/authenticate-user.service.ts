@@ -40,11 +40,7 @@ export class AuthenticateUserService {
           ? await this.scrapJupiterService.execute(uspCode, password)
           : await this.accessUFSCarSigaaService.execute(uspCode, password);
 
-      if (!user.securePin) {
-        throw new AuthenticationException();
-      }
-
-      const token = createToken(user.id, user.securePin);
+      const token = createToken(user.id, user.securePin!);
 
       const userResponse = new UserResponseDto(
         user.id,
