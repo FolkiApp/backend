@@ -1,9 +1,15 @@
 import { Controller, Get, Post, Body } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiCreatedResponse } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiCreatedResponse,
+  ApiSecurity,
+} from '@nestjs/swagger';
 import { FindAllUniversitiesService } from './services/find-all-universities.service';
 import { CreateUniversityService } from './services/create-university.service';
 import { UniversityResponseDto } from './dto/university-response.dto';
 import { CreateUniversityDto } from './dto/create-university.dto';
+import { ApiKey } from '../common/decorators/api-key.decorator';
 
 @ApiTags('universities')
 @Controller('universities')
@@ -30,6 +36,8 @@ export class UniversitiesController {
   }
 
   @Post()
+  @ApiKey()
+  @ApiSecurity('api-key')
   @ApiOperation({
     summary: 'Cria uma nova universidade',
   })

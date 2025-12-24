@@ -13,7 +13,21 @@ API backend do Folki construída com NestJS, PostgreSQL e Docker.
 
 1. Clone o repositório
 
-2. O projeto já vem com `.env.dev` configurado para desenvolvimento com valores padrão
+2. Configure as variáveis de ambiente:
+
+   ```bash
+   cp .env.example .env
+   ```
+
+   Edite o arquivo `.env` e configure as variáveis necessárias:
+   - `DATABASE_URL`: URL de conexão com o PostgreSQL
+   - `NODE_ENV`: Ambiente de execução (development/production)
+   - `API_KEY`: Chave de API para endpoints administrativos
+
+   **⚠️ IMPORTANTE:**
+   - O arquivo `.env` é ignorado pelo git e contém suas credenciais reais
+   - NUNCA commite credenciais reais no repositório
+   - Use `.env.example` apenas como template
 
 3. Suba os serviços:
 
