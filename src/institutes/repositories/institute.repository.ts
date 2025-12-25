@@ -6,6 +6,14 @@ import { institute } from '@prisma/client';
 export class InstituteRepository {
   constructor(private prisma: PrismaService) {}
 
+  async findById(id: number): Promise<institute | null> {
+    return this.prisma.institute.findUnique({
+      where: {
+        id
+      },
+    });
+  }
+
   async findByNameAndUniversity(
     name: string,
     universityId: number,
