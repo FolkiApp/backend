@@ -14,7 +14,7 @@ describe('FindAllUniversitiesService', () => {
   let repository: UniversityRepository;
 
   const mockUniversityRepository: Partial<UniversityRepository> = {
-    findAll: jest.fn() as jest.Mock<Promise<University[]>>,
+    findAll: jest.fn<Promise<University[]>, []>(),
   };
 
   beforeEach(async () => {

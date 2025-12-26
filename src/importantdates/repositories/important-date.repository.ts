@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import {
-  importantDate,
+  ImportantDate,
   ImportantDateType,
 } from '../entities/important-date.entity';
 
@@ -13,7 +13,7 @@ export class ImportantDateRepository {
     startOfYear: Date,
     universityId: number,
     campusId: number | null,
-  ): Promise<importantDate[]> {
+  ): Promise<ImportantDate[]> {
     const dates = await this.prisma.important_date.findMany({
       orderBy: { date: 'asc' },
       where: {

@@ -82,7 +82,6 @@ export class ScrapJupiterService {
       await page.select(`select`, options[options.length - 1]);
 
       await page.waitForSelector('#buscar', { visible: true });
-      await page.click('#buscar');
       await page.waitForSelector("tr[id='1']");
 
       this.logger.log({

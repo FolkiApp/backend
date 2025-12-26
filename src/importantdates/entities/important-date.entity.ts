@@ -3,7 +3,7 @@ export enum ImportantDateType {
   GENERAL = 'GENERAL',
 }
 
-export class importantDate {
+export class ImportantDate {
   id: number;
   name: string;
   date: Date;

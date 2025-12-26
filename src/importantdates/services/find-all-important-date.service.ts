@@ -3,7 +3,7 @@ import { InstituteRepository } from '../../institutes/repositories/institute.rep
 import { ImportantDateRepository } from '../repositories/important-date.repository';
 import { InvalidUniversityException } from '../../common/exceptions/invalid-university.exception';
 import { AuthUser } from '../../common/guards/auth.guard';
-import { importantDate } from '../entities/important-date.entity';
+import { ImportantDate } from '../entities/important-date.entity';
 import { ImportantDateFetchException } from '../exceptions/important-date-fetch.exceptions';
 
 @Injectable()
@@ -14,12 +14,12 @@ export class FindAllImportantDateService {
     private readonly importantDatesRepository: ImportantDateRepository,
   ) {}
 
-  async execute(user: AuthUser): Promise<importantDate[]> {
+  async execute(user: AuthUser): Promise<ImportantDate[]> {
     this.logger.log({ message: 'Executing findAll important dates' });
     return this.findAll(user);
   }
 
-  async findAll(user: AuthUser): Promise<importantDate[]> {
+  async findAll(user: AuthUser): Promise<ImportantDate[]> {
     try {
       let campusId: number | null = null;
 
