@@ -41,8 +41,6 @@ describe('FindAllImportantDateService', () => {
     );
   });
 
-  const startOfYearMatcher = expect.any(Date);
-
   describe('execute', () => {
     it('retorna datas importantes sem instituteId', async () => {
       const user: AuthUser = { universityId: 1 } as AuthUser;
@@ -65,7 +63,7 @@ describe('FindAllImportantDateService', () => {
 
       expect(result).toEqual(mockDates);
       expect(importantDatesRepository.findAll).toHaveBeenCalledWith(
-        startOfYearMatcher,
+        expect.any(Date), // Usar diretamente aqui
         user.universityId,
         null,
       );
@@ -97,7 +95,7 @@ describe('FindAllImportantDateService', () => {
 
       expect(instituteRepository.findById).toHaveBeenCalledWith(10);
       expect(importantDatesRepository.findAll).toHaveBeenCalledWith(
-        startOfYearMatcher,
+        expect.any(Date), // Usar diretamente aqui
         1,
         5,
       );
@@ -124,7 +122,7 @@ describe('FindAllImportantDateService', () => {
 
       expect(result).toEqual([]);
       expect(importantDatesRepository.findAll).toHaveBeenCalledWith(
-        startOfYearMatcher,
+        expect.any(Date),
         user.universityId,
         null,
       );
