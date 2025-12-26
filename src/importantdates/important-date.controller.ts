@@ -1,4 +1,4 @@
-import { Get, Controller, Req, Res } from '@nestjs/common';
+import { Get, Controller } from '@nestjs/common';
 import { Auth } from 'src/common/decorators/auth.decorator';
 import { ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import { FindAllImportantDate } from './services/find-all-important-date.service';
