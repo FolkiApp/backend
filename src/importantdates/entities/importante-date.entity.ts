@@ -1,6 +1,6 @@
 import { ImportDateType } from '@prisma/client';
 
-export class importantDatesDTO {
+export class importantDates {
   id: number;
   name: string;
   date: Date;

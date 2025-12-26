@@ -1,15 +1,16 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { institute } from '@prisma/client';
+import { Institute } from '../entities/institute.entity';
 
 @Injectable()
 export class InstituteRepository {
   constructor(private prisma: PrismaService) {}
 
-  async findById(id: number): Promise<institute | null> {
+  async findById(id: number): Promise<Institute | null> {
     return this.prisma.institute.findUnique({
       where: {
-        id
+        id,
       },
     });
   }
