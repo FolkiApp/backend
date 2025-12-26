@@ -9,6 +9,7 @@ import { ImportantDateFetchException } from '../exceptions/important-date-fetch.
 @Injectable()
 export class FindAllImportantDateService {
   private readonly logger = new Logger(FindAllImportantDateService.name);
+
   constructor(
     private readonly instituteRepository: InstituteRepository,
     private readonly importantDatesRepository: ImportantDateRepository,
@@ -16,22 +17,21 @@ export class FindAllImportantDateService {
 
   async execute(user: AuthUser): Promise<ImportantDate[]> {
     this.logger.log({ message: 'Executing findAll important dates' });
+
+    if (!user.universityId) {
+      this.logger.warn({
+        message: 'Invalid university ID for user',
+        userId: user.id,
+      });
+      throw new InvalidUniversityException();
+    }
+
     return this.findAll(user);
   }
 
-  async findAll(user: AuthUser): Promise<ImportantDate[]> {
+  private async findAll(user: AuthUser): Promise<ImportantDate[]> {
     try {
       let campusId: number | null = null;
-
-      if (!user.universityId) {
-        this.logger.warn({
-          message: 'Invalid university ID for user',
-          userId: user.id,
-        });
-        throw new InvalidUniversityException();
-      }
-
-      const startOfYear = new Date(new Date().getFullYear(), 0, 1);
 
       if (user.instituteId) {
         const institute = await this.instituteRepository.findById(
@@ -40,9 +40,11 @@ export class FindAllImportantDateService {
         campusId = institute?.campusId ?? null;
       }
 
+      const startOfYear = new Date(new Date().getFullYear(), 0, 1);
+
       const dates = await this.importantDatesRepository.findAll(
         startOfYear,
-        user.universityId,
+        user.universityId!,
         campusId,
       );
 
