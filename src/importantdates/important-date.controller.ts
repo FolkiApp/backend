@@ -1,9 +1,9 @@
 import { Get, Controller } from '@nestjs/common';
-import { Auth } from 'src/common/decorators/auth.decorator';
+import { Auth } from '../common/decorators/auth.decorator';
 import { ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import { FindAllImportantDate } from './services/find-all-important-date.service';
-import { CurrentUser } from 'src/common/decorators/current-user.decorator';
-import type { AuthUser } from 'src/common/guards/auth.guard';
+import { CurrentUser } from '../common/decorators/current-user.decorator';
+import type { AuthUser } from '../common/guards/auth.guard';
 import { ImportantDateResponseDto } from './dtos/important-date.dto';
 
 @Controller('/important-date')

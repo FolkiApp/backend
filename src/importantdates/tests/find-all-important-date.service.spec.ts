@@ -1,15 +1,14 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { FindAllImportantDate } from '../services/find-all-important-date.service';
-import { InstituteRepository } from 'src/institutes/repositories/institute.repository';
+import { InstituteRepository } from '../../institutes/repositories/institute.repository';
 import { ImportantDateRepository } from '../repositories/important-date.repository';
-import { InvalidUniversityException } from 'src/common/exceptions/invalid-university.exception';
-import { AuthUser } from 'src/common/guards/auth.guard';
-import { ImportDateType } from '@prisma/client';
+import { InvalidUniversityException } from '../../common/exceptions/invalid-university.exception';
+import { AuthUser } from '../../common/guards/auth.guard';
 
 describe('FindAllImportantDate', () => {
   let service: FindAllImportantDate;
   let instituteRepository: InstituteRepository;
-  let importantDateRepository: ImportantDateRepository;
+  let importantDatesRepository: ImportantDateRepository;
 
   const mockInstituteRepository = {
     findById: jest.fn(),
@@ -17,18 +16,6 @@ describe('FindAllImportantDate', () => {
 
   const mockImportantDateRepository = {
     findAll: jest.fn(),
-  };
-
-  const mockUser: AuthUser = {
-    id: 1,
-    email: 'user@test.com',
-    name: 'User Test',
-    instituteId: 10,
-    courseId: 2,
-    isAdmin: false,
-    isBlocked: false,
-    universityId: 20,
-    userVersion: '1.0.0',
   };
 
   beforeEach(async () => {
@@ -48,7 +35,7 @@ describe('FindAllImportantDate', () => {
 
     service = module.get<FindAllImportantDate>(FindAllImportantDate);
     instituteRepository = module.get<InstituteRepository>(InstituteRepository);
-    importantDateRepository = module.get<ImportantDateRepository>(
+    importantDatesRepository = module.get<ImportantDateRepository>(
       ImportantDateRepository,
     );
   });
@@ -58,101 +45,93 @@ describe('FindAllImportantDate', () => {
   });
 
   describe('execute', () => {
-    it('deve retornar datas importantes quando usuário tem universidade e instituto', async () => {
-      const mockInstitute = {
-        id: 10,
-        campusId: 5,
-      };
+    it('deve retornar lista de datas importantes sem instituteId', async () => {
+      const user: AuthUser = {
+        universityId: 1,
+      } as AuthUser;
 
       const mockDates = [
         {
           id: 1,
-          name: 'Início do semestre',
-          date: new Date('2025-02-10'),
-          type: ImportDateType.DAY_OFF,
+          name: 'Início das aulas',
+          date: new Date('2025-02-01'),
+          type: 'ACADEMIC',
           shouldNotify: true,
-          campusId: 5,
-          universityId: 20,
+          campusId: null,
+          universityId: 1,
         },
       ];
 
-      mockInstituteRepository.findById.mockResolvedValue(mockInstitute);
       mockImportantDateRepository.findAll.mockResolvedValue(mockDates);
 
-      const result = await service.execute(mockUser);
+      const result = await service.execute(user);
 
       expect(result).toEqual(mockDates);
-      expect(instituteRepository.findById).toHaveBeenCalledWith(10);
-      expect(importantDateRepository.findAll).toHaveBeenCalledTimes(1);
+      expect(importantDatesRepository.findAll).toHaveBeenCalledTimes(1);
+      expect(importantDatesRepository.findAll).toHaveBeenCalledWith(
+        expect.any(Date),
+        user.universityId,
+        null,
+      );
     });
 
-    it('deve retornar datas importantes mesmo sem instituteId', async () => {
-      const userWithoutInstitute: AuthUser = {
-        ...mockUser,
-        instituteId: null,
-      };
+    it('deve retornar lista de datas importantes com instituteId', async () => {
+      const user: AuthUser = {
+        universityId: 1,
+        instituteId: 10,
+      } as AuthUser;
+
+      mockInstituteRepository.findById.mockResolvedValue({
+        id: 10,
+        campusId: 5,
+      });
 
       const mockDates = [
         {
           id: 2,
-          name: 'Feriado Nacional',
-          date: new Date('2025-04-21'),
-          type: ImportDateType.DAY_OFF,
+          name: 'Semana de provas',
+          date: new Date('2025-06-10'),
+          type: 'EXAM',
           shouldNotify: false,
-          campusId: null,
-          universityId: 20,
+          campusId: 5,
+          universityId: 1,
         },
       ];
 
       mockImportantDateRepository.findAll.mockResolvedValue(mockDates);
 
-      const result = await service.execute(userWithoutInstitute);
+      const result = await service.execute(user);
 
+      expect(instituteRepository.findById).toHaveBeenCalledWith(10);
+      expect(importantDatesRepository.findAll).toHaveBeenCalledWith(
+        expect.any(Date),
+        1,
+        5,
+      );
       expect(result).toEqual(mockDates);
-      expect(instituteRepository.findById).not.toHaveBeenCalled();
-      expect(importantDateRepository.findAll).toHaveBeenCalledTimes(1);
     });
 
-    it('deve lançar InvalidUniversityException quando usuário não tem universityId', async () => {
-      const invalidUser: AuthUser = {
-        ...mockUser,
-        universityId: null,
-      };
+    it('deve lançar InvalidUniversityException quando universityId não for informado', async () => {
+      const user: AuthUser = {} as AuthUser;
 
-      await expect(service.execute(invalidUser)).rejects.toThrow(
+      await expect(service.execute(user)).rejects.toThrow(
         InvalidUniversityException,
       );
 
-      expect(instituteRepository.findById).not.toHaveBeenCalled();
-      expect(importantDateRepository.findAll).not.toHaveBeenCalled();
+      expect(importantDatesRepository.findAll).not.toHaveBeenCalled();
     });
 
-    it('deve passar campusId como null quando instituto não é encontrado', async () => {
-      mockInstituteRepository.findById.mockResolvedValue(null);
+    it('deve retornar array vazio quando não houver datas importantes', async () => {
+      const user: AuthUser = {
+        universityId: 1,
+      } as AuthUser;
 
-      const mockDates = [
-        {
-          id: 3,
-          name: 'Evento Geral',
-          date: new Date('2025-06-01'),
-          type: ImportDateType.DAY_OFF,
-          shouldNotify: true,
-          campusId: null,
-          universityId: 20,
-        },
-      ];
+      mockImportantDateRepository.findAll.mockResolvedValue([]);
 
-      mockImportantDateRepository.findAll.mockResolvedValue(mockDates);
+      const result = await service.execute(user);
 
-      const result = await service.execute(mockUser);
-
-      expect(result).toEqual(mockDates);
-      expect(instituteRepository.findById).toHaveBeenCalledWith(10);
-      expect(importantDateRepository.findAll).toHaveBeenCalledWith(
-        expect.any(Date),
-        20,
-        null,
-      );
+      expect(result).toEqual([]);
+      expect(importantDatesRepository.findAll).toHaveBeenCalledTimes(1);
     });
   });
 });

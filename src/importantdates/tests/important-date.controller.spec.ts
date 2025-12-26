@@ -3,7 +3,7 @@ import { ImportanteDateController } from '../important-date.controller';
 import { FindAllImportantDate } from '../services/find-all-important-date.service';
 import { ImportantDateResponseDto } from '../dtos/important-date.dto';
 import { ImportDateType } from '@prisma/client';
-import type { AuthUser } from 'src/common/guards/auth.guard';
+import type { AuthUser } from '../../common/guards/auth.guard';
 
 describe('ImportanteDateController', () => {
   let controller: ImportanteDateController;

@@ -1,8 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { InstituteRepository } from 'src/institutes/repositories/institute.repository';
+import { InstituteRepository } from '../../institutes/repositories/institute.repository';
 import { ImportantDateRepository } from '../repositories/important-date.repository';
-import { InvalidUniversityException } from 'src/common/exceptions/invalid-university.exception';
-import { AuthUser } from 'src/common/guards/auth.guard';
+import { InvalidUniversityException } from '../../common/exceptions/invalid-university.exception';
+import { AuthUser } from '../../common/guards/auth.guard';
 import { importantDates } from '../entities/importante-date.entity';
 
 @Injectable()
