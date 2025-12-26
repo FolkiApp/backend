@@ -17,10 +17,7 @@ describe('ImportantDateRepository', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         ImportantDateRepository,
-        {
-          provide: PrismaService,
-          useValue: mockPrismaService,
-        },
+        { provide: PrismaService, useValue: mockPrismaService },
       ],
     }).compile();
 
@@ -33,31 +30,32 @@ describe('ImportantDateRepository', () => {
   });
 
   describe('findAll', () => {
-    it('deve retornar datas importantes a partir do início do ano, filtradas por universidade e campus', async () => {
-      const startOfYear = new Date(2025, 0, 1);
-      const universityId = 1;
-      const campusId = 2;
+    const startOfYear = new Date(2025, 0, 1);
+    const universityId = 1;
 
-      const mockImportantDates = [
-        {
-          id: 1,
-          name: 'Início do semestre',
-          date: new Date('2025-02-10'),
-          type: ImportDateType.GENERAL,
-          shouldNotify: true,
-          campusId: 2,
-          universityId: 1,
-        },
-        {
-          id: 2,
-          name: 'Feriado',
-          date: new Date('2025-04-21'),
-          type: ImportDateType.DAY_OFF,
-          shouldNotify: false,
-          campusId: 2,
-          universityId: 1,
-        },
-      ];
+    const mockImportantDates = [
+      {
+        id: 1,
+        name: 'Início do semestre',
+        date: new Date('2025-02-10'),
+        type: ImportDateType.GENERAL,
+        shouldNotify: true,
+        campusId: 2,
+        universityId: 1,
+      },
+      {
+        id: 2,
+        name: 'Feriado',
+        date: new Date('2025-04-21'),
+        type: ImportDateType.DAY_OFF,
+        shouldNotify: false,
+        campusId: 2,
+        universityId: 1,
+      },
+    ];
+
+    it('retorna datas importantes filtradas por universidade e campus', async () => {
+      const campusId = 2;
 
       mockPrismaService.important_date.findMany.mockResolvedValue(
         mockImportantDates,
@@ -69,24 +67,23 @@ describe('ImportantDateRepository', () => {
         campusId,
       );
 
-      expect(result).toEqual(mockImportantDates);
+      expect(result).toEqual(
+        mockImportantDates.map((d) => ({ ...d, type: d.type })),
+      );
+
       expect(prismaService.important_date.findMany).toHaveBeenCalledWith({
         orderBy: { date: 'asc' },
         where: {
           date: { gte: startOfYear },
           universityId,
-          campusId,
+          OR: [{ campusId }, { campusId: null }],
         },
       });
-      expect(prismaService.important_date.findMany).toHaveBeenCalledTimes(1);
     });
 
-    it('deve retornar datas importantes com campusId null', async () => {
-      const startOfYear = new Date(2025, 0, 1);
-      const universityId = 1;
+    it('retorna datas importantes com campusId null', async () => {
       const campusId = null;
-
-      const mockImportantDates = [
+      const mockDates = [
         {
           id: 3,
           name: 'Evento Geral',
@@ -98,9 +95,7 @@ describe('ImportantDateRepository', () => {
         },
       ];
 
-      mockPrismaService.important_date.findMany.mockResolvedValue(
-        mockImportantDates,
-      );
+      mockPrismaService.important_date.findMany.mockResolvedValue(mockDates);
 
       const result = await repository.findAll(
         startOfYear,
@@ -108,22 +103,22 @@ describe('ImportantDateRepository', () => {
         campusId,
       );
 
-      expect(result).toEqual(mockImportantDates);
+      expect(result).toEqual(mockDates.map((d) => ({ ...d, type: d.type })));
+
       expect(prismaService.important_date.findMany).toHaveBeenCalledWith({
         orderBy: { date: 'asc' },
         where: {
           date: { gte: startOfYear },
           universityId,
-          campusId: null,
+          OR: [{ campusId: null }],
         },
       });
-      expect(prismaService.important_date.findMany).toHaveBeenCalledTimes(1);
     });
 
-    it('deve retornar array vazio quando não houver datas importantes', async () => {
+    it('retorna array vazio quando não houver datas importantes', async () => {
       mockPrismaService.important_date.findMany.mockResolvedValue([]);
 
-      const result = await repository.findAll(new Date(2025, 0, 1), 1, null);
+      const result = await repository.findAll(startOfYear, universityId, null);
 
       expect(result).toEqual([]);
       expect(prismaService.important_date.findMany).toHaveBeenCalledTimes(1);

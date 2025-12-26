@@ -1,12 +1,12 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { FindAllImportantDate } from '../services/find-all-important-date.service';
+import { FindAllImportantDateService } from '../services/find-all-important-date.service';
 import { InstituteRepository } from '../../institutes/repositories/institute.repository';
 import { ImportantDateRepository } from '../repositories/important-date.repository';
 import { InvalidUniversityException } from '../../common/exceptions/invalid-university.exception';
 import { AuthUser } from '../../common/guards/auth.guard';
 
-describe('FindAllImportantDate', () => {
-  let service: FindAllImportantDate;
+describe('FindAllImportantDateService', () => {
+  let service: FindAllImportantDateService;
   let instituteRepository: InstituteRepository;
   let importantDatesRepository: ImportantDateRepository;
 
@@ -19,13 +19,12 @@ describe('FindAllImportantDate', () => {
   };
 
   beforeEach(async () => {
+    jest.clearAllMocks();
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
-        FindAllImportantDate,
-        {
-          provide: InstituteRepository,
-          useValue: mockInstituteRepository,
-        },
+        FindAllImportantDateService,
+        { provide: InstituteRepository, useValue: mockInstituteRepository },
         {
           provide: ImportantDateRepository,
           useValue: mockImportantDateRepository,
@@ -33,22 +32,20 @@ describe('FindAllImportantDate', () => {
       ],
     }).compile();
 
-    service = module.get<FindAllImportantDate>(FindAllImportantDate);
+    service = module.get<FindAllImportantDateService>(
+      FindAllImportantDateService,
+    );
     instituteRepository = module.get<InstituteRepository>(InstituteRepository);
     importantDatesRepository = module.get<ImportantDateRepository>(
       ImportantDateRepository,
     );
   });
 
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
+  const startOfYearMatcher = expect.any(Date);
 
   describe('execute', () => {
-    it('deve retornar lista de datas importantes sem instituteId', async () => {
-      const user: AuthUser = {
-        universityId: 1,
-      } as AuthUser;
+    it('retorna datas importantes sem instituteId', async () => {
+      const user: AuthUser = { universityId: 1 } as AuthUser;
 
       const mockDates = [
         {
@@ -67,19 +64,15 @@ describe('FindAllImportantDate', () => {
       const result = await service.execute(user);
 
       expect(result).toEqual(mockDates);
-      expect(importantDatesRepository.findAll).toHaveBeenCalledTimes(1);
       expect(importantDatesRepository.findAll).toHaveBeenCalledWith(
-        expect.any(Date),
+        startOfYearMatcher,
         user.universityId,
         null,
       );
     });
 
-    it('deve retornar lista de datas importantes com instituteId', async () => {
-      const user: AuthUser = {
-        universityId: 1,
-        instituteId: 10,
-      } as AuthUser;
+    it('retorna datas importantes com instituteId', async () => {
+      const user: AuthUser = { universityId: 1, instituteId: 10 } as AuthUser;
 
       mockInstituteRepository.findById.mockResolvedValue({
         id: 10,
@@ -104,14 +97,14 @@ describe('FindAllImportantDate', () => {
 
       expect(instituteRepository.findById).toHaveBeenCalledWith(10);
       expect(importantDatesRepository.findAll).toHaveBeenCalledWith(
-        expect.any(Date),
+        startOfYearMatcher,
         1,
         5,
       );
       expect(result).toEqual(mockDates);
     });
 
-    it('deve lançar InvalidUniversityException quando universityId não for informado', async () => {
+    it('lança InvalidUniversityException quando universityId não for informado', async () => {
       const user: AuthUser = {} as AuthUser;
 
       await expect(service.execute(user)).rejects.toThrow(
@@ -119,19 +112,22 @@ describe('FindAllImportantDate', () => {
       );
 
       expect(importantDatesRepository.findAll).not.toHaveBeenCalled();
+      expect(instituteRepository.findById).not.toHaveBeenCalled();
     });
 
-    it('deve retornar array vazio quando não houver datas importantes', async () => {
-      const user: AuthUser = {
-        universityId: 1,
-      } as AuthUser;
+    it('retorna array vazio quando não houver datas importantes', async () => {
+      const user: AuthUser = { universityId: 1 } as AuthUser;
 
       mockImportantDateRepository.findAll.mockResolvedValue([]);
 
       const result = await service.execute(user);
 
       expect(result).toEqual([]);
-      expect(importantDatesRepository.findAll).toHaveBeenCalledTimes(1);
+      expect(importantDatesRepository.findAll).toHaveBeenCalledWith(
+        startOfYearMatcher,
+        user.universityId,
+        null,
+      );
     });
   });
 });

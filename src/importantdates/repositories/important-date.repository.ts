@@ -1,23 +1,34 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
-import { importantDates } from '../entities/importante-date.entity';
+import {
+  importantDate,
+  ImportantDateType,
+} from '../entities/important-date.entity';
 
 @Injectable()
 export class ImportantDateRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  findAll(
+  async findAll(
     startOfYear: Date,
     universityId: number,
     campusId: number | null,
-  ): Promise<importantDates[]> {
-    return this.prisma.important_date.findMany({
+  ): Promise<importantDate[]> {
+    const dates = await this.prisma.important_date.findMany({
       orderBy: { date: 'asc' },
       where: {
         date: { gte: startOfYear },
         universityId,
-        campusId,
+        OR:
+          campusId !== null
+            ? [{ campusId }, { campusId: null }]
+            : [{ campusId: null }],
       },
     });
+
+    return dates.map((d) => ({
+      ...d,
+      type: d.type as ImportantDateType,
+    }));
   }
 }
