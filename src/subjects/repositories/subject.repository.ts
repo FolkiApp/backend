@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
-import { subject } from '@prisma/client';
+import { Subject } from '../entities/subject.entity';
 
 @Injectable()
 export class SubjectRepository {
   constructor(private prisma: PrismaService) {}
 
-  async findManyByCodes(codes: string[]): Promise<subject[]> {
+  async findManyByCodes(codes: string[]): Promise<Subject[]> {
     return this.prisma.subject.findMany({
       where: {
         code: {
@@ -20,7 +20,7 @@ export class SubjectRepository {
     code: string,
     name: string,
     universityId: number,
-  ): Promise<subject> {
+  ): Promise<Subject> {
     return this.prisma.subject.create({
       data: {
         code,
@@ -30,7 +30,7 @@ export class SubjectRepository {
     });
   }
 
-  async findById(subjectId: number): Promise<subject | null> {
+  async findById(subjectId: number): Promise<Subject | null> {
     return this.prisma.subject.findUnique({
       where: { id: subjectId },
     });
