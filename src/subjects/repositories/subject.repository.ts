@@ -29,4 +29,10 @@ export class SubjectRepository {
       },
     });
   }
+
+  async findById(subjectId: number): Promise<subject | null> {
+    return this.prisma.subject.findUnique({
+      where: { id: subjectId },
+    });
+  }
 }
