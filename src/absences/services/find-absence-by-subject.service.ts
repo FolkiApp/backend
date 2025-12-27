@@ -5,7 +5,6 @@ import { UserAbsence } from '../entities/absence.entity';
 import { SubjectRepository } from '../../subjects/repositories/subject.repository';
 import { InvalidSubjectIdException } from '../../subjects/exceptions/subject-fetch-id.exception';
 import { AbsenceBySubjectException } from '../exceptions/absence-by-subject.exception';
-import { NotFoundAbsences } from '../exceptions/absence-not-found.exception';
 
 @Injectable()
 export class AbsenceBySubjectService {
@@ -27,28 +26,18 @@ export class AbsenceBySubjectService {
     subjectId: number,
   ): Promise<UserAbsence[]> {
     try {
-      const subjects = await this.absenceRepository.findBySubject(
+      const absences = await this.absenceRepository.findBySubject(
         userId,
         subjectId,
       );
       this.logger.log({
         message: 'Successfully fetched subject absences',
         userId: userId,
-        absences: subjects.length,
+        absences: absences.length,
       });
-      if (subjects.length == 0) {
-        this.logger.error({
-          message: 'Not found any absences',
-          userId: userId,
-        });
-        throw new NotFoundAbsences();
-      }
-      return subjects;
-    } catch (error: unknown) {
-      if (error instanceof NotFoundAbsences) {
-        throw error;
-      }
 
+      return absences;
+    } catch (error: unknown) {
       this.logger.error({
         message: 'Error fetching subject absences',
         error: error instanceof Error ? error.message : error,
@@ -61,6 +50,7 @@ export class AbsenceBySubjectService {
   private async findSubject(subjectId: number) {
     try {
       const subject = await this.subjectRepository.findById(subjectId);
+
       if (!subject) {
         this.logger.warn({
           message: 'Invalid SubjectID',
@@ -68,14 +58,20 @@ export class AbsenceBySubjectService {
         });
         throw new InvalidSubjectIdException();
       }
+
       return subject;
     } catch (error: unknown) {
+      if (error instanceof InvalidSubjectIdException) {
+        throw error;
+      }
+
       this.logger.error({
         message: 'Error fetching subject',
         subjectId,
         error: error instanceof Error ? error.message : error,
       });
-      throw new InvalidSubjectIdException();
+
+      throw new AbsenceBySubjectException();
     }
   }
 }

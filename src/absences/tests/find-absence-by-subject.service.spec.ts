@@ -3,7 +3,6 @@ import { AbsenceBySubjectService } from '../services/find-absence-by-subject.ser
 import { AbsenceRepository } from '../repositories/absence.repository';
 import { SubjectRepository } from '../../subjects/repositories/subject.repository';
 import { UserAbsence } from '../entities/absence.entity';
-import { NotFoundAbsences } from '../exceptions/absence-not-found.exception';
 import { InvalidSubjectIdException } from '../../subjects/exceptions/subject-fetch-id.exception';
 import { AbsenceBySubjectException } from '../exceptions/absence-by-subject.exception';
 
@@ -98,24 +97,8 @@ describe('AbsenceBySubjectService', () => {
       await expect(service.execute(mockAuthUser, 999)).rejects.toThrow(
         InvalidSubjectIdException,
       );
+
       expect(subjectRepository.findById).toHaveBeenCalledWith(999);
-    });
-
-    it('deve lançar NotFoundAbsences quando o usuário não tem faltas', async () => {
-      const mockSubject = {
-        id: 7,
-        code: 'MAC0110',
-        name: 'Introdução à Computação',
-        universityId: 1,
-      };
-
-      mockSubjectRepository.findById.mockResolvedValue(mockSubject);
-      mockAbsenceRepository.findBySubject.mockResolvedValue([]);
-
-      await expect(service.execute(mockAuthUser, 7)).rejects.toThrow(
-        NotFoundAbsences,
-      );
-      expect(absenceRepository.findBySubject).toHaveBeenCalledWith(3, 7);
     });
 
     it('deve lançar AbsenceBySubjectException em caso de erro ao buscar faltas', async () => {
@@ -136,13 +119,13 @@ describe('AbsenceBySubjectService', () => {
       );
     });
 
-    it('deve lançar InvalidSubjectIdException em caso de erro ao buscar a disciplina', async () => {
+    it('deve lançar AbsenceBySubjectException em caso de erro ao buscar a disciplina', async () => {
       mockSubjectRepository.findById.mockRejectedValue(
         new Error('Database error'),
       );
 
       await expect(service.execute(mockAuthUser, 7)).rejects.toThrow(
-        InvalidSubjectIdException,
+        AbsenceBySubjectException,
       );
     });
   });
