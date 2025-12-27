@@ -2,8 +2,8 @@ import { Injectable, Logger } from '@nestjs/common';
 import { AuthUser } from '../../common/guards/auth.guard';
 import { AbsenceRepository } from '../repositories/absence.repository';
 import { UserAbsence } from '../entities/absence.entity';
-import { SubjectRepository } from 'src/subjects/repositories/subject.repository';
-import { InvalidSubjectIdException } from 'src/subjects/exceptions/subject-fetch-id.exception';
+import { SubjectRepository } from '../../subjects/repositories/subject.repository';
+import { InvalidSubjectIdException } from '../../subjects/exceptions/subject-fetch-id.exception';
 import { AbsenceBySubjectException } from '../exceptions/absence-by-subject.exception';
 import { NotFoundAbsences } from '../exceptions/absence-not-found.exception';
 
