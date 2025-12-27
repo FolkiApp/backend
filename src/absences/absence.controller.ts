@@ -21,6 +21,17 @@ export class AbsenceController {
     @Param('subjectId') subjectId: number,
     @CurrentUser() authUser: AuthUser,
   ): Promise<AbsenceDto[]> {
-    return this.absenceService.execute(authUser, subjectId);
+    const absences = await this.absenceService.execute(authUser, subjectId);
+
+    return absences.map(
+      (absence) =>
+        new AbsenceDto(
+          absence.id,
+          absence.date,
+          absence.createdAt,
+          absence.userId,
+          absence.userSubjectId,
+        ),
+    );
   }
 }

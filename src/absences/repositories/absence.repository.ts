@@ -10,9 +10,14 @@ export class AbsenceRepository {
     userId: number,
     subjectId: number,
   ): Promise<UserAbsence[]> {
-    return this.prisma.user_absence.findMany({
-      where: { userId: userId, userSubjectId: subjectId },
+    const absences = await this.prisma.user_absence.findMany({
+      where: { userId, userSubjectId: subjectId },
       orderBy: { date: 'desc' },
     });
+
+    return absences.map(
+      (a) =>
+        new UserAbsence(a.id, a.date, a.createdAt, a.userId, a.userSubjectId),
+    );
   }
 }

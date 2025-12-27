@@ -2,10 +2,10 @@ import { Injectable, Logger } from '@nestjs/common';
 import { AuthUser } from '../../common/guards/auth.guard';
 import { AbsenceRepository } from '../repositories/absence.repository';
 import { UserAbsence } from '../entities/absence.entity';
-import { InvalidUniversityException } from 'src/common/exceptions/invalid-university.exception';
 import { SubjectRepository } from 'src/subjects/repositories/subject.repository';
 import { InvalidSubjectIdException } from 'src/subjects/exceptions/subject-fetch-id.exception';
 import { AbsenceBySubjectException } from '../exceptions/absence-by-subject.exception';
+import { NotFoundAbsences } from '../exceptions/absence-not-found.exception';
 
 @Injectable()
 export class AbsenceBySubjectService {
@@ -18,23 +18,7 @@ export class AbsenceBySubjectService {
 
   async execute(user: AuthUser, subjectId: number): Promise<UserAbsence[]> {
     this.logger.log({ message: 'Executing findAllAbsences per subject' });
-
-    if (!user.universityId) {
-      this.logger.warn({
-        message: 'Invalid university ID for user',
-        userId: user.id,
-      });
-      throw new InvalidUniversityException();
-    }
-    let subject = this.subjectRepository.findById(subjectId);
-    if (!subject) {
-      this.logger.warn({
-        message: 'Invalid SubjectID',
-        subjectId: subjectId,
-      });
-      throw new InvalidSubjectIdException();
-    }
-
+    await this.findSubject(subjectId);
     return this.findAllBySubject(user.id, subjectId);
   }
 
@@ -52,13 +36,46 @@ export class AbsenceBySubjectService {
         userId: userId,
         absences: subjects.length,
       });
+      if (subjects.length == 0) {
+        this.logger.error({
+          message: 'Not found any absences',
+          userId: userId,
+        });
+        throw new NotFoundAbsences();
+      }
       return subjects;
-    } catch (error) {
+    } catch (error: unknown) {
+      if (error instanceof NotFoundAbsences) {
+        throw error;
+      }
+
       this.logger.error({
         message: 'Error fetching subject absences',
-        error: error,
+        error: error instanceof Error ? error.message : error,
       });
+
       throw new AbsenceBySubjectException();
+    }
+  }
+
+  private async findSubject(subjectId: number) {
+    try {
+      const subject = await this.subjectRepository.findById(subjectId);
+      if (!subject) {
+        this.logger.warn({
+          message: 'Invalid SubjectID',
+          subjectId,
+        });
+        throw new InvalidSubjectIdException();
+      }
+      return subject;
+    } catch (error: unknown) {
+      this.logger.error({
+        message: 'Error fetching subject',
+        subjectId,
+        error: error instanceof Error ? error.message : error,
+      });
+      throw new InvalidSubjectIdException();
     }
   }
 }
