@@ -3,12 +3,16 @@ import { AbsenceController } from '../absence.controller';
 import { AbsenceBySubjectService } from '../services/find-absence-by-subject.service';
 import { UserAbsence } from '../entities/absence.entity';
 import { AbsenceDto } from '../dto/absence.dto';
+import { PostAbsence } from '../services/post-absence.service';
+import { CreateAbsenceDto } from '../dto/create-absence.dto';
+import type { AuthUser } from '../../common/guards/auth.guard';
 
 describe('AbsenceController', () => {
   let controller: AbsenceController;
   let absenceService: AbsenceBySubjectService;
+  let postService: PostAbsence;
 
-  const mockAuthUser = {
+  const mockAuthUser: AuthUser = {
     id: 3,
     email: 'user@example.com',
     name: 'Test User',
@@ -24,6 +28,10 @@ describe('AbsenceController', () => {
     execute: jest.fn(),
   };
 
+  const mockPostService = {
+    execute: jest.fn(),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [AbsenceController],
@@ -32,6 +40,10 @@ describe('AbsenceController', () => {
           provide: AbsenceBySubjectService,
           useValue: mockAbsenceService,
         },
+        {
+          provide: PostAbsence,
+          useValue: mockPostService,
+        },
       ],
     }).compile();
 
@@ -39,6 +51,7 @@ describe('AbsenceController', () => {
     absenceService = module.get<AbsenceBySubjectService>(
       AbsenceBySubjectService,
     );
+    postService = module.get<PostAbsence>(PostAbsence);
   });
 
   afterEach(() => {
@@ -116,6 +129,46 @@ describe('AbsenceController', () => {
       expect(result[0].createdAt).toEqual(new Date('2025-03-20T14:00:00'));
       expect(result[0].userId).toBe(10);
       expect(result[0].userSubjectId).toBe(15);
+    });
+  });
+
+  describe('postAbsence', () => {
+    it('deve chamar o serviço de postagem e retornar DTO', async () => {
+      const created = new UserAbsence(
+        11,
+        new Date('2025-05-01'),
+        new Date('2025-05-01T09:00:00'),
+        3,
+        8,
+      );
+      mockPostService.execute.mockResolvedValue(created);
+
+      const body: CreateAbsenceDto = { date: '2025-05-01T00:00:00.000Z' };
+
+      const result = await controller.postAbsence(8, body, mockAuthUser);
+
+      expect(result).toBeInstanceOf(AbsenceDto);
+      expect(result.id).toBe(11);
+      expect(postService.execute).toHaveBeenCalled();
+      expect(postService.execute).toHaveBeenCalledWith(
+        mockAuthUser,
+        8,
+        expect.any(Date),
+      );
+    });
+
+    it('deve propagar erro quando o serviço lançar', async () => {
+      const error = new Error('service fail');
+      mockPostService.execute.mockRejectedValue(error);
+
+      await expect(
+        controller.postAbsence(
+          8,
+          { date: '2025-05-01T00:00:00.000Z' } as CreateAbsenceDto,
+          mockAuthUser,
+        ),
+      ).rejects.toThrow(error);
+      expect(postService.execute).toHaveBeenCalled();
     });
   });
 });

@@ -20,4 +20,28 @@ export class AbsenceRepository {
         new UserAbsence(a.id, a.date, a.createdAt, a.userId, a.userSubjectId),
     );
   }
+
+  async postAbsence(
+    userId: number,
+    userSubjectId: number,
+    date: Date,
+  ): Promise<UserAbsence> {
+    const [created] = await this.prisma.$transaction([
+      this.prisma.user_absence.create({
+        data: { userSubjectId, date, userId },
+      }),
+      this.prisma.user_subject.update({
+        where: { id: userSubjectId },
+        data: { absences: { increment: 1 } },
+      }),
+    ]);
+
+    return new UserAbsence(
+      created.id,
+      created.date,
+      created.createdAt,
+      created.userId,
+      created.userSubjectId,
+    );
+  }
 }
