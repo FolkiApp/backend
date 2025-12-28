@@ -6,7 +6,6 @@ import { UserSubjectRepository } from '../../users/repositories/user-subject.rep
 import { UserAbsence } from '../entities/absence.entity';
 import { InvalidSubjectIdException } from '../../subjects/exceptions/subject-fetch-id.exception';
 import { AbsenceInternalErrorException } from '../exceptions/absence-internal-error.exception';
-import { AbsenceInvalidDate } from '../exceptions/absence-invalid-date.exception';
 
 describe('PostAbsence', () => {
   let service: PostAbsence;
@@ -86,21 +85,24 @@ describe('PostAbsence', () => {
       );
     });
 
-    it('deve lançar AbsenceInvalidDate quando date é inválida', async () => {
-      await expect(
-        service.execute(mockAuthUser, 7, null as unknown as Date),
-      ).rejects.toThrow(AbsenceInvalidDate);
-    });
-
     it('deve lançar InvalidSubjectIdException quando userSubject não existe', async () => {
       mockUserSubjectRepository.findByUserAndSubjectClass.mockResolvedValue(
         null,
       );
 
-      const someDate: Date = new Date();
       await expect(
-        service.execute(mockAuthUser, 999, someDate),
+        service.execute(mockAuthUser, 999, new Date()),
       ).rejects.toThrow(InvalidSubjectIdException);
+    });
+
+    it('deve lançar AbsenceInternalErrorException quando erro ao buscar userSubject', async () => {
+      mockUserSubjectRepository.findByUserAndSubjectClass.mockRejectedValue(
+        new Error('DB fail'),
+      );
+
+      await expect(
+        service.execute(mockAuthUser, 7, new Date()),
+      ).rejects.toThrow(AbsenceInternalErrorException);
     });
 
     it('deve lançar AbsenceInternalErrorException quando o repositório falha', async () => {

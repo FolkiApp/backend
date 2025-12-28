@@ -5,7 +5,6 @@ import { UserAbsence } from '../entities/absence.entity';
 import { InvalidSubjectIdException } from '../../subjects/exceptions/subject-fetch-id.exception';
 import { UserSubjectRepository } from '../../users/repositories/user-subject.repository';
 import { AbsenceInternalErrorException } from '../exceptions/absence-internal-error.exception';
-import { AbsenceInvalidDate } from '../exceptions/absence-invalid-date.exception';
 
 @Injectable()
 export class PostAbsence {
@@ -54,8 +53,11 @@ export class PostAbsence {
     }
   }
 
-  private async findUserSubject(userId: number, subjectId: number) {
-    let userSubject;
+  private async findUserSubject(
+    userId: number,
+    subjectId: number,
+  ): Promise<{ id: number }> {
+    let userSubject: { id: number } | null | undefined;
     try {
       userSubject = await this.userSubjectRepository.findByUserAndSubjectClass(
         userId,
