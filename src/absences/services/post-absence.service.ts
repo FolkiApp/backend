@@ -22,8 +22,8 @@ export class PostAbsence {
     date: Date,
   ): Promise<UserAbsence> {
     this.logger.log({ message: 'Executing post absence per subject' });
-    const userSubjectId = await this.findUserSubject(user.id, subjectId);
-    return this.postAbsence(user.id, userSubjectId.id, date);
+    const userSubject = await this.findUserSubject(user.id, subjectId);
+    return this.postAbsence(user.id, userSubject.id, date);
   }
 
   private async postAbsence(
@@ -32,9 +32,6 @@ export class PostAbsence {
     date: Date,
   ): Promise<UserAbsence> {
     try {
-      if (!date) {
-        throw new AbsenceInvalidDate();
-      }
       const absences = await this.absenceRepository.postAbsence(
         userId,
         userSubjectId,
@@ -48,9 +45,6 @@ export class PostAbsence {
 
       return absences;
     } catch (error: unknown) {
-      if (error instanceof AbsenceInvalidDate) {
-        throw error;
-      }
       this.logger.error({
         message: 'Error posting subject absences',
         error: error instanceof Error ? error.message : error,
@@ -61,20 +55,13 @@ export class PostAbsence {
   }
 
   private async findUserSubject(userId: number, subjectId: number) {
+    let userSubject;
     try {
-      const userSubject =
-        await this.userSubjectRepository.findByUserAndSubjectClass(
-          userId,
-          subjectId,
-        );
-      if (!userSubject) {
-        throw new InvalidSubjectIdException();
-      }
-      return userSubject;
+      userSubject = await this.userSubjectRepository.findByUserAndSubjectClass(
+        userId,
+        subjectId,
+      );
     } catch (error: unknown) {
-      if (error instanceof InvalidSubjectIdException) {
-        throw error;
-      }
       this.logger.error({
         message: 'Error fetching subject',
         subjectId,
@@ -83,5 +70,9 @@ export class PostAbsence {
 
       throw new AbsenceInternalErrorException();
     }
+    if (!userSubject) {
+      throw new InvalidSubjectIdException();
+    }
+    return userSubject;
   }
 }
