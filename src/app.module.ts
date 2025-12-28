@@ -6,6 +6,7 @@ import { UsersModule } from './users/users.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { ImportantDateModule } from './importantdates/important-date.module';
 import { InstitutesModule } from './institutes/institutes.module';
+import { AbsenceModule } from './absences/absence.module';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { InstitutesModule } from './institutes/institutes.module';
     UsersModule,
     ImportantDateModule,
     InstitutesModule,
+    AbsenceModule,
   ],
   controllers: [AppController],
   providers: [AppService],

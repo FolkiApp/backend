@@ -10,6 +10,7 @@ describe('SubjectRepository', () => {
     subject: {
       findMany: jest.fn(),
       create: jest.fn(),
+      findUnique: jest.fn(),
     },
   };
 
@@ -86,6 +87,39 @@ describe('SubjectRepository', () => {
           name: 'Análise de Algoritmos',
           universityId: 1,
         },
+      });
+    });
+  });
+
+  describe('findById', () => {
+    it('deve retornar uma matéria pelo id', async () => {
+      const mockSubject = {
+        id: 1,
+        code: 'MAC0110',
+        name: 'Introdução à Computação',
+        universityId: 1,
+      };
+
+      mockPrismaService.subject.findUnique = jest
+        .fn()
+        .mockResolvedValue(mockSubject);
+
+      const result = await repository.findById(1);
+
+      expect(result).toEqual(mockSubject);
+      expect(prismaService.subject.findUnique).toHaveBeenCalledWith({
+        where: { id: 1 },
+      });
+    });
+
+    it('deve retornar null quando a matéria não é encontrada', async () => {
+      mockPrismaService.subject.findUnique = jest.fn().mockResolvedValue(null);
+
+      const result = await repository.findById(999);
+
+      expect(result).toBeNull();
+      expect(prismaService.subject.findUnique).toHaveBeenCalledWith({
+        where: { id: 999 },
       });
     });
   });
