@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
-import { Prisma, subject_class } from '@prisma/client';
+import { Prisma } from '@prisma/client';
+import { SubjectClass } from '../entities/subject-class.entity';
 
 @Injectable()
 export class SubjectClassRepository {
@@ -12,7 +13,7 @@ export class SubjectClassRepository {
     year: number,
     semester: number,
     universityId: number,
-  ): Promise<subject_class | null> {
+  ): Promise<SubjectClass | null> {
     return this.prisma.subject_class.findFirst({
       where: {
         subjectId,
@@ -33,7 +34,7 @@ export class SubjectClassRepository {
     semester: number,
     universityId: number,
     observations: string,
-  ): Promise<subject_class> {
+  ): Promise<SubjectClass> {
     return this.prisma.subject_class.create({
       data: {
         subjectId,
@@ -49,10 +50,34 @@ export class SubjectClassRepository {
   async updateObservations(
     id: number,
     observations: string,
-  ): Promise<subject_class> {
+  ): Promise<SubjectClass> {
     return this.prisma.subject_class.update({
       where: { id },
       data: { observations },
     });
+  }
+
+  async findByIdAndUserId(
+    subjectClassId: number,
+    userId: number,
+  ): Promise<SubjectClass | null> {
+    const subjectClass = await this.prisma.subject_class.findFirst({
+      where: {
+        id: subjectClassId,
+        user_subject: { some: { userId } },
+      },
+    });
+
+    if (!subjectClass) return null;
+
+    return new SubjectClass(
+      subjectClass.id,
+      subjectClass.subjectId,
+      subjectClass.availableDays,
+      subjectClass.year,
+      subjectClass.semester,
+      subjectClass.universityId,
+      subjectClass.observations,
+    );
   }
 }

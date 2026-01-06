@@ -7,6 +7,7 @@ import { PrismaModule } from './prisma/prisma.module';
 import { ImportantDateModule } from './importantdates/important-date.module';
 import { InstitutesModule } from './institutes/institutes.module';
 import { AbsenceModule } from './absences/absence.module';
+import { ActivitiesModule } from './activities/activities.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { AbsenceModule } from './absences/absence.module';
     ImportantDateModule,
     InstitutesModule,
     AbsenceModule,
+    ActivitiesModule,
   ],
   controllers: [AppController],
   providers: [AppService],
