@@ -1,13 +1,11 @@
 export class SubjectClass {
-  id: number;
-  subjectId: number;
-  availableDays: unknown;
-  year: number;
-  semester: number;
-  universityId: number;
-  observations: string | null;
-
-  constructor(partial: Partial<SubjectClass>) {
-    Object.assign(this, partial);
-  }
+  constructor(
+    public id: number,
+    public subjectId: number,
+    public availableDays: unknown,
+    public year: number,
+    public semester: number,
+    public universityId: number | null,
+    public observations: string | null,
+  ) {}
 }

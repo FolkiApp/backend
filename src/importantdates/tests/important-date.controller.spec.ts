@@ -1,12 +1,12 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { ImportanteDateController } from '../important-date.controller';
+import { ImportantDateController } from '../important-date.controller';
 import { FindAllImportantDateService } from '../services/find-all-important-date.service';
 import { ImportantDateResponseDto } from '../dtos/important-date.dto';
 import { ImportDateType } from '@prisma/client';
 import type { AuthUser } from '../../common/guards/auth.guard';
 
-describe('ImportanteDateController', () => {
-  let controller: ImportanteDateController;
+describe('ImportantDateController', () => {
+  let controller: ImportantDateController;
   let findAllImportantDateService: FindAllImportantDateService;
 
   const mockFindAllImportantDateService = {
@@ -50,7 +50,7 @@ describe('ImportanteDateController', () => {
     jest.clearAllMocks();
 
     const module: TestingModule = await Test.createTestingModule({
-      controllers: [ImportanteDateController],
+      controllers: [ImportantDateController],
       providers: [
         {
           provide: FindAllImportantDateService,
@@ -59,7 +59,7 @@ describe('ImportanteDateController', () => {
       ],
     }).compile();
 
-    controller = module.get<ImportanteDateController>(ImportanteDateController);
+    controller = module.get<ImportantDateController>(ImportantDateController);
     findAllImportantDateService = module.get<FindAllImportantDateService>(
       FindAllImportantDateService,
     );

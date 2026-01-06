@@ -6,8 +6,8 @@ import { CurrentUser } from '../common/decorators/current-user.decorator';
 import type { AuthUser } from '../common/guards/auth.guard';
 import { ImportantDateResponseDto } from './dtos/important-date.dto';
 
-@Controller('important-date')
-export class ImportanteDateController {
+@Controller('important-dates')
+export class ImportantDateController {
   constructor(
     private findAllImportantDateService: FindAllImportantDateService,
   ) {}
@@ -16,9 +16,10 @@ export class ImportanteDateController {
   @Auth()
   @ApiBearerAuth()
   @ApiOperation({
-    summary: 'Get important dates for the authenticated user',
+    summary:
+      'Lista de datas importantes do usuário (feriados, eventos acadêmicos)',
     description:
-      "Retrieves a list of important dates based on the user's university and institute affiliation.",
+      'Retorna todas as datas importantes do usuário, como feriados e eventos acadêmicos',
   })
   async findAll(
     @CurrentUser() authUser: AuthUser,
