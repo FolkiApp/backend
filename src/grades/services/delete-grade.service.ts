@@ -5,7 +5,6 @@ import { UserSubjectsRepository } from '../../subjects/repositories/user-subject
 import { Grade } from '../entities/grade.entity';
 import { GradeNotFoundException } from '../exceptions/grade-not-found.exception';
 import { PermissionDeniedToDeleteGradeException } from '../exceptions/permission-denied-to-delete-grade.exception';
-import { UserBlockedException } from '../../activities/exceptions/user-blocked.exception';
 import { GradeDeleteException } from '../exceptions/grade-delete.exception';
 
 @Injectable()
@@ -23,8 +22,6 @@ export class DeleteGradeService {
       userId: user.id,
       gradeId,
     });
-
-    if (user.isBlocked) throw new UserBlockedException();
 
     const grade = await this.findGrade(gradeId);
     await this.verifyUserSubjectOwnership(user.id, grade.userSubjectId);

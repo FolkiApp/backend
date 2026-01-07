@@ -4,7 +4,6 @@ import { GradesRepository } from '../repositories/grades.repository';
 import { UserSubjectsRepository } from '../../subjects/repositories/user-subjects.repository';
 import { Grade } from '../entities/grade.entity';
 import { UserSubjectNotFoundException } from '../exceptions/user-subject-not-found.exception';
-import { UserBlockedException } from '../../activities/exceptions/user-blocked.exception';
 import { GradesFetchException } from '../exceptions/grades-fetch.exception';
 
 @Injectable()
@@ -22,8 +21,6 @@ export class GetAllGradesFromSubjectService {
       userId: user.id,
       userSubjectId,
     });
-
-    if (user.isBlocked) throw new UserBlockedException();
 
     await this.verifyUserSubject(user.id, userSubjectId);
     const grades = await this.fetchGrades(userSubjectId);

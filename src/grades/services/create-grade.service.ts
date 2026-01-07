@@ -5,7 +5,6 @@ import { UserSubjectsRepository } from '../../subjects/repositories/user-subject
 import { CreateGradeDto } from '../dto/create-grade.dto';
 import { Grade } from '../entities/grade.entity';
 import { UserSubjectNotFoundException } from '../exceptions/user-subject-not-found.exception';
-import { UserBlockedException } from '../../activities/exceptions/user-blocked.exception';
 import { GradeCreateException } from '../exceptions/grade-create.exception';
 
 @Injectable()
@@ -26,8 +25,6 @@ export class CreateGradeService {
       userId: user.id,
       userSubjectId: createGradeDto.userSubjectId,
     });
-
-    if (user.isBlocked) throw new UserBlockedException();
 
     await this.verifyUserSubject(user.id, createGradeDto.userSubjectId);
 
