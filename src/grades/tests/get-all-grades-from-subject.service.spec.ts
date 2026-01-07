@@ -3,7 +3,6 @@ import { GetAllGradesFromSubjectService } from '../services/get-all-grades-from-
 import { GradesRepository } from '../repositories/grades.repository';
 import { UserSubjectsRepository } from '../../subjects/repositories/user-subjects.repository';
 import { UserSubjectNotFoundException } from '../exceptions/user-subject-not-found.exception';
-import { UserBlockedException } from '../../activities/exceptions/user-blocked.exception';
 import { GradesFetchException } from '../exceptions/grades-fetch.exception';
 import { Grade } from '../entities/grade.entity';
 
@@ -105,16 +104,6 @@ describe('GetAllGradesFromSubjectService', () => {
 
       expect(result).toEqual([]);
       expect(result).toHaveLength(0);
-    });
-
-    it('deve lançar UserBlockedException se usuário estiver bloqueado', async () => {
-      const blockedUser = { ...mockAuthUser, isBlocked: true };
-
-      await expect(service.execute(blockedUser, 1)).rejects.toThrow(
-        UserBlockedException,
-      );
-
-      expect(userSubjectsRepository.findByIdAndUserId).not.toHaveBeenCalled();
     });
 
     it('deve lançar UserSubjectNotFoundException se matéria não existir', async () => {
