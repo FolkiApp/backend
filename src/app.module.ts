@@ -8,6 +8,7 @@ import { ImportantDateModule } from './importantdates/important-date.module';
 import { InstitutesModule } from './institutes/institutes.module';
 import { AbsenceModule } from './absences/absence.module';
 import { ActivitiesModule } from './activities/activities.module';
+import { GradesModule } from './grades/grades.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { ActivitiesModule } from './activities/activities.module';
     InstitutesModule,
     AbsenceModule,
     ActivitiesModule,
+    GradesModule,
   ],
   controllers: [AppController],
   providers: [AppService],
