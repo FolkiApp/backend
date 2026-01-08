@@ -154,4 +154,135 @@ describe('AbsenceRepository', () => {
       ).rejects.toThrow('DB error');
     });
   });
+
+  describe('findAbsenceById', () => {
+    it('deve retornar uma falta específica do usuário pelo id', async () => {
+      const mockAbsence = {
+        id: 5,
+        date: new Date('2025-03-12'),
+        createdAt: new Date('2025-03-12T11:00:00'),
+        userId: 3,
+        userSubjectId: 7,
+      };
+
+      mockPrismaService.user_absence.findFirst = jest
+        .fn()
+        .mockResolvedValue(mockAbsence);
+
+      const result = await repository.findAbsenceById(3, 5);
+
+      expect(result).toBeInstanceOf(UserAbsence);
+      expect(result).not.toBeNull();
+      expect(result!.id).toBe(5);
+      expect(result!.userId).toBe(3);
+      expect(result!.userSubjectId).toBe(7);
+      expect(mockPrismaService.user_absence.findFirst).toHaveBeenCalledWith({
+        where: { id: 5, userId: 3 },
+      });
+    });
+
+    it('deve retornar null quando a falta não existe', async () => {
+      mockPrismaService.user_absence.findFirst = jest
+        .fn()
+        .mockResolvedValue(null);
+
+      const result = await repository.findAbsenceById(3, 999);
+
+      expect(result).toBeNull();
+      expect(mockPrismaService.user_absence.findFirst).toHaveBeenCalledWith({
+        where: { id: 999, userId: 3 },
+      });
+    });
+
+    it('deve retornar null quando a falta existe mas pertence a outro usuário', async () => {
+      mockPrismaService.user_absence.findFirst = jest
+        .fn()
+        .mockResolvedValue(null);
+
+      const result = await repository.findAbsenceById(10, 5);
+
+      expect(result).toBeNull();
+      expect(mockPrismaService.user_absence.findFirst).toHaveBeenCalledWith({
+        where: { id: 5, userId: 10 },
+      });
+    });
+
+    it('deve propagar erro quando ocorre falha na busca', async () => {
+      mockPrismaService.user_absence.findFirst = jest
+        .fn()
+        .mockRejectedValue(new Error('DB error'));
+
+      await expect(repository.findAbsenceById(3, 5)).rejects.toThrow(
+        'DB error',
+      );
+    });
+  });
+
+  describe('deleteAbsence', () => {
+    it('deve deletar uma falta e decrementar contagem do usuário na disciplina', async () => {
+      const deletedAbsence = {
+        id: 5,
+        date: new Date('2025-03-12'),
+        createdAt: new Date('2025-03-12T11:00:00'),
+        userId: 3,
+        userSubjectId: 7,
+      };
+
+      mockPrismaService.user_absence.delete = jest
+        .fn()
+        .mockResolvedValue(deletedAbsence);
+      mockPrismaService.user_subject.update = jest.fn().mockResolvedValue({});
+
+      await repository.deleteAbsence(3, 5);
+
+      expect(mockPrismaService.user_absence.delete).toHaveBeenCalledWith({
+        where: { id: 5, userId: 3 },
+      });
+      expect(mockPrismaService.user_subject.update).toHaveBeenCalledWith({
+        where: { id: 7, userId: 3 },
+        data: { absences: { decrement: 1 } },
+      });
+    });
+
+    it('deve propagar erro quando tenta deletar falta que não existe', async () => {
+      mockPrismaService.user_absence.delete = jest
+        .fn()
+        .mockRejectedValue(new Error('Record to delete does not exist.'));
+
+      await expect(repository.deleteAbsence(3, 999)).rejects.toThrow(
+        'Record to delete does not exist.',
+      );
+    });
+
+    it('deve propagar erro quando o usuário não é o dono da falta', async () => {
+      mockPrismaService.user_absence.delete = jest
+        .fn()
+        .mockRejectedValue(new Error('Record to delete does not exist.'));
+
+      await expect(repository.deleteAbsence(10, 5)).rejects.toThrow(
+        'Record to delete does not exist.',
+      );
+    });
+
+    it('deve propagar erro quando ocorre falha na atualização do contador', async () => {
+      const deletedAbsence = {
+        id: 5,
+        date: new Date('2025-03-12'),
+        createdAt: new Date('2025-03-12T11:00:00'),
+        userId: 3,
+        userSubjectId: 7,
+      };
+
+      mockPrismaService.user_absence.delete = jest
+        .fn()
+        .mockResolvedValue(deletedAbsence);
+      mockPrismaService.user_subject.update = jest
+        .fn()
+        .mockRejectedValue(new Error('Update failed'));
+
+      await expect(repository.deleteAbsence(3, 5)).rejects.toThrow(
+        'Update failed',
+      );
+    });
+  });
 });
