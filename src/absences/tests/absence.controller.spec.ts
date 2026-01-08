@@ -12,7 +12,6 @@ describe('AbsenceController', () => {
   let controller: AbsenceController;
   let absenceService: AbsenceBySubjectService;
   let postService: PostAbsence;
-  let deleteService: DeleteAbsence;
 
   const mockAuthUser: AuthUser = {
     id: 3,
@@ -62,7 +61,6 @@ describe('AbsenceController', () => {
       AbsenceBySubjectService,
     );
     postService = module.get<PostAbsence>(PostAbsence);
-    deleteService = module.get<DeleteAbsence>(DeleteAbsence);
   });
 
   afterEach(() => {

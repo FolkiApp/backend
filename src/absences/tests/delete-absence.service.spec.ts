@@ -7,7 +7,6 @@ import { AbsenceInternalErrorException } from '../exceptions/absence-internal-er
 
 describe('DeleteAbsence', () => {
   let service: DeleteAbsence;
-  let repository: AbsenceRepository;
 
   const mockRepository = {
     findAbsenceById: jest.fn(),
@@ -26,7 +25,6 @@ describe('DeleteAbsence', () => {
     }).compile();
 
     service = module.get<DeleteAbsence>(DeleteAbsence);
-    repository = module.get<AbsenceRepository>(AbsenceRepository);
   });
 
   afterEach(() => {
@@ -103,14 +101,6 @@ describe('DeleteAbsence', () => {
     });
 
     it('deve garantir que apenas o proprietário da falta possa deletá-la', async () => {
-      const mockAbsence = new UserAbsence(
-        5,
-        new Date('2025-03-12'),
-        new Date('2025-03-12T11:00:00'),
-        3,
-        7,
-      );
-
       mockRepository.findAbsenceById.mockResolvedValue(null);
 
       const differentAuthUser = {
