@@ -160,13 +160,20 @@ describe('ImportantDateRepository', () => {
     });
 
     it('propaga erro quando o Prisma falhar', async () => {
+      const payload = {
+        name: 'Erro',
+        date: new Date(),
+        type: ImportantDateType.GENERAL,
+        shouldNotify: false,
+        campusId: null,
+        universityId: 1,
+      };
+
       mockPrismaService.important_date.create.mockRejectedValue(
         new Error('Create failed'),
       );
 
-      await expect(repository.create({} as any)).rejects.toThrow(
-        'Create failed',
-      );
+      await expect(repository.create(payload)).rejects.toThrow('Create failed');
     });
   });
 });

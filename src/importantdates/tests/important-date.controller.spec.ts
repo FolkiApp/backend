@@ -34,7 +34,7 @@ describe('ImportantDateController', () => {
     userVersion: '1.0.0',
   };
 
-  const mockImportantDates = [
+  const mockImportantDates: ImportantDate[] = [
     {
       id: 1,
       name: 'Início do semestre',
@@ -85,22 +85,24 @@ describe('ImportantDateController', () => {
 
       const result = await controller.findAll(authUser);
 
-      expect(result).toHaveLength(2);
       expect(findAllImportantDateService.execute).toHaveBeenCalledWith(
         authUser,
       );
+      expect(result).toHaveLength(2);
 
       result.forEach((item, index) => {
         const expected = mockImportantDates[index];
 
         expect(item).toBeInstanceOf(ImportantDateResponseDto);
-        expect(item.id).toBe(expected.id);
-        expect(item.name).toBe(expected.name);
-        expect(item.date).toBeInstanceOf(Date);
-        expect(item.type).toBe(expected.type);
-        expect(item.shouldNotify).toBe(expected.shouldNotify);
-        expect(item.campusId).toBe(expected.campusId);
-        expect(item.universityId).toBe(expected.universityId);
+        expect(item).toMatchObject({
+          id: expected.id,
+          name: expected.name,
+          date: expected.date,
+          type: expected.type,
+          shouldNotify: expected.shouldNotify,
+          campusId: expected.campusId,
+          universityId: expected.universityId,
+        });
       });
     });
 
@@ -126,7 +128,7 @@ describe('ImportantDateController', () => {
 
   describe('create', () => {
     it('cria uma nova data importante e retorna DTO', async () => {
-      const payload = {
+      const payload: Omit<ImportantDate, 'id'> = {
         name: 'Semana de provas',
         date: new Date('2025-06-10'),
         type: ImportantDateType.GENERAL,
@@ -135,11 +137,14 @@ describe('ImportantDateController', () => {
         universityId: 20,
       };
 
-      const created = { id: 99, ...payload };
+      const created: ImportantDate = {
+        id: 99,
+        ...payload,
+      };
 
       mockCreateImportantDateService.execute.mockResolvedValue(created);
 
-      const result = await controller.create(authUser, payload as any);
+      const result = await controller.create(authUser, payload);
 
       expect(createImportantDateService.execute).toHaveBeenCalledWith(
         payload,
@@ -151,11 +156,20 @@ describe('ImportantDateController', () => {
     });
 
     it('propaga erro quando o service falhar', async () => {
+      const payload: Omit<ImportantDate, 'id'> = {
+        name: 'Erro',
+        date: new Date(),
+        type: ImportantDateType.GENERAL,
+        shouldNotify: false,
+        campusId: null,
+        universityId: 20,
+      };
+
       mockCreateImportantDateService.execute.mockRejectedValue(
         new Error('Create error'),
       );
 
-      await expect(controller.create(authUser, {} as any)).rejects.toThrow(
+      await expect(controller.create(authUser, payload)).rejects.toThrow(
         'Create error',
       );
     });

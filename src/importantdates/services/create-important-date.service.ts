@@ -40,7 +40,7 @@ export class CreateImportantDateService {
     } catch (error) {
       this.logger.error({
         message: 'Error creating important date',
-        error,
+        error: error instanceof Error ? error.message : 'Unknown error',
       });
       throw new CreateImportantDateException(
         'Failed to create important date',
