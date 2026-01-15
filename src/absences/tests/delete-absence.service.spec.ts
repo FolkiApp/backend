@@ -4,6 +4,7 @@ import { AbsenceRepository } from '../repositories/absence.repository';
 import { UserAbsence } from '../entities/absence.entity';
 import { NotFoundAbsences } from '../exceptions/absence-not-found.exception';
 import { AbsenceInternalErrorException } from '../exceptions/absence-internal-error.exception';
+import { AbsenceUnauthorized } from '../exceptions/absence-unauthorized.exception';
 
 describe('DeleteAbsence', () => {
   let service: DeleteAbsence;
@@ -101,7 +102,9 @@ describe('DeleteAbsence', () => {
     });
 
     it('deve garantir que apenas o proprietário da falta possa deletá-la', async () => {
-      mockRepository.findAbsenceById.mockResolvedValue(null);
+      mockRepository.findAbsenceById.mockRejectedValue(
+        new AbsenceUnauthorized(),
+      );
 
       const differentAuthUser = {
         id: 10,
@@ -110,7 +113,7 @@ describe('DeleteAbsence', () => {
       };
 
       await expect(service.execute(differentAuthUser, 5)).rejects.toThrow(
-        NotFoundAbsences,
+        AbsenceUnauthorized,
       );
       expect(mockRepository.findAbsenceById).toHaveBeenCalledWith(10, 5);
       expect(mockRepository.deleteAbsence).not.toHaveBeenCalled();

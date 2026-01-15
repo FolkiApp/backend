@@ -4,6 +4,7 @@ import { AbsenceRepository } from '../repositories/absence.repository';
 import { UserAbsence } from '../entities/absence.entity';
 import { NotFoundAbsences } from '../exceptions/absence-not-found.exception';
 import { AbsenceInternalErrorException } from '../exceptions/absence-internal-error.exception';
+import { AbsenceUnauthorized } from '../exceptions/absence-unauthorized.exception';
 
 @Injectable()
 export class DeleteAbsence {
@@ -39,6 +40,9 @@ export class DeleteAbsence {
     try {
       absence = await this.absenceRepository.findAbsenceById(userId, absenceId);
     } catch (error: unknown) {
+      if (error instanceof AbsenceUnauthorized) {
+        throw error;
+      }
       this.logger.error({
         message: 'Error fetching absence',
         absenceId,
