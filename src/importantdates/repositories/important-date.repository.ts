@@ -31,4 +31,18 @@ export class ImportantDateRepository {
       type: d.type as ImportantDateType,
     }));
   }
+
+  async create(data: Omit<ImportantDate, 'id'>): Promise<ImportantDate> {
+    const created = await this.prisma.important_date.create({
+      data: {
+        ...data,
+        type: data.type,
+      },
+    });
+
+    return {
+      ...created,
+      type: created.type as ImportantDateType,
+    };
+  }
 }
