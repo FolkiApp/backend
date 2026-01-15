@@ -12,7 +12,11 @@ export class DeleteAbsence {
   constructor(private readonly absenceRepository: AbsenceRepository) {}
 
   async execute(user: AuthUser, absenceId: number) {
-    this.logger.log({ message: 'Executing findAllAbsences per subject' });
+    this.logger.log({
+      message: 'Executing delete absence',
+      user,
+      absenceId,
+    });
     await this.findAbsence(user.id, absenceId);
     await this.deleteAbsence(user.id, absenceId);
   }

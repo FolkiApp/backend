@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { UserAbsence } from '../entities/absence.entity';
+import { AbsenceUnauthorized } from '../exceptions/absence-unauthorized.exception';
 
 @Injectable()
 export class AbsenceRepository {
@@ -50,10 +51,14 @@ export class AbsenceRepository {
     absenceId: number,
   ): Promise<UserAbsence | null> {
     const absence = await this.prisma.user_absence.findFirst({
-      where: { id: absenceId, userId: userId },
+      where: { id: absenceId },
     });
 
     if (!absence) return null;
+
+    if (absence.userId != userId) {
+      throw new AbsenceUnauthorized();
+    }
 
     return new UserAbsence(
       absence.id,
@@ -65,12 +70,14 @@ export class AbsenceRepository {
   }
 
   async deleteAbsence(userId: number, absenceId: number) {
-    const deleted = await this.prisma.user_absence.delete({
-      where: { id: absenceId, userId: userId },
-    });
-    await this.prisma.user_subject.update({
-      where: { id: deleted.userSubjectId, userId: userId },
-      data: { absences: { decrement: 1 } },
+    await this.prisma.$transaction(async (prisma) => {
+      const deleted = await prisma.user_absence.delete({
+        where: { id: absenceId, userId: userId },
+      });
+      await prisma.user_subject.update({
+        where: { id: deleted.userSubjectId, userId: userId },
+        data: { absences: { decrement: 1 } },
+      });
     });
   }
 }

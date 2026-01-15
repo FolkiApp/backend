@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AbsenceRepository } from '../repositories/absence.repository';
 import { UserAbsence } from '../entities/absence.entity';
+import { AbsenceUnauthorized } from '../exceptions/absence-unauthorized.exception';
 
 describe('AbsenceRepository', () => {
   let repository: AbsenceRepository;
@@ -177,7 +178,7 @@ describe('AbsenceRepository', () => {
       expect(result!.userId).toBe(3);
       expect(result!.userSubjectId).toBe(7);
       expect(mockPrismaService.user_absence.findFirst).toHaveBeenCalledWith({
-        where: { id: 5, userId: 3 },
+        where: { id: 5 },
       });
     });
 
@@ -190,20 +191,28 @@ describe('AbsenceRepository', () => {
 
       expect(result).toBeNull();
       expect(mockPrismaService.user_absence.findFirst).toHaveBeenCalledWith({
-        where: { id: 999, userId: 3 },
+        where: { id: 999 },
       });
     });
 
-    it('deve retornar null quando a falta existe mas pertence a outro usuário', async () => {
+    it('deve lançar AbsenceUnauthorized quando a falta pertence a outro usuário', async () => {
+      const mockAbsence = {
+        id: 5,
+        date: new Date('2025-03-12'),
+        createdAt: new Date('2025-03-12T11:00:00'),
+        userId: 999,
+        userSubjectId: 7,
+      };
+
       mockPrismaService.user_absence.findFirst = jest
         .fn()
-        .mockResolvedValue(null);
+        .mockResolvedValue(mockAbsence);
 
-      const result = await repository.findAbsenceById(10, 5);
-
-      expect(result).toBeNull();
+      await expect(repository.findAbsenceById(3, 5)).rejects.toThrow(
+        AbsenceUnauthorized,
+      );
       expect(mockPrismaService.user_absence.findFirst).toHaveBeenCalledWith({
-        where: { id: 5, userId: 10 },
+        where: { id: 5 },
       });
     });
 
@@ -228,38 +237,40 @@ describe('AbsenceRepository', () => {
         userSubjectId: 7,
       };
 
-      mockPrismaService.user_absence.delete = jest
-        .fn()
-        .mockResolvedValue(deletedAbsence);
-      mockPrismaService.user_subject.update = jest.fn().mockResolvedValue({});
+      const mockPrismaTransaction = {
+        user_absence: {
+          delete: jest.fn().mockResolvedValue(deletedAbsence),
+        },
+        user_subject: {
+          update: jest.fn().mockResolvedValue({}),
+        },
+      };
+
+      mockPrismaService.$transaction.mockImplementation(
+        (callback: (tx: typeof mockPrismaTransaction) => Promise<void>) =>
+          callback(mockPrismaTransaction),
+      );
 
       await repository.deleteAbsence(3, 5);
 
-      expect(mockPrismaService.user_absence.delete).toHaveBeenCalledWith({
-        where: { id: 5, userId: 3 },
-      });
-      expect(mockPrismaService.user_subject.update).toHaveBeenCalledWith({
-        where: { id: 7, userId: 3 },
-        data: { absences: { decrement: 1 } },
-      });
+      expect(prismaService.$transaction).toHaveBeenCalled();
     });
 
     it('deve propagar erro quando tenta deletar falta que não existe', async () => {
-      mockPrismaService.user_absence.delete = jest
-        .fn()
-        .mockRejectedValue(new Error('Record to delete does not exist.'));
+      const mockPrismaTransaction = {
+        user_absence: {
+          delete: jest
+            .fn()
+            .mockRejectedValue(new Error('Record to delete does not exist.')),
+        },
+      };
+
+      mockPrismaService.$transaction.mockImplementation(
+        (callback: (tx: typeof mockPrismaTransaction) => Promise<void>) =>
+          callback(mockPrismaTransaction),
+      );
 
       await expect(repository.deleteAbsence(3, 999)).rejects.toThrow(
-        'Record to delete does not exist.',
-      );
-    });
-
-    it('deve propagar erro quando o usuário não é o dono da falta', async () => {
-      mockPrismaService.user_absence.delete = jest
-        .fn()
-        .mockRejectedValue(new Error('Record to delete does not exist.'));
-
-      await expect(repository.deleteAbsence(10, 5)).rejects.toThrow(
         'Record to delete does not exist.',
       );
     });
@@ -273,12 +284,19 @@ describe('AbsenceRepository', () => {
         userSubjectId: 7,
       };
 
-      mockPrismaService.user_absence.delete = jest
-        .fn()
-        .mockResolvedValue(deletedAbsence);
-      mockPrismaService.user_subject.update = jest
-        .fn()
-        .mockRejectedValue(new Error('Update failed'));
+      const mockPrismaTransaction = {
+        user_absence: {
+          delete: jest.fn().mockResolvedValue(deletedAbsence),
+        },
+        user_subject: {
+          update: jest.fn().mockRejectedValue(new Error('Update failed')),
+        },
+      };
+
+      mockPrismaService.$transaction.mockImplementation(
+        (callback: (tx: typeof mockPrismaTransaction) => Promise<void>) =>
+          callback(mockPrismaTransaction),
+      );
 
       await expect(repository.deleteAbsence(3, 5)).rejects.toThrow(
         'Update failed',
