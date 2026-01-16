@@ -1,12 +1,13 @@
 import { Get, Controller, Post, Body } from '@nestjs/common';
 import { Auth } from '../common/decorators/auth.decorator';
-import { ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiSecurity } from '@nestjs/swagger';
 import { FindAllImportantDateService } from './services/find-all-important-date.service';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import type { AuthUser } from '../common/guards/auth.guard';
 import { ImportantDateResponseDto } from './dtos/important-date.dto';
-import { ImportantDate } from './entities/important-date.entity';
 import { CreateImportantDateService } from './services/create-important-date.service';
+import { CreateImportantDateDto } from './dtos/create-importante-date.dto';
+import { ApiKey } from '../../src/common/decorators/api-key.decorator';
 
 @Controller('important-dates')
 export class ImportantDateController {
@@ -46,21 +47,17 @@ export class ImportantDateController {
   }
 
   @Post()
-  @Auth()
-  @ApiBearerAuth()
+  @ApiKey()
+  @ApiSecurity('api-key')
   @ApiOperation({
     summary: 'Cria uma nova data importante',
     description: 'Cria uma nova data importante para a universidade ou campus',
   })
   async create(
-    @CurrentUser() authUser: AuthUser,
-    @Body() data: Omit<ImportantDate, 'id'>,
+    @Body() data: CreateImportantDateDto,
   ): Promise<ImportantDateResponseDto> {
     {
-      const importantDate = await this.createImportantDateService.execute(
-        data,
-        authUser,
-      );
+      const importantDate = await this.createImportantDateService.execute(data);
       return new ImportantDateResponseDto(
         importantDate.id,
         importantDate.name,

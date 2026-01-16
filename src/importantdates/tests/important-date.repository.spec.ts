@@ -1,7 +1,8 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { PrismaService } from '../../prisma/prisma.service';
 import { ImportantDateRepository } from '../repositories/important-date.repository';
+import { PrismaService } from '../../prisma/prisma.service';
 import { ImportantDateType } from '../entities/important-date.entity';
+import { CreateImportantDateDto } from '../dtos/create-importante-date.dto';
 
 describe('ImportantDateRepository', () => {
   let repository: ImportantDateRepository;
@@ -20,7 +21,10 @@ describe('ImportantDateRepository', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         ImportantDateRepository,
-        { provide: PrismaService, useValue: mockPrismaService },
+        {
+          provide: PrismaService,
+          useValue: mockPrismaService,
+        },
       ],
     }).compile();
 
@@ -74,6 +78,7 @@ describe('ImportantDateRepository', () => {
       });
 
       expect(result).toHaveLength(2);
+
       result.forEach((item, index) => {
         expect(item).toMatchObject(prismaResult[index]);
         expect(Object.values(ImportantDateType)).toContain(item.type);
@@ -129,8 +134,8 @@ describe('ImportantDateRepository', () => {
   });
 
   describe('create', () => {
-    it('cria uma data importante e converte o tipo corretamente', async () => {
-      const payload = {
+    it('cria uma data importante com sucesso', async () => {
+      const payload: CreateImportantDateDto = {
         name: 'Semana de Provas',
         date: new Date('2025-07-10'),
         type: ImportantDateType.GENERAL,
@@ -155,15 +160,15 @@ describe('ImportantDateRepository', () => {
         },
       });
 
-      expect(result).toMatchObject(prismaResult);
+      expect(result).toEqual(prismaResult);
       expect(result.type).toBe(ImportantDateType.GENERAL);
     });
 
     it('propaga erro quando o Prisma falhar', async () => {
-      const payload = {
+      const payload: CreateImportantDateDto = {
         name: 'Erro',
         date: new Date(),
-        type: ImportantDateType.GENERAL,
+        type: ImportantDateType.DAY_OFF,
         shouldNotify: false,
         campusId: null,
         universityId: 1,

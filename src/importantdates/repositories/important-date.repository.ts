@@ -4,6 +4,7 @@ import {
   ImportantDate,
   ImportantDateType,
 } from '../entities/important-date.entity';
+import { CreateImportantDateDto } from '../dtos/create-importante-date.dto';
 
 @Injectable()
 export class ImportantDateRepository {
@@ -32,7 +33,7 @@ export class ImportantDateRepository {
     }));
   }
 
-  async create(data: Omit<ImportantDate, 'id'>): Promise<ImportantDate> {
+  async create(data: CreateImportantDateDto): Promise<ImportantDate> {
     const created = await this.prisma.important_date.create({
       data: {
         ...data,

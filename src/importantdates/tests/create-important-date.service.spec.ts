@@ -1,17 +1,15 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { Logger } from '@nestjs/common';
+
 import { CreateImportantDateService } from '../services/create-important-date.service';
 import { ImportantDateRepository } from '../repositories/important-date.repository';
-import { InvalidRoleException } from '../exceptions/invalid-role.excepetion';
+import { ImportantDateType } from '../entities/important-date.entity';
 import { CreateImportantDateException } from '../exceptions/create-important-date.exception';
-import { AuthUser } from 'src/common/guards/auth.guard';
-import {
-  ImportantDate,
-  ImportantDateType,
-} from '../entities/important-date.entity';
+import { CreateImportantDateDto } from '../dtos/create-importante-date.dto';
 
 describe('CreateImportantDateService', () => {
   let service: CreateImportantDateService;
-  let importantDateRepository: ImportantDateRepository;
+  let repository: ImportantDateRepository;
 
   const mockImportantDateRepository = {
     create: jest.fn(),
@@ -33,64 +31,64 @@ describe('CreateImportantDateService', () => {
     service = module.get<CreateImportantDateService>(
       CreateImportantDateService,
     );
-    importantDateRepository = module.get<ImportantDateRepository>(
-      ImportantDateRepository,
-    );
+    repository = module.get<ImportantDateRepository>(ImportantDateRepository);
+
+    // Evita poluir o output do teste com logs
+    jest.spyOn(Logger.prototype, 'log').mockImplementation(() => undefined);
+    jest.spyOn(Logger.prototype, 'error').mockImplementation(() => undefined);
   });
 
   describe('execute', () => {
-    const mockData: Omit<ImportantDate, 'id'> = {
-      name: 'Semester start',
-      date: new Date('2025-03-10'),
-      type: ImportantDateType.GENERAL,
-      shouldNotify: true,
-      campusId: null,
-      universityId: 1,
-    };
-
-    const mockAdminUser: AuthUser = {
-      id: 1,
-      isAdmin: true,
-    } as AuthUser;
-
-    const mockNonAdminUser: AuthUser = {
-      id: 2,
-      isAdmin: false,
-    } as AuthUser;
-
-    it('cria uma data importante quando o usuário é admin', async () => {
-      const mockCreatedDate: ImportantDate = {
-        id: 1,
-        ...mockData,
+    it('cria uma data importante com sucesso', async () => {
+      const payload: CreateImportantDateDto = {
+        name: 'Semana de Provas',
+        date: new Date('2025-07-10'),
+        type: ImportantDateType.GENERAL,
+        shouldNotify: true,
+        campusId: 2,
+        universityId: 1,
       };
 
-      mockImportantDateRepository.create.mockResolvedValue(mockCreatedDate);
+      const createdImportantDate = {
+        id: 100,
+        ...payload,
+      };
 
-      const result = await service.execute(mockData, mockAdminUser);
-
-      expect(result).toEqual(mockCreatedDate);
-      expect(importantDateRepository.create).toHaveBeenCalledWith(mockData);
-      expect(importantDateRepository.create).toHaveBeenCalledTimes(1);
-    });
-
-    it('lança InvalidRoleException quando o usuário não é admin', async () => {
-      await expect(service.execute(mockData, mockNonAdminUser)).rejects.toThrow(
-        InvalidRoleException,
+      mockImportantDateRepository.create.mockResolvedValue(
+        createdImportantDate,
       );
 
-      expect(importantDateRepository.create).not.toHaveBeenCalled();
+      const result = await service.execute(payload);
+
+      expect(repository.create).toHaveBeenCalledTimes(1);
+      expect(repository.create).toHaveBeenCalledWith(payload);
+
+      expect(result).toEqual(createdImportantDate);
     });
 
-    it('lança CreateImportantDateException quando o repository falha', async () => {
-      mockImportantDateRepository.create.mockRejectedValue(
-        new Error('Database error'),
-      );
+    it('loga erro e lança CreateImportantDateException quando o repository falhar', async () => {
+      const payload: CreateImportantDateDto = {
+        name: 'Evento com erro',
+        date: new Date(),
+        type: ImportantDateType.DAY_OFF,
+        shouldNotify: false,
+        campusId: null,
+        universityId: 1,
+      };
 
-      await expect(service.execute(mockData, mockAdminUser)).rejects.toThrow(
+      const repositoryError = new Error('Database error');
+
+      mockImportantDateRepository.create.mockRejectedValue(repositoryError);
+
+      await expect(service.execute(payload)).rejects.toBeInstanceOf(
         CreateImportantDateException,
       );
 
-      expect(importantDateRepository.create).toHaveBeenCalledWith(mockData);
+      await expect(service.execute(payload)).rejects.toThrow(
+        'Failed to create important date',
+      );
+
+      expect(repository.create).toHaveBeenCalledWith(payload);
     });
   });
 });

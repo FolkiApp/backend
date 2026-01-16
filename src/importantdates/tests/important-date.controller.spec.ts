@@ -3,22 +3,20 @@ import { ImportantDateController } from '../important-date.controller';
 import { FindAllImportantDateService } from '../services/find-all-important-date.service';
 import { CreateImportantDateService } from '../services/create-important-date.service';
 import { ImportantDateResponseDto } from '../dtos/important-date.dto';
-import {
-  ImportantDate,
-  ImportantDateType,
-} from '../entities/important-date.entity';
+import { ImportantDateType } from '../entities/important-date.entity';
+import { CreateImportantDateDto } from '../dtos/create-importante-date.dto';
 import type { AuthUser } from '../../common/guards/auth.guard';
 
 describe('ImportantDateController', () => {
   let controller: ImportantDateController;
-  let findAllImportantDateService: FindAllImportantDateService;
-  let createImportantDateService: CreateImportantDateService;
+  let findAllService: FindAllImportantDateService;
+  let createService: CreateImportantDateService;
 
-  const mockFindAllImportantDateService = {
+  const mockFindAllService = {
     execute: jest.fn(),
   };
 
-  const mockCreateImportantDateService = {
+  const mockCreateService = {
     execute: jest.fn(),
   };
 
@@ -34,27 +32,6 @@ describe('ImportantDateController', () => {
     userVersion: '1.0.0',
   };
 
-  const mockImportantDates: ImportantDate[] = [
-    {
-      id: 1,
-      name: 'Início do semestre',
-      date: new Date('2025-02-10'),
-      type: ImportantDateType.GENERAL,
-      shouldNotify: true,
-      campusId: 5,
-      universityId: 20,
-    },
-    {
-      id: 2,
-      name: 'Feriado Nacional',
-      date: new Date('2025-04-21'),
-      type: ImportantDateType.DAY_OFF,
-      shouldNotify: false,
-      campusId: null,
-      universityId: 20,
-    },
-  ];
-
   beforeEach(async () => {
     jest.clearAllMocks();
 
@@ -63,62 +40,79 @@ describe('ImportantDateController', () => {
       providers: [
         {
           provide: FindAllImportantDateService,
-          useValue: mockFindAllImportantDateService,
+          useValue: mockFindAllService,
         },
         {
           provide: CreateImportantDateService,
-          useValue: mockCreateImportantDateService,
+          useValue: mockCreateService,
         },
       ],
     }).compile();
 
     controller = module.get<ImportantDateController>(ImportantDateController);
-    findAllImportantDateService = module.get(FindAllImportantDateService);
-    createImportantDateService = module.get(CreateImportantDateService);
+    findAllService = module.get(FindAllImportantDateService);
+    createService = module.get(CreateImportantDateService);
   });
 
   describe('findAll', () => {
     it('retorna lista de ImportantDateResponseDto', async () => {
-      mockFindAllImportantDateService.execute.mockResolvedValue(
-        mockImportantDates,
-      );
+      const serviceResult = [
+        {
+          id: 1,
+          name: 'Início do semestre',
+          date: new Date('2025-02-10'),
+          type: ImportantDateType.GENERAL,
+          shouldNotify: true,
+          campusId: 5,
+          universityId: 20,
+        },
+        {
+          id: 2,
+          name: 'Feriado Nacional',
+          date: new Date('2025-04-21'),
+          type: ImportantDateType.DAY_OFF,
+          shouldNotify: false,
+          campusId: null,
+          universityId: 20,
+        },
+      ];
+
+      mockFindAllService.execute.mockResolvedValue(serviceResult);
 
       const result = await controller.findAll(authUser);
 
-      expect(findAllImportantDateService.execute).toHaveBeenCalledWith(
-        authUser,
-      );
+      expect(findAllService.execute).toHaveBeenCalledWith(authUser);
       expect(result).toHaveLength(2);
 
-      result.forEach((item, index) => {
-        const expected = mockImportantDates[index];
+      result.forEach((dto, index) => {
+        const expected = serviceResult[index];
 
-        expect(item).toBeInstanceOf(ImportantDateResponseDto);
-        expect(item).toMatchObject({
-          id: expected.id,
-          name: expected.name,
-          date: expected.date,
-          type: expected.type,
-          shouldNotify: expected.shouldNotify,
-          campusId: expected.campusId,
-          universityId: expected.universityId,
-        });
+        expect(dto).toBeInstanceOf(ImportantDateResponseDto);
+        expect(dto).toEqual(
+          new ImportantDateResponseDto(
+            expected.id,
+            expected.name,
+            expected.date,
+            expected.type,
+            expected.shouldNotify,
+            expected.campusId,
+            expected.universityId,
+          ),
+        );
       });
     });
 
     it('retorna array vazio quando não houver datas', async () => {
-      mockFindAllImportantDateService.execute.mockResolvedValue([]);
+      mockFindAllService.execute.mockResolvedValue([]);
 
       const result = await controller.findAll(authUser);
 
       expect(result).toEqual([]);
-      expect(findAllImportantDateService.execute).toHaveBeenCalledTimes(1);
+      expect(findAllService.execute).toHaveBeenCalledTimes(1);
     });
 
     it('propaga erro quando o service falhar', async () => {
-      mockFindAllImportantDateService.execute.mockRejectedValue(
-        new Error('Service error'),
-      );
+      mockFindAllService.execute.mockRejectedValue(new Error('Service error'));
 
       await expect(controller.findAll(authUser)).rejects.toThrow(
         'Service error',
@@ -128,8 +122,8 @@ describe('ImportantDateController', () => {
 
   describe('create', () => {
     it('cria uma nova data importante e retorna DTO', async () => {
-      const payload: Omit<ImportantDate, 'id'> = {
-        name: 'Semana de provas',
+      const payload: CreateImportantDateDto = {
+        name: 'Semana de Provas',
         date: new Date('2025-06-10'),
         type: ImportantDateType.GENERAL,
         shouldNotify: true,
@@ -137,41 +131,44 @@ describe('ImportantDateController', () => {
         universityId: 20,
       };
 
-      const created: ImportantDate = {
+      const serviceResult = {
         id: 99,
         ...payload,
       };
 
-      mockCreateImportantDateService.execute.mockResolvedValue(created);
+      mockCreateService.execute.mockResolvedValue(serviceResult);
 
-      const result = await controller.create(authUser, payload);
+      const result = await controller.create(payload);
 
-      expect(createImportantDateService.execute).toHaveBeenCalledWith(
-        payload,
-        authUser,
-      );
+      expect(createService.execute).toHaveBeenCalledWith(payload);
 
       expect(result).toBeInstanceOf(ImportantDateResponseDto);
-      expect(result).toMatchObject(created);
+      expect(result).toEqual(
+        new ImportantDateResponseDto(
+          serviceResult.id,
+          serviceResult.name,
+          serviceResult.date,
+          serviceResult.type,
+          serviceResult.shouldNotify,
+          serviceResult.campusId,
+          serviceResult.universityId,
+        ),
+      );
     });
 
     it('propaga erro quando o service falhar', async () => {
-      const payload: Omit<ImportantDate, 'id'> = {
+      const payload: CreateImportantDateDto = {
         name: 'Erro',
         date: new Date(),
-        type: ImportantDateType.GENERAL,
+        type: ImportantDateType.DAY_OFF,
         shouldNotify: false,
         campusId: null,
         universityId: 20,
       };
 
-      mockCreateImportantDateService.execute.mockRejectedValue(
-        new Error('Create error'),
-      );
+      mockCreateService.execute.mockRejectedValue(new Error('Create error'));
 
-      await expect(controller.create(authUser, payload)).rejects.toThrow(
-        'Create error',
-      );
+      await expect(controller.create(payload)).rejects.toThrow('Create error');
     });
   });
 });
