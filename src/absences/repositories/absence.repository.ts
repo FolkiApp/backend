@@ -44,4 +44,35 @@ export class AbsenceRepository {
       created.userSubjectId,
     );
   }
+
+  async findAbsenceById(
+    userId: number,
+    absenceId: number,
+  ): Promise<UserAbsence | null> {
+    const absence = await this.prisma.user_absence.findFirst({
+      where: { id: absenceId },
+    });
+
+    if (!absence) return null;
+
+    return new UserAbsence(
+      absence.id,
+      absence.date,
+      absence.createdAt,
+      absence.userId,
+      absence.userSubjectId,
+    );
+  }
+
+  async deleteAbsence(userId: number, absenceId: number) {
+    await this.prisma.$transaction(async (prisma) => {
+      const deleted = await prisma.user_absence.delete({
+        where: { id: absenceId, userId: userId },
+      });
+      await prisma.user_subject.update({
+        where: { id: deleted.userSubjectId, userId: userId },
+        data: { absences: { decrement: 1 } },
+      });
+    });
+  }
 }

@@ -4,6 +4,7 @@ import { AbsenceBySubjectService } from '../services/find-absence-by-subject.ser
 import { UserAbsence } from '../entities/absence.entity';
 import { AbsenceDto } from '../dto/absence.dto';
 import { PostAbsence } from '../services/post-absence.service';
+import { DeleteAbsence } from '../services/delete-absence.service';
 import { CreateAbsenceDto } from '../dto/create-absence.dto';
 import type { AuthUser } from '../../common/guards/auth.guard';
 
@@ -32,6 +33,10 @@ describe('AbsenceController', () => {
     execute: jest.fn(),
   };
 
+  const mockDeleteService = {
+    execute: jest.fn(),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [AbsenceController],
@@ -43,6 +48,10 @@ describe('AbsenceController', () => {
         {
           provide: PostAbsence,
           useValue: mockPostService,
+        },
+        {
+          provide: DeleteAbsence,
+          useValue: mockDeleteService,
         },
       ],
     }).compile();

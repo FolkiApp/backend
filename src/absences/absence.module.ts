@@ -6,6 +6,7 @@ import { AbsenceRepository } from './repositories/absence.repository';
 import { SubjectRepository } from 'src/subjects/repositories/subject.repository';
 import { PostAbsence } from './services/post-absence.service';
 import { UserSubjectRepository } from 'src/users/repositories/user-subject.repository';
+import { DeleteAbsence } from './services/delete-absence.service';
 
 @Module({
   imports: [PrismaModule],
@@ -16,6 +17,7 @@ import { UserSubjectRepository } from 'src/users/repositories/user-subject.repos
     SubjectRepository,
     PostAbsence,
     UserSubjectRepository,
+    DeleteAbsence,
   ],
 })
 export class AbsenceModule {}

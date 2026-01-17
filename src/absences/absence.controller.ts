@@ -1,4 +1,4 @@
-import { Get, Controller, Param, Post, Body } from '@nestjs/common';
+import { Get, Controller, Param, Post, Body, Delete } from '@nestjs/common';
 import { Auth } from '../common/decorators/auth.decorator';
 import { ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
@@ -7,12 +7,14 @@ import { AbsenceBySubjectService } from './services/find-absence-by-subject.serv
 import { AbsenceDto } from './dto/absence.dto';
 import { PostAbsence } from './services/post-absence.service';
 import { CreateAbsenceDto } from './dto/create-absence.dto';
+import { DeleteAbsence } from './services/delete-absence.service';
 
 @Controller()
 export class AbsenceController {
   constructor(
     private absenceService: AbsenceBySubjectService,
     private postAbsenceService: PostAbsence,
+    private deleteAbsence: DeleteAbsence,
   ) {}
 
   @Get('subjects/:subjectId/absences')
@@ -65,5 +67,19 @@ export class AbsenceController {
       absence.userId,
       absence.userSubjectId,
     );
+  }
+
+  @Delete('absences/:absenceId')
+  @Auth()
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Remover uma falta de uma disciplina',
+    description: 'Remove uma falta de uma das disciplinas cadastradas',
+  })
+  async deleteAbsenceById(
+    @Param('absenceId') absenceId: number,
+    @CurrentUser() authUser: AuthUser,
+  ) {
+    await this.deleteAbsence.execute(authUser, absenceId);
   }
 }
