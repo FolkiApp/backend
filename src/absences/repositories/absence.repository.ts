@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { UserAbsence } from '../entities/absence.entity';
-import { AbsenceUnauthorized } from '../exceptions/absence-unauthorized.exception';
 
 @Injectable()
 export class AbsenceRepository {
@@ -55,10 +54,6 @@ export class AbsenceRepository {
     });
 
     if (!absence) return null;
-
-    if (absence.userId != userId) {
-      throw new AbsenceUnauthorized();
-    }
 
     return new UserAbsence(
       absence.id,

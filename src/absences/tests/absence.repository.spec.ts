@@ -2,7 +2,6 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AbsenceRepository } from '../repositories/absence.repository';
 import { UserAbsence } from '../entities/absence.entity';
-import { AbsenceUnauthorized } from '../exceptions/absence-unauthorized.exception';
 
 describe('AbsenceRepository', () => {
   let repository: AbsenceRepository;
@@ -195,7 +194,7 @@ describe('AbsenceRepository', () => {
       });
     });
 
-    it('deve lançar AbsenceUnauthorized quando a falta pertence a outro usuário', async () => {
+    it('deve retornar a falta mesmo se userId for diferente (validação de autorização é no serviço)', async () => {
       const mockAbsence = {
         id: 5,
         date: new Date('2025-03-12'),
@@ -208,9 +207,10 @@ describe('AbsenceRepository', () => {
         .fn()
         .mockResolvedValue(mockAbsence);
 
-      await expect(repository.findAbsenceById(3, 5)).rejects.toThrow(
-        AbsenceUnauthorized,
-      );
+      const result = await repository.findAbsenceById(3, 5);
+
+      expect(result).toBeInstanceOf(UserAbsence);
+      expect(result!.userId).toBe(999);
       expect(mockPrismaService.user_absence.findFirst).toHaveBeenCalledWith({
         where: { id: 5 },
       });

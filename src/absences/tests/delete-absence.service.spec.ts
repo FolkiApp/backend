@@ -102,9 +102,15 @@ describe('DeleteAbsence', () => {
     });
 
     it('deve garantir que apenas o proprietário da falta possa deletá-la', async () => {
-      mockRepository.findAbsenceById.mockRejectedValue(
-        new AbsenceUnauthorized(),
+      const mockAbsence = new UserAbsence(
+        5,
+        new Date('2025-03-12'),
+        new Date('2025-03-12T11:00:00'),
+        999,
+        7,
       );
+
+      mockRepository.findAbsenceById.mockResolvedValue(mockAbsence);
 
       const differentAuthUser = {
         id: 10,

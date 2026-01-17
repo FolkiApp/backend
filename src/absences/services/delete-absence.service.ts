@@ -40,9 +40,6 @@ export class DeleteAbsence {
     try {
       absence = await this.absenceRepository.findAbsenceById(userId, absenceId);
     } catch (error: unknown) {
-      if (error instanceof AbsenceUnauthorized) {
-        throw error;
-      }
       this.logger.error({
         message: 'Error fetching absence',
         absenceId,
@@ -52,6 +49,9 @@ export class DeleteAbsence {
     }
     if (!absence) {
       throw new NotFoundAbsences();
+    }
+    if (absence.userId != userId) {
+      throw new AbsenceUnauthorized();
     }
   }
 }
