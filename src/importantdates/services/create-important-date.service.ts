@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ImportantDateRepository } from '../repositories/important-date.repository';
 import { ImportantDate } from '../entities/important-date.entity';
 import { CreateImportantDateException } from '../exceptions/create-important-date.exception';
-import { CreateImportantDateDto } from '../dtos/create-importante-date.dto';
+import { CreateImportantDateDto } from '../dtos/create-important-date.dto';
 
 @Injectable()
 export class CreateImportantDateService {
@@ -19,7 +19,11 @@ export class CreateImportantDateService {
 
   private async create(data: CreateImportantDateDto): Promise<ImportantDate> {
     try {
-      const importantDate = await this.importantDateRepository.create(data);
+      const importantDate = await this.importantDateRepository.create({
+        ...data,
+        date: new Date(data.date),
+      });
+
       this.logger.log({ message: 'Important date created successfully' });
       return importantDate;
     } catch (error) {

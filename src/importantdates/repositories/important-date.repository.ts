@@ -1,10 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
-import {
-  ImportantDate,
-  ImportantDateType,
-} from '../entities/important-date.entity';
-import { CreateImportantDateDto } from '../dtos/create-importante-date.dto';
+import { ImportantDate } from '../entities/important-date.entity';
+import { ImportantDateType } from '../entities/important-date-type.entity';
+import { CreateImportantDateDataDto } from '../dtos/create-important-date-data.dto';
 
 @Injectable()
 export class ImportantDateRepository {
@@ -33,7 +31,7 @@ export class ImportantDateRepository {
     }));
   }
 
-  async create(data: CreateImportantDateDto): Promise<ImportantDate> {
+  async create(data: CreateImportantDateDataDto): Promise<ImportantDate> {
     const created = await this.prisma.important_date.create({
       data: {
         ...data,

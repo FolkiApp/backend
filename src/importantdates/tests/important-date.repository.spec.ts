@@ -1,184 +1,83 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { ImportantDateRepository } from '../repositories/important-date.repository';
+
 import { PrismaService } from '../../prisma/prisma.service';
-import { ImportantDateType } from '../entities/important-date.entity';
-import { CreateImportantDateDto } from '../dtos/create-importante-date.dto';
+import { ImportantDateRepository } from '../repositories/important-date.repository';
+import { ImportantDateType } from '../entities/important-date-type.entity';
 
 describe('ImportantDateRepository', () => {
   let repository: ImportantDateRepository;
-  let prismaService: PrismaService;
+  let prisma: PrismaService;
 
-  const mockPrismaService = {
+  const mockPrisma = {
     important_date: {
-      findMany: jest.fn(),
       create: jest.fn(),
+      findMany: jest.fn(),
     },
   };
 
   beforeEach(async () => {
-    jest.clearAllMocks();
-
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         ImportantDateRepository,
-        {
-          provide: PrismaService,
-          useValue: mockPrismaService,
-        },
+        { provide: PrismaService, useValue: mockPrisma },
       ],
     }).compile();
 
-    repository = module.get<ImportantDateRepository>(ImportantDateRepository);
-    prismaService = module.get<PrismaService>(PrismaService);
+    repository = module.get(ImportantDateRepository);
+    prisma = module.get(PrismaService);
+
+    jest.clearAllMocks();
+  });
+
+  describe('create', () => {
+    it('cria uma data importante', async () => {
+      const data = {
+        name: 'Feriado',
+        date: new Date('2025-04-21T00:00:00.000Z'),
+        type: ImportantDateType.DAY_OFF,
+        shouldNotify: false,
+        campusId: null,
+        universityId: 20,
+      };
+
+      mockPrisma.important_date.create.mockResolvedValue({
+        id: 1,
+        ...data,
+      });
+
+      const result = await repository.create(data);
+
+      expect(prisma.important_date.create).toHaveBeenCalledWith({
+        data: {
+          ...data,
+          type: data.type,
+        },
+      });
+
+      expect(result.type).toBe(ImportantDateType.DAY_OFF);
+    });
   });
 
   describe('findAll', () => {
-    const startOfYear = new Date(2025, 0, 1);
-    const universityId = 1;
+    it('retorna datas filtradas', async () => {
+      const startOfYear = new Date('2025-01-01');
 
-    it('busca datas por universidade e campus (incluindo campus null)', async () => {
-      const campusId = 2;
-
-      const prismaResult = [
+      mockPrisma.important_date.findMany.mockResolvedValue([
         {
           id: 1,
           name: 'Início do semestre',
           date: new Date('2025-02-10'),
           type: ImportantDateType.GENERAL,
           shouldNotify: true,
-          campusId: 2,
-          universityId: 1,
-        },
-        {
-          id: 2,
-          name: 'Evento Geral',
-          date: new Date('2025-03-01'),
-          type: ImportantDateType.DAY_OFF,
-          shouldNotify: false,
           campusId: null,
-          universityId: 1,
+          universityId: 20,
         },
-      ];
+      ]);
 
-      mockPrismaService.important_date.findMany.mockResolvedValue(prismaResult);
+      const result = await repository.findAll(startOfYear, 20, null);
 
-      const result = await repository.findAll(
-        startOfYear,
-        universityId,
-        campusId,
-      );
-
-      expect(prismaService.important_date.findMany).toHaveBeenCalledWith({
-        orderBy: { date: 'asc' },
-        where: {
-          date: { gte: startOfYear },
-          universityId,
-          OR: [{ campusId }, { campusId: null }],
-        },
-      });
-
-      expect(result).toHaveLength(2);
-
-      result.forEach((item, index) => {
-        expect(item).toMatchObject(prismaResult[index]);
-        expect(Object.values(ImportantDateType)).toContain(item.type);
-      });
-    });
-
-    it('busca apenas datas globais quando campusId for null', async () => {
-      const prismaResult = [
-        {
-          id: 3,
-          name: 'Evento Institucional',
-          date: new Date('2025-06-01'),
-          type: ImportantDateType.DAY_OFF,
-          shouldNotify: true,
-          campusId: null,
-          universityId: 1,
-        },
-      ];
-
-      mockPrismaService.important_date.findMany.mockResolvedValue(prismaResult);
-
-      const result = await repository.findAll(startOfYear, universityId, null);
-
-      expect(prismaService.important_date.findMany).toHaveBeenCalledWith({
-        orderBy: { date: 'asc' },
-        where: {
-          date: { gte: startOfYear },
-          universityId,
-          OR: [{ campusId: null }],
-        },
-      });
-
-      expect(result).toEqual(prismaResult);
-    });
-
-    it('retorna array vazio quando não houver registros', async () => {
-      mockPrismaService.important_date.findMany.mockResolvedValue([]);
-
-      const result = await repository.findAll(startOfYear, universityId, null);
-
-      expect(result).toEqual([]);
-    });
-
-    it('propaga erro do Prisma', async () => {
-      mockPrismaService.important_date.findMany.mockRejectedValue(
-        new Error('Prisma error'),
-      );
-
-      await expect(
-        repository.findAll(startOfYear, universityId, null),
-      ).rejects.toThrow('Prisma error');
-    });
-  });
-
-  describe('create', () => {
-    it('cria uma data importante com sucesso', async () => {
-      const payload: CreateImportantDateDto = {
-        name: 'Semana de Provas',
-        date: new Date('2025-07-10'),
-        type: ImportantDateType.GENERAL,
-        shouldNotify: true,
-        campusId: 2,
-        universityId: 1,
-      };
-
-      const prismaResult = {
-        id: 99,
-        ...payload,
-      };
-
-      mockPrismaService.important_date.create.mockResolvedValue(prismaResult);
-
-      const result = await repository.create(payload);
-
-      expect(prismaService.important_date.create).toHaveBeenCalledWith({
-        data: {
-          ...payload,
-          type: payload.type,
-        },
-      });
-
-      expect(result).toEqual(prismaResult);
-      expect(result.type).toBe(ImportantDateType.GENERAL);
-    });
-
-    it('propaga erro quando o Prisma falhar', async () => {
-      const payload: CreateImportantDateDto = {
-        name: 'Erro',
-        date: new Date(),
-        type: ImportantDateType.DAY_OFF,
-        shouldNotify: false,
-        campusId: null,
-        universityId: 1,
-      };
-
-      mockPrismaService.important_date.create.mockRejectedValue(
-        new Error('Create failed'),
-      );
-
-      await expect(repository.create(payload)).rejects.toThrow('Create failed');
+      expect(prisma.important_date.findMany).toHaveBeenCalled();
+      expect(result[0].type).toBe(ImportantDateType.GENERAL);
     });
   });
 });

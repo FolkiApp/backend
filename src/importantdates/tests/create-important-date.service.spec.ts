@@ -3,9 +3,9 @@ import { Logger } from '@nestjs/common';
 
 import { CreateImportantDateService } from '../services/create-important-date.service';
 import { ImportantDateRepository } from '../repositories/important-date.repository';
-import { ImportantDateType } from '../entities/important-date.entity';
 import { CreateImportantDateException } from '../exceptions/create-important-date.exception';
-import { CreateImportantDateDto } from '../dtos/create-importante-date.dto';
+import { CreateImportantDateDto } from '../dtos/create-important-date.dto';
+import { ImportantDateType } from '../entities/important-date-type.entity';
 
 describe('CreateImportantDateService', () => {
   let service: CreateImportantDateService;
@@ -16,8 +16,6 @@ describe('CreateImportantDateService', () => {
   };
 
   beforeEach(async () => {
-    jest.clearAllMocks();
-
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         CreateImportantDateService,
@@ -28,21 +26,21 @@ describe('CreateImportantDateService', () => {
       ],
     }).compile();
 
-    service = module.get<CreateImportantDateService>(
-      CreateImportantDateService,
-    );
-    repository = module.get<ImportantDateRepository>(ImportantDateRepository);
+    service = module.get(CreateImportantDateService);
+    repository = module.get(ImportantDateRepository);
 
-    // Evita poluir o output do teste com logs
+    jest.clearAllMocks();
+
+    // Evita poluição de logs
     jest.spyOn(Logger.prototype, 'log').mockImplementation(() => undefined);
     jest.spyOn(Logger.prototype, 'error').mockImplementation(() => undefined);
   });
 
   describe('execute', () => {
-    it('cria uma data importante com sucesso', async () => {
+    it('converte string para Date e cria a data importante', async () => {
       const payload: CreateImportantDateDto = {
         name: 'Semana de Provas',
-        date: new Date('2025-07-10'),
+        date: '2025-07-10T00:00:00.000Z',
         type: ImportantDateType.GENERAL,
         shouldNotify: true,
         campusId: 2,
@@ -52,6 +50,7 @@ describe('CreateImportantDateService', () => {
       const createdImportantDate = {
         id: 100,
         ...payload,
+        date: new Date(payload.date),
       };
 
       mockImportantDateRepository.create.mockResolvedValue(
@@ -61,7 +60,10 @@ describe('CreateImportantDateService', () => {
       const result = await service.execute(payload);
 
       expect(repository.create).toHaveBeenCalledTimes(1);
-      expect(repository.create).toHaveBeenCalledWith(payload);
+      expect(repository.create).toHaveBeenCalledWith({
+        ...payload,
+        date: new Date(payload.date),
+      });
 
       expect(result).toEqual(createdImportantDate);
     });
@@ -69,16 +71,16 @@ describe('CreateImportantDateService', () => {
     it('loga erro e lança CreateImportantDateException quando o repository falhar', async () => {
       const payload: CreateImportantDateDto = {
         name: 'Evento com erro',
-        date: new Date(),
+        date: '2025-01-01T00:00:00.000Z',
         type: ImportantDateType.DAY_OFF,
         shouldNotify: false,
         campusId: null,
         universityId: 1,
       };
 
-      const repositoryError = new Error('Database error');
-
-      mockImportantDateRepository.create.mockRejectedValue(repositoryError);
+      mockImportantDateRepository.create.mockRejectedValue(
+        new Error('Database error'),
+      );
 
       await expect(service.execute(payload)).rejects.toBeInstanceOf(
         CreateImportantDateException,
@@ -88,7 +90,10 @@ describe('CreateImportantDateService', () => {
         'Failed to create important date',
       );
 
-      expect(repository.create).toHaveBeenCalledWith(payload);
+      expect(repository.create).toHaveBeenCalledWith({
+        ...payload,
+        date: new Date(payload.date),
+      });
     });
   });
 });

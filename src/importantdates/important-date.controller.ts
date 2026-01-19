@@ -6,8 +6,8 @@ import { CurrentUser } from '../common/decorators/current-user.decorator';
 import type { AuthUser } from '../common/guards/auth.guard';
 import { ImportantDateResponseDto } from './dtos/important-date.dto';
 import { CreateImportantDateService } from './services/create-important-date.service';
-import { CreateImportantDateDto } from './dtos/create-importante-date.dto';
-import { ApiKey } from '../../src/common/decorators/api-key.decorator';
+import { CreateImportantDateDto } from './dtos/create-important-date.dto';
+import { ApiKey } from '../common/decorators/api-key.decorator';
 
 @Controller('important-dates')
 export class ImportantDateController {
