@@ -66,8 +66,7 @@ export class UserRepository {
   }
 
   async update(id: number, updateData: UpdateUserData): Promise<User> {
-    // Remove notificationId do updateData pois não é campo da tabela user
-    const { notificationId, ...userUpdateData } = updateData;
+    const { ...userUpdateData } = updateData;
 
     const updatedUser = await this.prisma.user.update({
       where: { id },
