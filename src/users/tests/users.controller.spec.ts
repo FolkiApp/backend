@@ -2,22 +2,29 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { UsersController } from '../users.controller';
 import { FindUserByIdService } from '../services/find-user-by-id.service';
 import { AuthenticateUserService } from '../services/authenticate-user.service';
+import { UpdateMeService } from '../services/update-me.service';
 import { User } from '../entities/user.entity';
 import { AuthDto } from '../dto/auth.dto';
 import { AuthResponseDto } from '../dto/auth-response.dto';
 import { UserResponseDto } from '../dto/user-response.dto';
+import { UpdateUserDto } from '../dto/update-user.dto';
 import type { AuthUser } from '../../common/guards/auth.guard';
 
 describe('UsersController', () => {
   let controller: UsersController;
   let findUserByIdService: FindUserByIdService;
   let authenticateUserService: AuthenticateUserService;
+  let updateMeService: UpdateMeService;
 
   const mockFindUserByIdService = {
     execute: jest.fn(),
   };
 
   const mockAuthenticateUserService = {
+    execute: jest.fn(),
+  };
+
+  const mockUpdateMeService = {
     execute: jest.fn(),
   };
 
@@ -33,6 +40,10 @@ describe('UsersController', () => {
           provide: AuthenticateUserService,
           useValue: mockAuthenticateUserService,
         },
+        {
+          provide: UpdateMeService,
+          useValue: mockUpdateMeService,
+        },
       ],
     }).compile();
 
@@ -41,6 +52,7 @@ describe('UsersController', () => {
     authenticateUserService = module.get<AuthenticateUserService>(
       AuthenticateUserService,
     );
+    updateMeService = module.get<UpdateMeService>(UpdateMeService);
   });
 
   afterEach(() => {
@@ -65,7 +77,7 @@ describe('UsersController', () => {
           1,
           false,
           1,
-          1,
+          '1.0.0',
         ),
       };
 
@@ -89,10 +101,7 @@ describe('UsersController', () => {
         isAdmin: false,
         isBlocked: false,
         universityId: 1,
-        userVersion: 1,
-        createdAt: new Date(),
-        lastLogin: new Date(),
-        lastAccess: new Date(),
+        userVersion: '1.0.0',
       };
 
       const mockUser = new User(authUser);
@@ -105,6 +114,45 @@ describe('UsersController', () => {
       expect(result.email).toBe(authUser.email);
       expect(result.name).toBe(authUser.name);
       expect(findUserByIdService.execute).toHaveBeenCalledWith(authUser);
+    });
+  });
+
+  describe('updateMe', () => {
+    it('deve atualizar dados do usuário com sucesso', async () => {
+      const authUser: AuthUser = {
+        id: 1,
+        email: 'test@usp.br',
+        name: 'Test User',
+        instituteId: 1,
+        courseId: 1,
+        isAdmin: false,
+        isBlocked: false,
+        universityId: 1,
+        userVersion: '1.0.0',
+      };
+
+      const updateUserDto: UpdateUserDto = {
+        name: 'Updated Name',
+        userVersion: '2.0.0',
+      };
+
+      const mockResponse = new UserResponseDto(
+        1,
+        'test@usp.br',
+        'Updated Name',
+        1,
+        1,
+        false,
+        1,
+        '2.0.0',
+      );
+
+      mockUpdateMeService.execute.mockResolvedValue(mockResponse);
+
+      const result = await controller.updateMe(authUser, updateUserDto);
+
+      expect(result).toEqual(mockResponse);
+      expect(updateMeService.execute).toHaveBeenCalledWith(1, updateUserDto);
     });
   });
 });

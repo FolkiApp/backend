@@ -81,29 +81,29 @@ model subject_class {
 }
 
 model user {
-  id                   Int                    @id @default(autoincrement())
-  email                String                 @unique
-  name                 String
-  institute            institute?             @relation(fields: [instituteId], references: [id])
-  course               course?                @relation(fields: [courseId], references: [id])
-  courseId             Int?
-  instituteId          Int?
-  isAdmin              Boolean                @default(false)
-  isBlocked            Boolean                @default(false)
-  securePin            String?                @default("1234")
-  notificationId       String?
-  createdAt            DateTime               @default(now())
-  deletedAt            DateTime?
-  updatedAt            DateTime               @updatedAt
-  lastLogin            DateTime?
-  lastAccess           DateTime?
-  userVersion          String?
-  university           university?            @relation(fields: [universityId], references: [id])
-  universityId         Int?
-  user_subject         user_subject[]
-  activity             activity[]
-  user_activity_check  user_activity_check[]
-  user_activity_ignore user_activity_ignore[]
+  id                     Int                      @id @default(autoincrement())
+  email                  String                   @unique
+  name                   String
+  institute              institute?               @relation(fields: [instituteId], references: [id])
+  course                 course?                  @relation(fields: [courseId], references: [id])
+  courseId               Int?
+  instituteId            Int?
+  isAdmin                Boolean                  @default(false)
+  isBlocked              Boolean                  @default(false)
+  securePin              String?                  @default("1234")
+  createdAt              DateTime                 @default(now())
+  deletedAt              DateTime?
+  updatedAt              DateTime                 @updatedAt
+  lastLogin              DateTime?
+  lastAccess             DateTime?
+  userVersion            String?
+  university             university?              @relation(fields: [universityId], references: [id])
+  universityId           Int?
+  user_subject           user_subject[]
+  activity               activity[]
+  user_activity_check    user_activity_check[]
+  user_activity_ignore   user_activity_ignore[]
+  user_notification_id   user_notification_id[]
 }
 
 model user_subject {
@@ -233,6 +233,16 @@ model grade {
   userSubjectId Int
   createdAt     DateTime     @default(now())
   userSubject   user_subject @relation(fields: [userSubjectId], references: [id])
+}
+
+model user_notification_id {
+  userId         Int
+  notificationId String
+  lastUpdated    DateTime @default(now()) @updatedAt
+  user           user     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, notificationId])
+  @@index([userId])
 }
 
 enum ActivityType {

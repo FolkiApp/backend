@@ -85,6 +85,8 @@
       "!**/*.guard.ts",
       "!**/*.interceptor.ts",
       "!**/*.repository.ts",
+      "!**/dto/**",
+      "!**/dtos/**",
       "!**/exceptions/**",
       "!**/scrap-jupiter.service.ts",
       "!prisma/**",

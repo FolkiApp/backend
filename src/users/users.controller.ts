@@ -1,13 +1,15 @@
-import { Controller, Get, Post, Body } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { Auth } from '../common/decorators/auth.decorator';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import type { AuthUser } from '../common/guards/auth.guard';
 import { FindUserByIdService } from './services/find-user-by-id.service';
 import { AuthenticateUserService } from './services/authenticate-user.service';
+import { UpdateMeService } from './services/update-me.service';
 import { UserResponseDto } from './dto/user-response.dto';
 import { AuthDto } from './dto/auth.dto';
 import { AuthResponseDto } from './dto/auth-response.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
 
 @ApiTags('users')
 @Controller('users')
@@ -15,6 +17,7 @@ export class UsersController {
   constructor(
     private readonly findUserByIdService: FindUserByIdService,
     private readonly authenticateUserService: AuthenticateUserService,
+    private readonly updateMeService: UpdateMeService,
   ) {}
 
   @Post('auth')
@@ -35,6 +38,31 @@ export class UsersController {
   })
   me(@CurrentUser() authUser: AuthUser): UserResponseDto {
     const user = this.findUserByIdService.execute(authUser);
+    return new UserResponseDto(
+      user.id,
+      user.email,
+      user.name,
+      user.instituteId,
+      user.courseId,
+      user.isAdmin,
+      user.universityId,
+      user.userVersion,
+    );
+  }
+
+  @Patch('me')
+  @Auth()
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Atualiza dados do usuário autenticado',
+    description:
+      'Atualiza informações do perfil do usuário. Campos protegidos são automaticamente ignorados. Pode incluir notificationId para registrar dispositivo.',
+  })
+  async updateMe(
+    @CurrentUser() authUser: AuthUser,
+    @Body() updateUserDto: UpdateUserDto,
+  ): Promise<UserResponseDto> {
+    const user = await this.updateMeService.execute(authUser.id, updateUserDto);
     return new UserResponseDto(
       user.id,
       user.email,
