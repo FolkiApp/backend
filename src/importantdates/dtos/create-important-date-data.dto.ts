@@ -1,7 +1,6 @@
-import { ImportantDateType } from './important-date-type.entity';
+import { ImportantDateType } from '../entities/important-date-type.entity';
 
-export class ImportantDate {
-  id: number;
+export interface CreateImportantDateDataDto {
   name: string;
   date: Date;
   type: ImportantDateType;

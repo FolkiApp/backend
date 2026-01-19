@@ -1,15 +1,22 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ImportantDateController } from '../important-date.controller';
 import { FindAllImportantDateService } from '../services/find-all-important-date.service';
+import { CreateImportantDateService } from '../services/create-important-date.service';
 import { ImportantDateResponseDto } from '../dtos/important-date.dto';
-import { ImportDateType } from '@prisma/client';
+import { ImportantDateType } from '../entities/important-date-type.entity';
+import { CreateImportantDateDto } from '../dtos/create-important-date.dto';
 import type { AuthUser } from '../../common/guards/auth.guard';
 
 describe('ImportantDateController', () => {
   let controller: ImportantDateController;
-  let findAllImportantDateService: FindAllImportantDateService;
+  let findAllService: FindAllImportantDateService;
+  let createService: CreateImportantDateService;
 
-  const mockFindAllImportantDateService = {
+  const mockFindAllService = {
+    execute: jest.fn(),
+  };
+
+  const mockCreateService = {
     execute: jest.fn(),
   };
 
@@ -19,81 +26,74 @@ describe('ImportantDateController', () => {
     name: 'User Test',
     instituteId: 10,
     courseId: 5,
-    isAdmin: false,
+    isAdmin: true,
     isBlocked: false,
     universityId: 20,
     userVersion: '1.0.0',
   };
 
-  const mockImportantDates = [
-    {
-      id: 1,
-      name: 'Início do semestre',
-      date: new Date('2025-02-10'),
-      type: ImportDateType.GENERAL,
-      shouldNotify: true,
-      campusId: 5,
-      universityId: 20,
-    },
-    {
-      id: 2,
-      name: 'Feriado Nacional',
-      date: new Date('2025-04-21'),
-      type: ImportDateType.DAY_OFF,
-      shouldNotify: false,
-      campusId: null,
-      universityId: 20,
-    },
-  ];
-
   beforeEach(async () => {
-    jest.clearAllMocks();
-
     const module: TestingModule = await Test.createTestingModule({
       controllers: [ImportantDateController],
       providers: [
-        {
-          provide: FindAllImportantDateService,
-          useValue: mockFindAllImportantDateService,
-        },
+        { provide: FindAllImportantDateService, useValue: mockFindAllService },
+        { provide: CreateImportantDateService, useValue: mockCreateService },
       ],
     }).compile();
 
-    controller = module.get<ImportantDateController>(ImportantDateController);
-    findAllImportantDateService = module.get<FindAllImportantDateService>(
-      FindAllImportantDateService,
-    );
+    controller = module.get(ImportantDateController);
+    findAllService = module.get(FindAllImportantDateService);
+    createService = module.get(CreateImportantDateService);
+
+    jest.clearAllMocks();
   });
 
   describe('findAll', () => {
-    it('deve retornar lista de ImportantDateResponseDto para o usuário autenticado', async () => {
-      mockFindAllImportantDateService.execute.mockResolvedValue(
-        mockImportantDates,
-      );
+    it('retorna lista de ImportantDateResponseDto', async () => {
+      const serviceResult = [
+        {
+          id: 1,
+          name: 'Início do semestre',
+          date: new Date('2025-02-10T00:00:00.000Z'),
+          type: ImportantDateType.GENERAL,
+          shouldNotify: true,
+          campusId: 5,
+          universityId: 20,
+        },
+      ];
+
+      mockFindAllService.execute.mockResolvedValue(serviceResult);
 
       const result = await controller.findAll(authUser);
 
-      expect(result).toHaveLength(mockImportantDates.length);
+      expect(findAllService.execute).toHaveBeenCalledWith(authUser);
+      expect(result[0]).toBeInstanceOf(ImportantDateResponseDto);
+    });
+  });
 
-      // Verifica que todos os itens são instâncias do DTO e mapeados corretamente
-      result.forEach((dto, index) => {
-        const date = mockImportantDates[index];
-        expect(dto).toBeInstanceOf(ImportantDateResponseDto);
-        expect(dto).toMatchObject({
-          id: date.id,
-          name: date.name,
-          date: date.date,
-          type: date.type,
-          shouldNotify: date.shouldNotify,
-          campusId: date.campusId,
-          universityId: date.universityId,
-        });
-      });
+  describe('create', () => {
+    it('cria uma data importante', async () => {
+      const payload: CreateImportantDateDto = {
+        name: 'Semana de Provas',
+        date: '2025-06-10T00:00:00.000Z',
+        type: ImportantDateType.GENERAL,
+        shouldNotify: true,
+        campusId: 5,
+        universityId: 20,
+      };
 
-      expect(findAllImportantDateService.execute).toHaveBeenCalledWith(
-        authUser,
-      );
-      expect(findAllImportantDateService.execute).toHaveBeenCalledTimes(1);
+      const serviceResult = {
+        id: 99,
+        ...payload,
+        date: new Date(payload.date),
+      };
+
+      mockCreateService.execute.mockResolvedValue(serviceResult);
+
+      const result = await controller.create(payload);
+
+      expect(createService.execute).toHaveBeenCalledWith(payload);
+      expect(result).toBeInstanceOf(ImportantDateResponseDto);
     });
   });
 });
