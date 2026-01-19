@@ -25,7 +25,7 @@ test-cov:
 
 db-migrate:
 	@read -p "Nome da migration: " name; \
-	npm run prisma:migrate -- --name $$name
+	docker compose exec backend npx prisma migrate dev --name $$name
 
 db-seed:
 	@echo "Checking if database is running..."

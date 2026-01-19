@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { User } from '../entities/user.entity';
 import { user } from '@prisma/client';
+import { UpdateUserData } from './dto/update-user-data.dto';
 
 @Injectable()
 export class UserRepository {
@@ -62,5 +63,31 @@ export class UserRepository {
       where: { id },
       data: { name },
     });
+  }
+
+  async update(id: number, updateData: UpdateUserData): Promise<User> {
+    // Remove notificationId do updateData pois não é campo da tabela user
+    const { notificationId, ...userUpdateData } = updateData;
+
+    const updatedUser = await this.prisma.user.update({
+      where: { id },
+      data: userUpdateData,
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        instituteId: true,
+        courseId: true,
+        isAdmin: true,
+        isBlocked: true,
+        universityId: true,
+        userVersion: true,
+        createdAt: true,
+        lastLogin: true,
+        lastAccess: true,
+      },
+    });
+
+    return new User(updatedUser);
   }
 }
