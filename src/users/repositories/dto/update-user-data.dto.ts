@@ -5,6 +5,5 @@ export class UpdateUserData {
     public courseId?: number,
     public universityId?: number,
     public userVersion?: string,
-    public notificationId?: string,
   ) {}
 }

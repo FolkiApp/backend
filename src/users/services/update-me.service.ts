@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { UserRepository } from '../repositories/user.repository';
 import { UserNotificationIdRepository } from '../repositories/user-notification-id.repository';
 import { UpdateUserDto } from '../dto/update-user.dto';
+import { UpdateUserData } from '../repositories/dto/update-user-data.dto';
 import { User } from '../entities/user.entity';
 import { UserUpdateException } from '../exceptions/user-update.exception';
 
@@ -33,7 +34,15 @@ export class UpdateMeService {
 
   private async updateUserInfo(userId: number, updateUserDto: UpdateUserDto) {
     try {
-      return await this.userRepository.update(userId, updateUserDto);
+      const updateData = new UpdateUserData(
+        updateUserDto.name,
+        updateUserDto.instituteId,
+        updateUserDto.courseId,
+        updateUserDto.universityId,
+        updateUserDto.userVersion,
+      );
+
+      return await this.userRepository.update(userId, updateData);
     } catch (error: unknown) {
       this.logger.error({
         message: 'Error updating user info',

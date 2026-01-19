@@ -100,7 +100,10 @@ describe('UpdateMeService', () => {
       );
       expect(userRepository.update).toHaveBeenCalledWith(
         userId,
-        dtoWithNotification,
+        expect.objectContaining({
+          name: 'João Silva',
+          instituteId: 5,
+        }),
       );
     });
 
@@ -126,7 +129,10 @@ describe('UpdateMeService', () => {
       );
       expect(userRepository.update).toHaveBeenCalledWith(
         userId,
-        dtoWithNotification,
+        expect.objectContaining({
+          name: 'João Silva',
+          instituteId: 5,
+        }),
       );
     });
 
