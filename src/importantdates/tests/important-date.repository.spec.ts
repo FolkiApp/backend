@@ -12,6 +12,7 @@ describe('ImportantDateRepository', () => {
     important_date: {
       create: jest.fn(),
       findMany: jest.fn(),
+      delete: jest.fn(),
     },
   };
 
@@ -59,7 +60,7 @@ describe('ImportantDateRepository', () => {
   });
 
   describe('findAll', () => {
-    it('retorna datas filtradas', async () => {
+    it('retorna datas filtradas quando campusId é null', async () => {
       const startOfYear = new Date('2025-01-01');
 
       mockPrisma.important_date.findMany.mockResolvedValue([
@@ -76,8 +77,57 @@ describe('ImportantDateRepository', () => {
 
       const result = await repository.findAll(startOfYear, 20, null);
 
-      expect(prisma.important_date.findMany).toHaveBeenCalled();
+      expect(prisma.important_date.findMany).toHaveBeenCalledWith({
+        orderBy: { date: 'asc' },
+        where: {
+          date: { gte: startOfYear },
+          universityId: 20,
+          OR: [{ campusId: null }],
+        },
+      });
+
       expect(result[0].type).toBe(ImportantDateType.GENERAL);
+    });
+
+    it('retorna datas do campus específico e globais quando campusId é informado', async () => {
+      const startOfYear = new Date('2025-01-01');
+
+      mockPrisma.important_date.findMany.mockResolvedValue([
+        {
+          id: 2,
+          name: 'Semana Acadêmica',
+          date: new Date('2025-03-15'),
+          type: ImportantDateType.GENERAL,
+          shouldNotify: true,
+          campusId: 5,
+          universityId: 20,
+        },
+      ]);
+
+      const result = await repository.findAll(startOfYear, 20, 5);
+
+      expect(prisma.important_date.findMany).toHaveBeenCalledWith({
+        orderBy: { date: 'asc' },
+        where: {
+          date: { gte: startOfYear },
+          universityId: 20,
+          OR: [{ campusId: 5 }, { campusId: null }],
+        },
+      });
+
+      expect(result[0].type).toBe(ImportantDateType.GENERAL);
+    });
+  });
+
+  describe('delete', () => {
+    it('remove uma data importante pelo id', async () => {
+      mockPrisma.important_date.delete.mockResolvedValue(undefined);
+
+      await expect(repository.delete(10)).resolves.not.toThrow();
+
+      expect(prisma.important_date.delete).toHaveBeenCalledWith({
+        where: { id: 10 },
+      });
     });
   });
 });
