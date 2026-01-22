@@ -3,8 +3,15 @@ import { InternalServerErrorException } from '@nestjs/common';
 export class ActivityDeleteException extends InternalServerErrorException {
   public readonly code = 'ACTIVITY_DELETE_ERROR';
 
-  constructor(error?: unknown) {
-    super('Erro ao deletar atividade', { cause: error });
+  constructor(message = 'Erro ao deletar atividade', error?: unknown) {
+    super(
+      {
+        title: 'ActivityDeleteException',
+        message,
+        code: 'ACTIVITY_DELETE_ERROR',
+      },
+      { cause: error },
+    );
     this.name = 'ActivityDeleteException';
   }
 }

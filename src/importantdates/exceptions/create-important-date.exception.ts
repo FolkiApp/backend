@@ -7,7 +7,14 @@ export class CreateImportantDateException extends InternalServerErrorException {
     message = 'Erro ao tentar criar data importante',
     error?: unknown,
   ) {
-    super(message, { cause: error });
-    this.name = 'CreateImportantDate';
+    super(
+      {
+        title: 'CreateImportantDateException',
+        message,
+        code: 'CREATE_IMPORTANT_DATE_ERROR',
+      },
+      { cause: error },
+    );
+    this.name = 'CreateImportantDateException';
   }
 }

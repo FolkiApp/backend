@@ -3,8 +3,15 @@ import { ConflictException } from '@nestjs/common';
 export class UniversityAlreadyExistsException extends ConflictException {
   public readonly code = 'UNIVERSITY_ALREADY_EXISTS';
 
-  constructor() {
-    super('Universidade já existe');
+  constructor(message = 'Universidade já existe', error?: unknown) {
+    super(
+      {
+        title: 'UniversityAlreadyExistsException',
+        message,
+        code: 'UNIVERSITY_ALREADY_EXISTS',
+      },
+      { cause: error },
+    );
     this.name = 'UniversityAlreadyExistsException';
   }
 }

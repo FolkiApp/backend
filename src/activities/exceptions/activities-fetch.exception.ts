@@ -4,7 +4,14 @@ export class ActivitiesFetchException extends InternalServerErrorException {
   public readonly code = 'ACTIVITIES_FETCH_EXCEPTION';
 
   constructor(message = 'Erro ao buscar atividades', error?: unknown) {
-    super(message, { cause: error });
+    super(
+      {
+        title: 'ActivitiesFetchException',
+        message,
+        code: 'ACTIVITIES_FETCH_EXCEPTION',
+      },
+      { cause: error },
+    );
     this.name = 'ActivitiesFetchException';
   }
 }

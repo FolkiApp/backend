@@ -4,7 +4,14 @@ export class ActivityCreateException extends InternalServerErrorException {
   public readonly code = 'ACTIVITY_CREATE_EXCEPTION';
 
   constructor(message = 'Erro ao criar atividade', error?: unknown) {
-    super(message, { cause: error });
+    super(
+      {
+        title: 'ActivityCreateException',
+        message,
+        code: 'ACTIVITY_CREATE_EXCEPTION',
+      },
+      { cause: error },
+    );
     this.name = 'ActivityCreateException';
   }
 }

@@ -7,7 +7,14 @@ export class ActivityUpdateException extends InternalServerErrorException {
     message = 'Erro inesperado ao atualizar atividade - Tente novamente mais tarde',
     error?: unknown,
   ) {
-    super(message, { cause: error });
+    super(
+      {
+        title: 'ActivityUpdateException',
+        message,
+        code: 'ACTIVITY_UPDATE_EXCEPTION',
+      },
+      { cause: error },
+    );
     this.name = 'ActivityUpdateException';
   }
 }

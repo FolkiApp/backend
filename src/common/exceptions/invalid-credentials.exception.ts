@@ -3,8 +3,18 @@ import { UnauthorizedException } from '@nestjs/common';
 export class InvalidCredentialsException extends UnauthorizedException {
   public readonly code = 'INVALID_CREDENTIALS';
 
-  constructor() {
-    super('Credenciais inválidas - Verifique seu usuário e senha');
+  constructor(
+    message = 'Credenciais inválidas - Verifique seu usuário e senha',
+    error?: unknown,
+  ) {
+    super(
+      {
+        title: 'InvalidCredentialsException',
+        message,
+        code: 'INVALID_CREDENTIALS',
+      },
+      { cause: error },
+    );
     this.name = 'InvalidCredentialsException';
   }
 }
