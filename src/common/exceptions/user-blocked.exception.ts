@@ -6,7 +6,7 @@ export class UserBlockedException extends UnauthorizedException {
   constructor(message = 'Usuário impedido de fazer login', error?: unknown) {
     super(
       {
-        title: 'UserBlockedException',
+        title: 'Usuário bloqueado',
         message,
         code: 'USER_BLOCKED',
       },

@@ -6,7 +6,7 @@ export class UpsertNotificationIdException extends InternalServerErrorException 
   constructor(message = 'Erro ao salvar ID de notificação', error?: unknown) {
     super(
       {
-        title: 'UpsertNotificationIdException',
+        title: 'Erro ao salvar ID de notificação',
         message,
         code: 'UPSERT_NOTIFICATION_ID_EXCEPTION',
       },

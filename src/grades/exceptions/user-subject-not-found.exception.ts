@@ -6,7 +6,7 @@ export class UserSubjectNotFoundException extends NotFoundException {
   constructor(message = 'Matéria não encontrada', error?: unknown) {
     super(
       {
-        title: 'UserSubjectNotFoundException',
+        title: 'Matéria não encontrada',
         message,
         code: 'USER_SUBJECT_NOT_FOUND',
       },

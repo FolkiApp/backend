@@ -9,7 +9,7 @@ export class UniversitySystemTimeoutException extends BadRequestException {
   ) {
     super(
       {
-        title: 'UniversitySystemTimeoutException',
+        title: 'Erro na comunicação com o sistema da universidade',
         message,
         code: 'UNIVERSITY_SYSTEM_TIMEOUT',
       },

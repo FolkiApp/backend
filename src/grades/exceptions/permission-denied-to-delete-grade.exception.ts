@@ -9,7 +9,7 @@ export class PermissionDeniedToDeleteGradeException extends ForbiddenException {
   ) {
     super(
       {
-        title: 'PermissionDeniedToDeleteGradeException',
+        title: 'Permissão negada para deletar nota',
         message,
         code: 'PERMISSION_DENIED_TO_DELETE_GRADE',
       },

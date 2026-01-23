@@ -9,7 +9,7 @@ export class InvalidCredentialsException extends UnauthorizedException {
   ) {
     super(
       {
-        title: 'InvalidCredentialsException',
+        title: 'Credenciais inválidas',
         message,
         code: 'INVALID_CREDENTIALS',
       },

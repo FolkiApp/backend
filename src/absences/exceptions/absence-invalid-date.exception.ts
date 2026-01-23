@@ -6,7 +6,7 @@ export class AbsenceInvalidDate extends BadRequestException {
   constructor(message = 'Internal error', error?: unknown) {
     super(
       {
-        title: 'AbsenceInvalidDate',
+        title: 'Data inválida',
         message,
         code: 'ABSENCE_INVALID_DATE',
       },

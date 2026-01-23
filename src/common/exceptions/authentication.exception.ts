@@ -9,7 +9,7 @@ export class AuthenticationException extends InternalServerErrorException {
   ) {
     super(
       {
-        title: 'AuthenticationException',
+        title: 'Erro ao autenticar',
         message,
         code: 'AUTHENTICATION_ERROR',
       },

@@ -6,7 +6,7 @@ export class GradesFetchException extends InternalServerErrorException {
   constructor(message = 'Erro ao obter notas', error?: unknown) {
     super(
       {
-        title: 'GradesFetchException',
+        title: 'Erro ao buscar notas',
         message,
         code: 'GRADES_FETCH_ERROR',
       },

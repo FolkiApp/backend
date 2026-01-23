@@ -6,7 +6,7 @@ export class UniversityFetchException extends InternalServerErrorException {
   constructor(message = 'Erro ao buscar universidades', error?: unknown) {
     super(
       {
-        title: 'UniversityFetchException',
+        title: 'Erro ao buscar universidades',
         message,
         code: 'UNIVERSITY_FETCH_EXCEPTION',
       },

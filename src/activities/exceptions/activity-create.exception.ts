@@ -6,7 +6,7 @@ export class ActivityCreateException extends InternalServerErrorException {
   constructor(message = 'Erro ao criar atividade', error?: unknown) {
     super(
       {
-        title: 'ActivityCreateException',
+        title: 'Erro ao criar atividade',
         message,
         code: 'ACTIVITY_CREATE_EXCEPTION',
       },

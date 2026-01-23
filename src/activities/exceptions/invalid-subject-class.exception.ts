@@ -9,7 +9,7 @@ export class InvalidSubjectClassException extends BadRequestException {
   ) {
     super(
       {
-        title: 'InvalidSubjectClassException',
+        title: 'Disciplina inválida',
         message,
         code: 'INVALID_SUBJECT_CLASS',
       },

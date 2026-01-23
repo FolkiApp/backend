@@ -6,7 +6,7 @@ export class InvalidAuthHeaderException extends UnauthorizedException {
   constructor(message = 'Header de Autorização inválido', error?: unknown) {
     super(
       {
-        title: 'InvalidAuthHeaderException',
+        title: 'Header de autorização inválido',
         message,
         code: 'INVALID_AUTH_HEADER',
       },

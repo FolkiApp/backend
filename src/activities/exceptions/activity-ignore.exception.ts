@@ -9,7 +9,7 @@ export class ActivityIgnoreException extends InternalServerErrorException {
   ) {
     super(
       {
-        title: 'ActivityIgnoreException',
+        title: 'Erro ao ignorar atividade',
         message,
         code: 'ACTIVITY_IGNORE_ERROR',
       },

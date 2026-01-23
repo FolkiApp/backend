@@ -6,7 +6,7 @@ export class ActivitiesFetchException extends InternalServerErrorException {
   constructor(message = 'Erro ao buscar atividades', error?: unknown) {
     super(
       {
-        title: 'ActivitiesFetchException',
+        title: 'Erro ao buscar atividades',
         message,
         code: 'ACTIVITIES_FETCH_EXCEPTION',
       },

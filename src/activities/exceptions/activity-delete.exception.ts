@@ -6,7 +6,7 @@ export class ActivityDeleteException extends InternalServerErrorException {
   constructor(message = 'Erro ao deletar atividade', error?: unknown) {
     super(
       {
-        title: 'ActivityDeleteException',
+        title: 'Erro ao deletar atividade',
         message,
         code: 'ACTIVITY_DELETE_ERROR',
       },

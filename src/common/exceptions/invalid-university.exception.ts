@@ -6,7 +6,7 @@ export class InvalidUniversityException extends BadRequestException {
   constructor(message = 'Universidade não encontrada', error?: unknown) {
     super(
       {
-        title: 'InvalidUniversityException',
+        title: 'Universidade inválida',
         message,
         code: 'INVALID_UNIVERSITY',
       },

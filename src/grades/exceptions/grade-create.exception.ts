@@ -8,7 +8,7 @@ export class GradeCreateException extends HttpException {
   ) {
     super(
       {
-        title: 'GradeCreateException',
+        title: 'Erro ao criar nota',
         message,
         code: 'GRADE_CREATE_ERROR',
       },

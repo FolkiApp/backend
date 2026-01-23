@@ -6,7 +6,7 @@ export class NotFoundAbsences extends NotFoundException {
   constructor(message = 'Nenhuma absence encontrada', error?: unknown) {
     super(
       {
-        title: 'NotFoundAbsences',
+        title: 'Faltas não encontradas',
         message,
         code: 'NOT_FOUND_ABSENCES',
       },

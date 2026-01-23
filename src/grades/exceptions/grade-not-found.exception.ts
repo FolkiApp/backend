@@ -6,7 +6,7 @@ export class GradeNotFoundException extends NotFoundException {
   constructor(message = 'Nota não encontrada', error?: unknown) {
     super(
       {
-        title: 'GradeNotFoundException',
+        title: 'Nota não encontrada',
         message,
         code: 'GRADE_NOT_FOUND',
       },

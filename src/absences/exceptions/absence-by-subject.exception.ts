@@ -6,7 +6,7 @@ export class AbsenceBySubjectException extends InternalServerErrorException {
   constructor(message = 'Erro ao buscar absences', error?: unknown) {
     super(
       {
-        title: 'AbsenceBySubjectException',
+        title: 'Erro ao buscar faltas',
         message,
         code: 'ABSENCE_BY_SUBJECT_EXCEPTION',
       },

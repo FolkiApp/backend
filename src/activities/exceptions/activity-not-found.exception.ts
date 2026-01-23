@@ -6,7 +6,7 @@ export class ActivityNotFoundException extends NotFoundException {
   constructor(message = 'Atividade não encontrada', error?: unknown) {
     super(
       {
-        title: 'ActivityNotFoundException',
+        title: 'Atividade não encontrada',
         message,
         code: 'ACTIVITY_NOT_FOUND',
       },

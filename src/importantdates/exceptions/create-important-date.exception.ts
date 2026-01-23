@@ -9,7 +9,7 @@ export class CreateImportantDateException extends InternalServerErrorException {
   ) {
     super(
       {
-        title: 'CreateImportantDateException',
+        title: 'Erro ao criar data importante',
         message,
         code: 'CREATE_IMPORTANT_DATE_ERROR',
       },

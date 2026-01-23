@@ -6,7 +6,7 @@ export class InvalidSubjectIdException extends BadRequestException {
   constructor(message = 'SubjectID é inválido', error?: unknown) {
     super(
       {
-        title: 'InvalidSubjectIdException',
+        title: 'ID de disciplina inválido',
         message,
         code: 'INVALID_SUBJECT_ID_EXCEPTION',
       },

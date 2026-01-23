@@ -6,7 +6,7 @@ export class InvalidTokenException extends UnauthorizedException {
   constructor(message = 'Token inválido ou expirado', error?: unknown) {
     super(
       {
-        title: 'InvalidTokenException',
+        title: 'Token inválido',
         message,
         code: 'INVALID_TOKEN',
       },

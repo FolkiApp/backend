@@ -6,7 +6,7 @@ export class ImportantDateFetchException extends InternalServerErrorException {
   constructor(message = 'Erro ao buscar datas importantes', error?: unknown) {
     super(
       {
-        title: 'ImportantDateFetchException',
+        title: 'Erro ao buscar datas importantes',
         message,
         code: 'IMPORTANT_DATE_FETCH_EXCEPTION',
       },

@@ -9,7 +9,7 @@ export class PermissionDeniedToUpdateException extends ForbiddenException {
   ) {
     super(
       {
-        title: 'PermissionDeniedToUpdateException',
+        title: 'Permissão negada para atualizar',
         message,
         code: 'PERMISSION_DENIED_TO_UPDATE',
       },

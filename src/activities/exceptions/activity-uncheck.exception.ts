@@ -9,7 +9,7 @@ export class ActivityUncheckException extends InternalServerErrorException {
   ) {
     super(
       {
-        title: 'ActivityUncheckException',
+        title: 'Erro ao desmarcar atividade como concluída',
         message,
         code: 'ACTIVITY_UNCHECK_ERROR',
       },

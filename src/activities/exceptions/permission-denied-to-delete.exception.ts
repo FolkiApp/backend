@@ -9,7 +9,7 @@ export class PermissionDeniedToDeleteException extends ForbiddenException {
   ) {
     super(
       {
-        title: 'PermissionDeniedToDeleteException',
+        title: 'Permissão negada para deletar',
         message,
         code: 'PERMISSION_DENIED_TO_DELETE',
       },

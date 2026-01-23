@@ -6,7 +6,7 @@ export class GradeDeleteException extends InternalServerErrorException {
   constructor(message = 'Erro ao deletar nota', error?: unknown) {
     super(
       {
-        title: 'GradeDeleteException',
+        title: 'Erro ao deletar nota',
         message,
         code: 'GRADE_DELETE_EXCEPTION',
       },

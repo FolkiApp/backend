@@ -6,7 +6,7 @@ export class UserNotFoundException extends UnauthorizedException {
   constructor(message = 'Usuário não existe', error?: unknown) {
     super(
       {
-        title: 'UserNotFoundException',
+        title: 'Usuário não encontrado',
         message,
         code: 'USER_NOT_FOUND',
       },

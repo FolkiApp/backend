@@ -9,7 +9,7 @@ export class InvalidRoleException extends InternalServerErrorException {
   ) {
     super(
       {
-        title: 'InvalidRoleException',
+        title: 'Papel de usuário inválido',
         message,
         code: 'INVALID_ROLE',
       },

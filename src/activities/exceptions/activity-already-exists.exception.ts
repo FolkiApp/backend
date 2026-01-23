@@ -9,7 +9,7 @@ export class ActivityAlreadyExistsException extends BadRequestException {
   ) {
     super(
       {
-        title: 'ActivityAlreadyExistsException',
+        title: 'Atividade já existe',
         message,
         code: 'ACTIVITY_ALREADY_EXISTS',
       },

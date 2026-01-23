@@ -6,7 +6,7 @@ export class AbsenceInternalErrorException extends InternalServerErrorException 
   constructor(message = 'Internal error', error?: unknown) {
     super(
       {
-        title: 'AbsenceInternalErrorException',
+        title: 'Erro interno ao processar faltas',
         message,
         code: 'ABSENCE_INTERNAL_ERROR_EXCEPTION',
       },

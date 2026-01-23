@@ -9,7 +9,7 @@ export class PermissionDeniedException extends ForbiddenException {
   ) {
     super(
       {
-        title: 'PermissionDeniedException',
+        title: 'Permissão negada',
         message,
         code: 'PERMISSION_DENIED',
       },

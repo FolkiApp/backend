@@ -9,7 +9,7 @@ export class ActivityUpdateException extends InternalServerErrorException {
   ) {
     super(
       {
-        title: 'ActivityUpdateException',
+        title: 'Erro ao atualizar atividade',
         message,
         code: 'ACTIVITY_UPDATE_EXCEPTION',
       },

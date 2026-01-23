@@ -9,7 +9,7 @@ export class UserBlockedException extends ForbiddenException {
   ) {
     super(
       {
-        title: 'UserBlockedException',
+        title: 'Usuário bloqueado',
         message,
         code: 'USER_BLOCKED',
       },

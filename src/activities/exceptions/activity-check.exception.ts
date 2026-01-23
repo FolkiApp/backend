@@ -9,7 +9,7 @@ export class ActivityCheckException extends InternalServerErrorException {
   ) {
     super(
       {
-        title: 'ActivityCheckException',
+        title: 'Erro ao marcar atividade como concluída',
         message,
         code: 'ACTIVITY_CHECK_ERROR',
       },

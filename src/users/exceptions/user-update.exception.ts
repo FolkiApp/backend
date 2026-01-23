@@ -6,7 +6,7 @@ export class UserUpdateException extends InternalServerErrorException {
   constructor(message = 'Erro ao atualizar usuário', error?: unknown) {
     super(
       {
-        title: 'UserUpdateException',
+        title: 'Erro ao atualizar usuário',
         message,
         code: 'USER_UPDATE_EXCEPTION',
       },

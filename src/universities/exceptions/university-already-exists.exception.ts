@@ -6,7 +6,7 @@ export class UniversityAlreadyExistsException extends ConflictException {
   constructor(message = 'Universidade já existe', error?: unknown) {
     super(
       {
-        title: 'UniversityAlreadyExistsException',
+        title: 'Universidade já existe',
         message,
         code: 'UNIVERSITY_ALREADY_EXISTS',
       },

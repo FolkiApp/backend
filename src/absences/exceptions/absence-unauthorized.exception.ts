@@ -6,7 +6,7 @@ export class AbsenceUnauthorized extends UnauthorizedException {
   constructor(message = 'Absence não pertence ao usuário', error?: unknown) {
     super(
       {
-        title: 'AbsenceUnauthorized',
+        title: 'Acesso não autorizado',
         message,
         code: 'ABSENCE_ACESS_UNAUTHORIZED',
       },
