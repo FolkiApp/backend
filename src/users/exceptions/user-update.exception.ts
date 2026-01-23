@@ -4,7 +4,14 @@ export class UserUpdateException extends InternalServerErrorException {
   public readonly code = 'USER_UPDATE_EXCEPTION';
 
   constructor(message = 'Erro ao atualizar usuário', error?: unknown) {
-    super(message, { cause: error });
+    super(
+      {
+        title: 'Erro ao atualizar usuário',
+        message,
+        code: 'USER_UPDATE_EXCEPTION',
+      },
+      { cause: error },
+    );
     this.name = 'UserUpdateException';
   }
 }

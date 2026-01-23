@@ -3,8 +3,18 @@ import { InternalServerErrorException } from '@nestjs/common';
 export class ActivityIgnoreException extends InternalServerErrorException {
   public readonly code = 'ACTIVITY_IGNORE_ERROR';
 
-  constructor(error?: unknown) {
-    super('Erro ao marcar atividade como ignorada', { cause: error });
+  constructor(
+    message = 'Erro ao marcar atividade como ignorada',
+    error?: unknown,
+  ) {
+    super(
+      {
+        title: 'Erro ao ignorar atividade',
+        message,
+        code: 'ACTIVITY_IGNORE_ERROR',
+      },
+      { cause: error },
+    );
     this.name = 'ActivityIgnoreException';
   }
 }

@@ -7,7 +7,14 @@ export class ActivityAlreadyExistsException extends BadRequestException {
     message = 'Atividade já existente - Verifique se a atividade já foi adicionada',
     error?: unknown,
   ) {
-    super(message, { cause: error });
+    super(
+      {
+        title: 'Atividade já existe',
+        message,
+        code: 'ACTIVITY_ALREADY_EXISTS',
+      },
+      { cause: error },
+    );
     this.name = 'ActivityAlreadyExistsException';
   }
 }

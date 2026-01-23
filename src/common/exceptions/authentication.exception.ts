@@ -7,7 +7,14 @@ export class AuthenticationException extends InternalServerErrorException {
     message = 'Erro inesperado ao autenticar usuário',
     error?: unknown,
   ) {
-    super(message, { cause: error });
+    super(
+      {
+        title: 'Erro ao autenticar',
+        message,
+        code: 'AUTHENTICATION_ERROR',
+      },
+      { cause: error },
+    );
     this.name = 'AuthenticationException';
   }
 }

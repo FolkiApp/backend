@@ -3,8 +3,18 @@ import { InternalServerErrorException } from '@nestjs/common';
 export class ActivityCheckException extends InternalServerErrorException {
   public readonly code = 'ACTIVITY_CHECK_ERROR';
 
-  constructor(error?: unknown) {
-    super('Erro ao marcar atividade como concluída', { cause: error });
+  constructor(
+    message = 'Erro ao marcar atividade como concluída',
+    error?: unknown,
+  ) {
+    super(
+      {
+        title: 'Erro ao marcar atividade como concluída',
+        message,
+        code: 'ACTIVITY_CHECK_ERROR',
+      },
+      { cause: error },
+    );
     this.name = 'ActivityCheckException';
   }
 }

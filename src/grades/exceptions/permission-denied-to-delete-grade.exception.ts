@@ -7,7 +7,14 @@ export class PermissionDeniedToDeleteGradeException extends ForbiddenException {
     message = 'Você não tem permissão para deletar essa nota',
     error?: unknown,
   ) {
-    super(message, { cause: error });
+    super(
+      {
+        title: 'Permissão negada para deletar nota',
+        message,
+        code: 'PERMISSION_DENIED_TO_DELETE_GRADE',
+      },
+      { cause: error },
+    );
     this.name = 'PermissionDeniedToDeleteGradeException';
   }
 }
