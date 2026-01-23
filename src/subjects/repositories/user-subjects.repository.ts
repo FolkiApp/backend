@@ -19,4 +19,34 @@ export class UserSubjectsRepository {
       },
     });
   }
+
+  async getNotificationIdsBySubjectClassId(
+    subjectClassId: number,
+    excludeUserId?: number,
+  ): Promise<string[]> {
+    const userSubjects = await this.prisma.user_subject.findMany({
+      where: {
+        subjectClassId,
+        userId: excludeUserId ? { not: excludeUserId } : undefined,
+        deletedAt: null,
+      },
+      select: {
+        user: {
+          select: {
+            user_notification_id: {
+              select: {
+                notificationId: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    const notificationIds = userSubjects
+      .flatMap((us) => us.user.user_notification_id)
+      .map((n) => n.notificationId);
+
+    return notificationIds;
+  }
 }

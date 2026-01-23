@@ -80,4 +80,20 @@ export class SubjectClassRepository {
       subjectClass.observations,
     );
   }
+
+  async findByIdWithSubject(
+    subjectClassId: number,
+  ): Promise<{ id: number; subject: { name: string } } | null> {
+    return this.prisma.subject_class.findUnique({
+      where: { id: subjectClassId },
+      select: {
+        id: true,
+        subject: {
+          select: {
+            name: true,
+          },
+        },
+      },
+    });
+  }
 }

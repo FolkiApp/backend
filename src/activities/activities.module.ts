@@ -11,9 +11,10 @@ import { UnignoreActivityService } from './services/unignore-activity.service';
 import { ActivitiesRepository } from './repositories/activities.repository';
 import { PrismaModule } from '../prisma/prisma.module';
 import { SubjectsModule } from '../subjects/subjects.module';
+import { NotificationsModule } from '../notifications/notifications.module';
 
 @Module({
-  imports: [PrismaModule, SubjectsModule],
+  imports: [PrismaModule, SubjectsModule, NotificationsModule],
   controllers: [ActivitiesController],
   providers: [
     GetAllActivitiesService,

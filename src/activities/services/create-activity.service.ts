@@ -8,6 +8,9 @@ import { ActivityAlreadyExistsException } from '../exceptions/activity-already-e
 import { UserBlockedException } from '../exceptions/user-blocked.exception';
 import { ActivityCreateException } from '../exceptions/activity-create.exception';
 import { SubjectClassRepository } from '../../subjects/repositories/subject-class.repository';
+import { UserSubjectsRepository } from '../../subjects/repositories/user-subjects.repository';
+import { PipoNotificationService } from '../../notifications/services/pipo-notification.service';
+import { getActivityStringDate } from '../../common/utils/date.utils';
 
 @Injectable()
 export class CreateActivityService {
@@ -16,6 +19,8 @@ export class CreateActivityService {
   constructor(
     private readonly activitiesRepository: ActivitiesRepository,
     private readonly subjectClassRepository: SubjectClassRepository,
+    private readonly userSubjectsRepository: UserSubjectsRepository,
+    private readonly pipoNotificationService: PipoNotificationService,
   ) {}
 
   async execute(
@@ -35,11 +40,13 @@ export class CreateActivityService {
       user.id,
     );
 
-    if (!createActivityDto.isPrivate) {
+    if (!createActivityDto.isPrivate)
       await this.verifyIfActivityAlreadyExists(user.id, createActivityDto);
-    }
 
     const activity = await this.createActivity(user.id, createActivityDto);
+
+    if (!createActivityDto.isPrivate)
+      this.sendActivityNotificationAsync(user, createActivityDto, activity);
 
     this.logger.log({
       message: 'Successfully created activity',
@@ -48,6 +55,22 @@ export class CreateActivityService {
     });
 
     return activity;
+  }
+
+  private sendActivityNotificationAsync(
+    user: AuthUser,
+    createActivityDto: CreateActivityDto,
+    activity: Activity,
+  ): void {
+    void this.sendActivityNotification(user, createActivityDto, activity).catch(
+      (error: unknown) => {
+        this.logger.error({
+          message: 'Failed to send activity notification',
+          error: error instanceof Error ? error.message : String(error),
+          activityId: activity.id,
+        });
+      },
+    );
   }
 
   private createDateWithDefaultTime(dateString: string): Date {
@@ -134,6 +157,64 @@ export class CreateActivityService {
       });
 
       throw new ActivityCreateException();
+    }
+  }
+
+  private async sendActivityNotification(
+    user: AuthUser,
+    createActivityDto: CreateActivityDto,
+    activity: Activity,
+  ): Promise<void> {
+    try {
+      const notificationIds =
+        await this.userSubjectsRepository.getNotificationIdsBySubjectClassId(
+          createActivityDto.subjectClassId,
+          user.id,
+        );
+
+      if (!notificationIds.length) {
+        this.logger.log({
+          message: 'No users with notification IDs found for subject class',
+          subjectClassId: createActivityDto.subjectClassId,
+        });
+        return;
+      }
+
+      const subjectClass =
+        await this.subjectClassRepository.findByIdWithSubject(
+          createActivityDto.subjectClassId,
+        );
+
+      if (!subjectClass || !subjectClass.subject) {
+        this.logger.error({
+          message: 'Subject class not found for notification',
+          subjectClassId: createActivityDto.subjectClassId,
+        });
+        return;
+      }
+
+      const title = `Nova Atividade de ${subjectClass.subject.name}`;
+      const textBody = `A Atividade "${activity.name}" Foi Adicionada para ${getActivityStringDate(
+        activity.finishDate.toString(),
+      )}.`;
+
+      await this.pipoNotificationService.sendNotification({
+        title,
+        message: textBody,
+        playerIds: notificationIds,
+      });
+
+      this.logger.log({
+        message: 'Activity notification sent successfully',
+        activityId: activity.id,
+        recipientsCount: notificationIds.length,
+      });
+    } catch (error: unknown) {
+      this.logger.error({
+        message: 'Error sending activity notification',
+        activityId: activity.id,
+        error: error instanceof Error ? error.message : error,
+      });
     }
   }
 }
