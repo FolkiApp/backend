@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ImportantDateRepository } from '../repositories/important-date.repository';
+import { DeletedImportantDateException } from '../exceptions/delete-important-date.exception';
 
 @Injectable()
 export class DeleteImportantDateService {
@@ -21,9 +22,14 @@ export class DeleteImportantDateService {
     } catch (error) {
       this.logger.error({
         message: 'Error deleting important date',
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error:
+          error instanceof DeletedImportantDateException
+            ? error.message
+            : 'Unknown error',
       });
-      throw new Error('Failed to delete important date');
+      throw new DeletedImportantDateException(
+        'Failed to delete important date',
+      );
     }
   }
 }
