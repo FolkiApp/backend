@@ -7,7 +7,14 @@ export class InvalidSubjectClassException extends BadRequestException {
     message = 'Disciplina inválida - Verifique se a disciplina selecionada é válida',
     error?: unknown,
   ) {
-    super(message, { cause: error });
+    super(
+      {
+        title: 'Disciplina inválida',
+        message,
+        code: 'INVALID_SUBJECT_CLASS',
+      },
+      { cause: error },
+    );
     this.name = 'InvalidSubjectClassException';
   }
 }

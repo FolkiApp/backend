@@ -7,7 +7,14 @@ export class InvalidRoleException extends InternalServerErrorException {
     message = 'Erro ao tentar criar data importante',
     error?: unknown,
   ) {
-    super(message, { cause: error });
-    this.name = 'InvalidRole';
+    super(
+      {
+        title: 'Papel de usuário inválido',
+        message,
+        code: 'INVALID_ROLE',
+      },
+      { cause: error },
+    );
+    this.name = 'InvalidRoleException';
   }
 }

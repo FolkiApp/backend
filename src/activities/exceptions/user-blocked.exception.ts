@@ -7,7 +7,14 @@ export class UserBlockedException extends ForbiddenException {
     message = 'Você foi bloqueado do Folki e não tem permissão para criar atividades',
     error?: unknown,
   ) {
-    super(message, { cause: error });
+    super(
+      {
+        title: 'Usuário bloqueado',
+        message,
+        code: 'USER_BLOCKED',
+      },
+      { cause: error },
+    );
     this.name = 'UserBlockedException';
   }
 }

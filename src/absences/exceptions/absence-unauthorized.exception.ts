@@ -4,7 +4,14 @@ export class AbsenceUnauthorized extends UnauthorizedException {
   public readonly code = 'ABSENCE_ACESS_UNAUTHORIZED';
 
   constructor(message = 'Absence não pertence ao usuário', error?: unknown) {
-    super(message, { cause: error });
+    super(
+      {
+        title: 'Acesso não autorizado',
+        message,
+        code: 'ABSENCE_ACESS_UNAUTHORIZED',
+      },
+      { cause: error },
+    );
     this.name = 'AbsenceUnauthorized';
   }
 }

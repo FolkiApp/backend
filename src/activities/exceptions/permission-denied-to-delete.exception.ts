@@ -7,7 +7,14 @@ export class PermissionDeniedToDeleteException extends ForbiddenException {
     message = 'Você não tem permissão para deletar essa atividade',
     error?: unknown,
   ) {
-    super(message, { cause: error });
+    super(
+      {
+        title: 'Permissão negada para deletar',
+        message,
+        code: 'PERMISSION_DENIED_TO_DELETE',
+      },
+      { cause: error },
+    );
     this.name = 'PermissionDeniedToDeleteException';
   }
 }

@@ -9,10 +9,12 @@ import { InstitutesModule } from './institutes/institutes.module';
 import { AbsenceModule } from './absences/absence.module';
 import { ActivitiesModule } from './activities/activities.module';
 import { GradesModule } from './grades/grades.module';
+import { NotificationsModule } from './notifications/notifications.module';
 
 @Module({
   imports: [
     PrismaModule,
+    NotificationsModule,
     UniversitiesModule,
     UsersModule,
     ImportantDateModule,

@@ -8,6 +8,8 @@ import { UserBlockedException } from '../exceptions/user-blocked.exception';
 import { ActivityCreateException } from '../exceptions/activity-create.exception';
 import { Activity } from '../entities/activity.entity';
 import { SubjectClassRepository } from '../../subjects/repositories/subject-class.repository';
+import { UserSubjectsRepository } from '../../subjects/repositories/user-subjects.repository';
+import { PipoNotificationService } from '../../notifications/services/pipo-notification.service';
 
 describe('CreateActivityService', () => {
   let service: CreateActivityService;
@@ -42,6 +44,15 @@ describe('CreateActivityService', () => {
 
   const mockSubjectClassRepository = {
     findByIdAndUserId: jest.fn(),
+    findByIdWithSubject: jest.fn(),
+  };
+
+  const mockUserSubjectsRepository = {
+    getNotificationIdsBySubjectClassId: jest.fn(),
+  };
+
+  const mockPipoNotificationService = {
+    sendNotification: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -55,6 +66,14 @@ describe('CreateActivityService', () => {
         {
           provide: SubjectClassRepository,
           useValue: mockSubjectClassRepository,
+        },
+        {
+          provide: UserSubjectsRepository,
+          useValue: mockUserSubjectsRepository,
+        },
+        {
+          provide: PipoNotificationService,
+          useValue: mockPipoNotificationService,
         },
       ],
     }).compile();

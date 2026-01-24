@@ -27,9 +27,7 @@ export class DeleteImportantDateService {
             ? error.message
             : 'Unknown error',
       });
-      throw new DeletedImportantDateException(
-        'Failed to delete important date',
-      );
+      throw new DeletedImportantDateException();
     }
   }
 }

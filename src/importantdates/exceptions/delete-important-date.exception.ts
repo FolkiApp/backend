@@ -7,7 +7,14 @@ export class DeletedImportantDateException extends InternalServerErrorException 
     message = 'Erro ao tentar deletar data importante',
     error?: unknown,
   ) {
-    super(message, { cause: error });
-    this.name = 'DeletedImportantDate';
+    super(
+      {
+        title: 'Erro ao deletar data importante',
+        message,
+        code: 'DELETE_IMPORTANT_DATE_ERROR',
+      },
+      { cause: error },
+    );
+    this.name = 'DeleteImportantDateException';
   }
 }
