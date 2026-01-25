@@ -7,6 +7,16 @@ import { SubjectClass } from '../entities/subject-class.entity';
 export class SubjectClassRepository {
   constructor(private prisma: PrismaService) {}
 
+  async findLatest(): Promise<{ year: number; semester: number } | null> {
+    return this.prisma.subject_class.findFirst({
+      orderBy: [{ year: 'desc' }, { semester: 'desc' }],
+      select: {
+        year: true,
+        semester: true,
+      },
+    });
+  }
+
   async findBySubjectAndSchedule(
     subjectId: number,
     availableDays: Prisma.InputJsonValue,

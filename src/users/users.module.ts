@@ -12,6 +12,8 @@ import { AccessUFSCarSigaaService } from './services/access-ufscar-sigaa.service
 import { UserRepository } from './repositories/user.repository';
 import { UserSubjectRepository } from './repositories/user-subject.repository';
 import { UserNotificationIdRepository } from './repositories/user-notification-id.repository';
+import { CountUsersService } from './services/count-users.service';
+import { FindUserSubjectsService } from './services/find-user-subjects.service';
 
 @Module({
   imports: [PrismaModule, CoursesModule, InstitutesModule, SubjectsModule],
@@ -25,6 +27,8 @@ import { UserNotificationIdRepository } from './repositories/user-notification-i
     UserRepository,
     UserSubjectRepository,
     UserNotificationIdRepository,
+    CountUsersService,
+    FindUserSubjectsService,
   ],
 })
 export class UsersModule {}

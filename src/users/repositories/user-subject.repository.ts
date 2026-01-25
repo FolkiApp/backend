@@ -1,9 +1,34 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import { UserSubject } from '../entities/user-subject.entity';
 
 @Injectable()
 export class UserSubjectRepository {
   constructor(private prisma: PrismaService) {}
+
+  async findByUserAndClass(
+    userId: number,
+    year: number,
+    semester: number,
+  ): Promise<UserSubject[]> {
+    const rows = await this.prisma.user_subject.findMany({
+      where: {
+        userId,
+        deletedAt: null,
+        subjectClass: { year, semester },
+      },
+    });
+
+    return rows.map((us) => ({
+      id: us.id,
+      userId: us.userId,
+      subjectClassId: us.subjectClassId,
+      absences: us.absences,
+      grading: us.grading,
+      createdAt: us.createdAt,
+      deletedAt: us.deletedAt,
+    }));
+  }
 
   async findManyByUserId(userId: number) {
     return await this.prisma.user_subject.findMany({

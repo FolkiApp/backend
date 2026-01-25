@@ -3,6 +3,7 @@ import { Logger } from '@nestjs/common';
 
 import { DeleteImportantDateService } from '../services/delete-important-date.service';
 import { ImportantDateRepository } from '../repositories/important-date.repository';
+import { DeletedImportantDateException } from '../exceptions/delete-important-date.exception';
 
 describe('DeleteImportantDateService', () => {
   let service: DeleteImportantDateService;
@@ -23,12 +24,14 @@ describe('DeleteImportantDateService', () => {
       ],
     }).compile();
 
-    service = module.get(DeleteImportantDateService);
-    repository = module.get(ImportantDateRepository);
+    service = module.get<DeleteImportantDateService>(
+      DeleteImportantDateService,
+    );
+    repository = module.get<ImportantDateRepository>(ImportantDateRepository);
 
     jest.clearAllMocks();
 
-    // Evita poluição de logs
+    // Evita poluição de logs nos testes
     jest.spyOn(Logger.prototype, 'log').mockImplementation(() => undefined);
     jest.spyOn(Logger.prototype, 'error').mockImplementation(() => undefined);
   });
@@ -45,7 +48,7 @@ describe('DeleteImportantDateService', () => {
       expect(repository.delete).toHaveBeenCalledWith(importantDateId);
     });
 
-    it('loga erro e lança Error quando o repository falhar', async () => {
+    it('loga erro e lança DeletedImportantDateException quando o repository falhar', async () => {
       const importantDateId = 20;
 
       mockImportantDateRepository.delete.mockRejectedValue(
@@ -53,7 +56,7 @@ describe('DeleteImportantDateService', () => {
       );
 
       await expect(service.execute(importantDateId)).rejects.toThrow(
-        'Failed to delete important date',
+        DeletedImportantDateException,
       );
 
       expect(repository.delete).toHaveBeenCalledTimes(1);

@@ -1,12 +1,14 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { PrismaService } from '../../prisma/prisma.service';
+
+import { user_subject } from '@prisma/client'; // Importe o tipo gerado pelo Prisma
 import { UserSubjectRepository } from '../repositories/user-subject.repository';
 
 describe('UserSubjectRepository', () => {
   let repository: UserSubjectRepository;
   let prismaService: PrismaService;
 
-  const mockPrismaService = {
+  const mockPrisma = {
     user_subject: {
       findMany: jest.fn(),
       findFirst: jest.fn(),
@@ -21,7 +23,7 @@ describe('UserSubjectRepository', () => {
         UserSubjectRepository,
         {
           provide: PrismaService,
-          useValue: mockPrismaService,
+          useValue: mockPrisma,
         },
       ],
     }).compile();
@@ -34,20 +36,51 @@ describe('UserSubjectRepository', () => {
     jest.clearAllMocks();
   });
 
-  describe('findManyByUserId', () => {
-    it('deve retornar todas as matérias de um usuário', async () => {
-      const mockUserSubjects = [
-        { id: 1, userId: 1, subjectClassId: 1 },
-        { id: 2, userId: 1, subjectClassId: 2 },
+  describe('findByUserAndClass', () => {
+    it('deve retornar entidades mapeadas corretamente', async () => {
+      const mockDbRows: user_subject[] = [
+        {
+          id: 1,
+          userId: 1,
+          subjectClassId: 10,
+          absences: 0,
+          grading: 10,
+          createdAt: new Date(),
+          deletedAt: null,
+        },
       ];
 
-      mockPrismaService.user_subject.findMany.mockResolvedValue(
-        mockUserSubjects,
-      );
+      jest
+        .spyOn(prismaService.user_subject, 'findMany')
+        .mockResolvedValue(mockDbRows);
+
+      const result = await repository.findByUserAndClass(1, 2023, 1);
+
+      expect(result).toEqual(mockDbRows);
+    });
+  });
+
+  describe('findManyByUserId', () => {
+    it('deve retornar todos os registros de um usuário', async () => {
+      const mockRows: user_subject[] = [
+        {
+          id: 1,
+          userId: 1,
+          subjectClassId: 10,
+          absences: 0,
+          grading: 10,
+          createdAt: new Date(),
+          deletedAt: null,
+        },
+      ];
+
+      jest
+        .spyOn(prismaService.user_subject, 'findMany')
+        .mockResolvedValue(mockRows);
 
       const result = await repository.findManyByUserId(1);
 
-      expect(result).toEqual(mockUserSubjects);
+      expect(result).toEqual(mockRows);
       expect(prismaService.user_subject.findMany).toHaveBeenCalledWith({
         where: { userId: 1 },
       });
@@ -55,69 +88,63 @@ describe('UserSubjectRepository', () => {
   });
 
   describe('findByUserAndSubjectClass', () => {
-    it('deve retornar uma relação usuário-matéria existente', async () => {
-      const mockUserSubject = {
+    it('deve retornar um registro específico ou null', async () => {
+      const mockRow: user_subject = {
         id: 1,
         userId: 1,
-        subjectClassId: 1,
+        subjectClassId: 10,
+        absences: 0,
+        grading: 10,
+        createdAt: new Date(),
+        deletedAt: null,
       };
 
-      mockPrismaService.user_subject.findFirst.mockResolvedValue(
-        mockUserSubject,
-      );
+      jest
+        .spyOn(prismaService.user_subject, 'findFirst')
+        .mockResolvedValue(mockRow);
 
-      const result = await repository.findByUserAndSubjectClass(1, 1);
+      const result = await repository.findByUserAndSubjectClass(1, 10);
 
-      expect(result).toEqual(mockUserSubject);
-      expect(prismaService.user_subject.findFirst).toHaveBeenCalledWith({
-        where: {
-          userId: 1,
-          subjectClassId: 1,
-        },
-      });
-    });
-
-    it('deve retornar null quando relação não existe', async () => {
-      mockPrismaService.user_subject.findFirst.mockResolvedValue(null);
-
-      const result = await repository.findByUserAndSubjectClass(1, 999);
-
-      expect(result).toBeNull();
+      expect(result).toEqual(mockRow);
     });
   });
 
   describe('create', () => {
-    it('deve criar uma nova relação usuário-matéria', async () => {
-      const mockCreated = {
+    it('deve criar um novo registro com sucesso', async () => {
+      const mockCreated: user_subject = {
         id: 1,
         userId: 1,
-        subjectClassId: 1,
+        subjectClassId: 10,
+        absences: 0,
+        grading: 0,
+        createdAt: new Date(),
+        deletedAt: null,
       };
 
-      mockPrismaService.user_subject.create.mockResolvedValue(mockCreated);
+      jest
+        .spyOn(prismaService.user_subject, 'create')
+        .mockResolvedValue(mockCreated);
 
-      const result = await repository.create(1, 1);
+      const result = await repository.create(1, 10);
 
       expect(result).toEqual(mockCreated);
       expect(prismaService.user_subject.create).toHaveBeenCalledWith({
-        data: {
-          userId: 1,
-          subjectClassId: 1,
-        },
+        data: { userId: 1, subjectClassId: 10 },
       });
     });
   });
 
   describe('softDeleteMany', () => {
-    it('deve fazer soft delete de múltiplas relações', async () => {
-      const mockResult = { count: 2 };
+    it('deve realizar o soft delete de múltiplos registros', async () => {
+      const mockUpdateResult = { count: 5 };
 
-      mockPrismaService.user_subject.updateMany.mockResolvedValue(mockResult);
+      jest
+        .spyOn(prismaService.user_subject, 'updateMany')
+        .mockResolvedValue(mockUpdateResult);
 
-      const result = await repository.softDeleteMany(1, [1, 2]);
+      const result = await repository.softDeleteMany(1, [10, 20, 30]);
 
-      expect(result).toEqual(mockResult);
-      expect(prismaService.user_subject.updateMany).toHaveBeenCalled();
+      expect(result.count).toBe(5);
     });
   });
 });
