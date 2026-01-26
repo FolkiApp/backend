@@ -10,6 +10,7 @@ import { AbsenceModule } from './absences/absence.module';
 import { ActivitiesModule } from './activities/activities.module';
 import { GradesModule } from './grades/grades.module';
 import { NotificationsModule } from './notifications/notifications.module';
+import { PostsModule } from './posts/posts.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { NotificationsModule } from './notifications/notifications.module';
     AbsenceModule,
     ActivitiesModule,
     GradesModule,
+    PostsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
