@@ -9,5 +9,6 @@ export class PostsEntity {
     public userId: number,
     public commentsCount: number,
     public comments?: CommentEntity[],
+    public tags?: string[],
   ) {}
 }

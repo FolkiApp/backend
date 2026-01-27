@@ -10,6 +10,7 @@ export class PostsRepository {
     title: string,
     content: string,
     userId: number,
+    tags: string[],
   ): Promise<PostsEntity> {
     const post = await this.prisma.post.create({
       data: {
@@ -17,6 +18,7 @@ export class PostsRepository {
         content,
         userId,
         commentsCount: 0,
+        tags: tags,
       },
     });
     return new PostsEntity(
@@ -26,6 +28,8 @@ export class PostsRepository {
       post.content,
       post.userId,
       post.commentsCount,
+      undefined,
+      post.tags,
     );
   }
 

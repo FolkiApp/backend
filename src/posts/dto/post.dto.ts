@@ -1,5 +1,4 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { CommentEntity } from 'src/comments/entities/comment.entity';
 
 export class PostDto {
   @ApiProperty({ example: 1 })
@@ -26,10 +25,14 @@ export class PostDto {
   @ApiProperty({ example: 3 })
   userId: number;
 
-  @ApiProperty({
-    example: 21,
-  })
+  @ApiProperty({ example: 21 })
   commentsCount: number;
+
+  @ApiProperty({
+    example: ['Value', 'Value2'],
+    type: [String],
+  })
+  tags: string[];
 
   constructor(
     id: number,
@@ -38,6 +41,7 @@ export class PostDto {
     content: string,
     userId: number,
     commentsCount: number,
+    tags?: string[],
   ) {
     this.id = id;
     this.postDate = postDate;
@@ -45,5 +49,6 @@ export class PostDto {
     this.content = content;
     this.userId = userId;
     this.commentsCount = commentsCount;
+    this.tags = tags ?? [];
   }
 }

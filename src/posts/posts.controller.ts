@@ -32,6 +32,7 @@ export class PostController {
       body.title,
       body.content,
       authUser,
+      body.tags,
     );
 
     return new PostDto(
@@ -41,6 +42,7 @@ export class PostController {
       post.content,
       post.userId,
       post.commentsCount,
+      post.tags,
     );
   }
 
@@ -67,6 +69,7 @@ export class PostController {
             post.content,
             post.userId,
             post.commentsCount,
+            post.tags,
           ),
       ),
       nextId,
@@ -101,6 +104,7 @@ export class PostController {
             post.content,
             post.userId,
             post.commentsCount,
+            post.tags,
           ),
       ),
       nextId,

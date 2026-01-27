@@ -15,20 +15,27 @@ export class PostPostsService {
     title: string,
     content: string,
     user: AuthUser,
+    tags: string[],
   ): Promise<PostsEntity> {
     this.logger.log({ message: 'Creating Post' });
-    return this.createPost(title, content, user.id);
+    return this.createPost(title, content, user.id, tags);
   }
   async createPost(
     title: string,
     content: string,
     userId: number,
+    tags: string[],
   ): Promise<PostsEntity> {
     try {
       if (!title?.trim() || !content?.trim()) {
         throw new EmptyPostException();
       }
-      const post = await this.postRepository.createPost(title, content, userId);
+      const post = await this.postRepository.createPost(
+        title,
+        content,
+        userId,
+        tags,
+      );
       return post;
     } catch (error: unknown) {
       this.logger.error({

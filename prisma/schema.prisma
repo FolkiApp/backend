@@ -255,6 +255,7 @@ model post {
   userId     Int
   commentsCount Int
   user       user      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tags String[]
   comments   comment[]
 }
 
