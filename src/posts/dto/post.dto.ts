@@ -31,12 +31,6 @@ export class PostDto {
   })
   commentsCount: number;
 
-  @ApiProperty({
-    example: [],
-    type: [CommentEntity],
-  })
-  comments: CommentEntity[];
-
   constructor(
     id: number,
     postDate: Date,
@@ -44,7 +38,6 @@ export class PostDto {
     content: string,
     userId: number,
     commentsCount: number,
-    comments: CommentEntity[] = [],
   ) {
     this.id = id;
     this.postDate = postDate;
@@ -52,6 +45,5 @@ export class PostDto {
     this.content = content;
     this.userId = userId;
     this.commentsCount = commentsCount;
-    this.comments = comments;
   }
 }

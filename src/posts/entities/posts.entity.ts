@@ -8,6 +8,6 @@ export class PostsEntity {
     public content: string,
     public userId: number,
     public commentsCount: number,
-    public comments: CommentEntity[] = [],
+    public comments?: CommentEntity[],
   ) {}
 }

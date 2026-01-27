@@ -28,4 +28,21 @@ export class PostsRepository {
       post.commentsCount,
     );
   }
+
+  async listPosts(quantity = 10): Promise<PostsEntity[]> {
+    const posts = await this.prisma.post.findMany({
+      take: quantity,
+      orderBy: { id: 'desc' },
+    });
+    return posts;
+  }
+
+  async listNextPosts(lastId: number, quantity = 10): Promise<PostsEntity[]> {
+    return this.prisma.post.findMany({
+      take: quantity,
+      skip: 1,
+      cursor: { id: lastId },
+      orderBy: { id: 'desc' },
+    });
+  }
 }
