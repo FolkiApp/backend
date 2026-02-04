@@ -1,8 +1,20 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { PrismaService } from '../../prisma/prisma.service';
-
-import { user_subject } from '@prisma/client'; // Importe o tipo gerado pelo Prisma
 import { UserSubjectRepository } from '../repositories/user-subject.repository';
+import { user_subject } from '@prisma/client';
+
+type UserSubjectWithRelations = user_subject & {
+  subjectClass: {
+    id: number;
+    availableDays: unknown;
+    subject: {
+      id: number;
+      name: string;
+    };
+    observations: string | null;
+  };
+  user_absences: unknown[];
+};
 
 describe('UserSubjectRepository', () => {
   let repository: UserSubjectRepository;
@@ -38,7 +50,7 @@ describe('UserSubjectRepository', () => {
 
   describe('findByUserAndClass', () => {
     it('deve retornar entidades mapeadas corretamente', async () => {
-      const mockDbRows: user_subject[] = [
+      const mockDbRows: UserSubjectWithRelations[] = [
         {
           id: 1,
           userId: 1,
@@ -47,6 +59,15 @@ describe('UserSubjectRepository', () => {
           grading: 10,
           createdAt: new Date(),
           deletedAt: null,
+
+          subjectClass: {
+            id: 10,
+            availableDays: [],
+            subject: { id: 1, name: 'Algoritmos' },
+            observations: null,
+          },
+
+          user_absences: [],
         },
       ];
 
@@ -56,7 +77,9 @@ describe('UserSubjectRepository', () => {
 
       const result = await repository.findByUserAndClass(1, 2023, 1);
 
-      expect(result).toEqual(mockDbRows);
+      expect(result).toHaveLength(1);
+      expect(result[0].id).toBe(1);
+      expect(result[0].subjectClass.id).toBe(10);
     });
   });
 
@@ -88,7 +111,7 @@ describe('UserSubjectRepository', () => {
   });
 
   describe('findByUserAndSubjectClass', () => {
-    it('deve retornar um registro específico ou null', async () => {
+    it('deve retornar um registro específico', async () => {
       const mockRow: user_subject = {
         id: 1,
         userId: 1,
@@ -110,7 +133,7 @@ describe('UserSubjectRepository', () => {
   });
 
   describe('create', () => {
-    it('deve criar um novo registro com sucesso', async () => {
+    it('deve criar um novo registro', async () => {
       const mockCreated: user_subject = {
         id: 1,
         userId: 1,
@@ -135,14 +158,14 @@ describe('UserSubjectRepository', () => {
   });
 
   describe('softDeleteMany', () => {
-    it('deve realizar o soft delete de múltiplos registros', async () => {
-      const mockUpdateResult = { count: 5 };
+    it('deve realizar soft delete', async () => {
+      const payload: { count: number } = { count: 5 };
 
       jest
         .spyOn(prismaService.user_subject, 'updateMany')
-        .mockResolvedValue(mockUpdateResult);
+        .mockResolvedValue(payload);
 
-      const result = await repository.softDeleteMany(1, [10, 20, 30]);
+      const result = await repository.softDeleteMany(1, [10, 20]);
 
       expect(result.count).toBe(5);
     });

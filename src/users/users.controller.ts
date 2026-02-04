@@ -10,9 +10,11 @@ import { UserResponseDto } from './dto/user-response.dto';
 import { AuthDto } from './dto/auth.dto';
 import { AuthResponseDto } from './dto/auth-response.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { CountUsersService } from './services/count-users.service';
+
 import { FindUserSubjectsService } from './services/find-user-subjects.service';
 import { UserSubjectDto } from './dto/user-subject.dto';
+import { CoolNumbersDto } from './dto/cool-numbers.dto';
+import { CoolNumbersService } from './services/cool-numbers.service';
 
 @ApiTags('users')
 @Controller('users')
@@ -21,7 +23,7 @@ export class UsersController {
     private readonly findUserByIdService: FindUserByIdService,
     private readonly authenticateUserService: AuthenticateUserService,
     private readonly updateMeService: UpdateMeService,
-    private readonly countUsersService: CountUsersService,
+    private readonly coolNumbersService: CoolNumbersService,
     private readonly findUserSubjectsService: FindUserSubjectsService,
   ) {}
 
@@ -80,14 +82,14 @@ export class UsersController {
     );
   }
 
-  @Get('count')
+  @Get('cool-numbers')
   @Auth()
   @ApiBearerAuth()
   @ApiOperation({
     summary: 'Retorna a quantidade de usuários',
   })
-  async count(): Promise<number> {
-    return await this.countUsersService.execute();
+  async count(): Promise<CoolNumbersDto> {
+    return await this.coolNumbersService.execute();
   }
 
   @Get('me/subjects')
@@ -99,6 +101,14 @@ export class UsersController {
   async findMySubjects(
     @CurrentUser() authUser: AuthUser,
   ): Promise<UserSubjectDto[]> {
-    return this.findUserSubjectsService.execute(authUser.id);
+    const userSubjects = await this.findUserSubjectsService.execute(
+      authUser.id,
+      authUser.universityId!,
+    );
+
+    return userSubjects.map(
+      (us) =>
+        new UserSubjectDto(us.subjectClass, us.id, us.userAbsences, us.grading),
+    );
   }
 }

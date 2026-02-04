@@ -1,42 +1,34 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { UsersController } from '../users.controller';
+
 import { FindUserByIdService } from '../services/find-user-by-id.service';
 import { AuthenticateUserService } from '../services/authenticate-user.service';
 import { UpdateMeService } from '../services/update-me.service';
-import { CountUsersService } from '../services/count-users.service';
 import { FindUserSubjectsService } from '../services/find-user-subjects.service';
-import { User } from '../entities/user.entity';
+import { CoolNumbersService } from '../services/cool-numbers.service';
+
 import { AuthDto } from '../dto/auth.dto';
 import { AuthResponseDto } from '../dto/auth-response.dto';
 import { UserResponseDto } from '../dto/user-response.dto';
 import { UpdateUserDto } from '../dto/update-user.dto';
+import { CoolNumbersDto } from '../dto/cool-numbers.dto';
+
 import type { AuthUser } from '../../common/guards/auth.guard';
 
 describe('UsersController', () => {
   let controller: UsersController;
+
   let findUserByIdService: FindUserByIdService;
   let authenticateUserService: AuthenticateUserService;
   let updateMeService: UpdateMeService;
+  let coolNumbersService: CoolNumbersService;
+  let findUserSubjectsService: FindUserSubjectsService;
 
-  const mockFindUserByIdService = {
-    execute: jest.fn(),
-  };
-
-  const mockAuthenticateUserService = {
-    execute: jest.fn(),
-  };
-
-  const mockUpdateMeService = {
-    execute: jest.fn(),
-  };
-
-  const mockCountUsersService = {
-    execute: jest.fn(),
-  };
-
-  const mockFindUserSubjectsService = {
-    execute: jest.fn(),
-  };
+  const mockFindUserByIdService = { execute: jest.fn() };
+  const mockAuthenticateUserService = { execute: jest.fn() };
+  const mockUpdateMeService = { execute: jest.fn() };
+  const mockCoolNumbersService = { execute: jest.fn() };
+  const mockFindUserSubjectsService = { execute: jest.fn() };
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -48,7 +40,7 @@ describe('UsersController', () => {
           useValue: mockAuthenticateUserService,
         },
         { provide: UpdateMeService, useValue: mockUpdateMeService },
-        { provide: CountUsersService, useValue: mockCountUsersService },
+        { provide: CoolNumbersService, useValue: mockCoolNumbersService },
         {
           provide: FindUserSubjectsService,
           useValue: mockFindUserSubjectsService,
@@ -56,10 +48,12 @@ describe('UsersController', () => {
       ],
     }).compile();
 
-    controller = module.get<UsersController>(UsersController);
+    controller = module.get(UsersController);
     findUserByIdService = module.get(FindUserByIdService);
     authenticateUserService = module.get(AuthenticateUserService);
     updateMeService = module.get(UpdateMeService);
+    coolNumbersService = module.get(CoolNumbersService);
+    findUserSubjectsService = module.get(FindUserSubjectsService);
   });
 
   afterEach(() => {
@@ -111,12 +105,10 @@ describe('UsersController', () => {
         userVersion: '1.0.0',
       };
 
-      const mockUser = new User(authUser);
-      mockFindUserByIdService.execute.mockReturnValue(mockUser);
+      mockFindUserByIdService.execute.mockReturnValue(authUser);
 
       const result = controller.me(authUser);
 
-      expect(result).toBeInstanceOf(UserResponseDto);
       expect(result).toEqual(
         new UserResponseDto(
           1,
@@ -154,13 +146,8 @@ describe('UsersController', () => {
       };
 
       const mockUser = {
-        id: 1,
-        email: 'test@usp.br',
+        ...authUser,
         name: 'Updated Name',
-        instituteId: 1,
-        courseId: 1,
-        isAdmin: false,
-        universityId: 1,
         userVersion: '2.0.0',
       };
 
@@ -182,6 +169,55 @@ describe('UsersController', () => {
       );
 
       expect(updateMeService.execute).toHaveBeenCalledWith(1, updateUserDto);
+    });
+  });
+
+  describe('cool-numbers', () => {
+    it('deve retornar quantidade de usuários', async () => {
+      const mockResponse: CoolNumbersDto = { numbers: 10 };
+
+      mockCoolNumbersService.execute.mockResolvedValue(mockResponse);
+
+      const result = await controller.count();
+
+      expect(result).toEqual(mockResponse);
+      expect(coolNumbersService.execute).toHaveBeenCalled();
+    });
+  });
+
+  describe('findMySubjects', () => {
+    it('deve retornar disciplinas do usuário', async () => {
+      const authUser: AuthUser = {
+        id: 1,
+        email: '',
+        name: '',
+        instituteId: 1,
+        courseId: 1,
+        isAdmin: false,
+        isBlocked: false,
+        universityId: 1,
+        userVersion: '1.0.0',
+      };
+
+      const mockSubjects = [
+        {
+          id: 1,
+          userId: 1,
+          subjectClassId: 10,
+          absences: 2,
+          grading: 8,
+          createdAt: new Date(),
+          deletedAt: null,
+          userAbsences: [],
+        },
+      ];
+
+      mockFindUserSubjectsService.execute.mockResolvedValue(mockSubjects);
+
+      const result = await controller.findMySubjects(authUser);
+
+      expect(result).toHaveLength(1);
+      expect(findUserSubjectsService.execute).toHaveBeenCalledWith(1, 1);
     });
   });
 });

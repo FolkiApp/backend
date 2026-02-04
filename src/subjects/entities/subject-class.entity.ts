@@ -1,11 +1,11 @@
+import { AvailableDay } from './available-days.entity';
+import { Subject } from './subject.entity';
+
 export class SubjectClass {
   constructor(
     public id: number,
-    public subjectId: number,
-    public availableDays: unknown,
-    public year: number,
-    public semester: number,
-    public universityId: number | null,
-    public observations: string | null,
+    public availableDays: AvailableDay[],
+    public subject: Subject,
+    public observations?: string,
   ) {}
 }

@@ -1,10 +1,11 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { UserRepository } from '../repositories/user.repository';
-import { CountUsersService } from '../services/count-users.service';
+import { CoolNumbersService } from '../services/cool-numbers.service';
 import { UsersCountException } from '../exceptions/users-count.exception';
+import { CoolNumbersEntity } from '../entities/cool-numbers.entity';
 
-describe('CountUsersService', () => {
-  let service: CountUsersService;
+describe('CoolNumbersService', () => {
+  let service: CoolNumbersService;
   let userRepository: UserRepository;
 
   const mockUserRepository = {
@@ -14,7 +15,7 @@ describe('CountUsersService', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
-        CountUsersService,
+        CoolNumbersService,
         {
           provide: UserRepository,
           useValue: mockUserRepository,
@@ -22,8 +23,8 @@ describe('CountUsersService', () => {
       ],
     }).compile();
 
-    service = module.get<CountUsersService>(CountUsersService);
-    userRepository = module.get<UserRepository>(UserRepository);
+    service = module.get(CoolNumbersService);
+    userRepository = module.get(UserRepository);
   });
 
   afterEach(() => {
@@ -31,24 +32,21 @@ describe('CountUsersService', () => {
   });
 
   describe('execute', () => {
-    it('deve retornar a quantidade de usuários com sucesso', async () => {
+    it('deve retornar os cool numbers com sucesso', async () => {
       mockUserRepository.count.mockResolvedValue(42);
 
       const result = await service.execute();
 
-      expect(result).toBe(42);
+      expect(result).toEqual(new CoolNumbersEntity(42));
       expect(userRepository.count).toHaveBeenCalledTimes(1);
     });
 
-    it('deve lançar UsersCountException quando o repository falhar', async () => {
-      const error = new Error('Database error');
-      mockUserRepository.count.mockRejectedValue(error);
+    it('deve lançar UsersCountException quando falhar', async () => {
+      mockUserRepository.count.mockRejectedValue(new Error());
 
       await expect(service.execute()).rejects.toBeInstanceOf(
         UsersCountException,
       );
-
-      expect(userRepository.count).toHaveBeenCalledTimes(1);
     });
   });
 });

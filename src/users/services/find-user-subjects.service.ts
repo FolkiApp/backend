@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { UserSubjectRepository } from '../repositories/user-subject.repository';
 import { SubjectClassRepository } from '../../subjects/repositories/subject-class.repository';
 import { UserSubject } from '../entities/user-subject.entity';
+import { FindUserSubjectsException } from '../exceptions/find-user-subjects.exception';
 
 @Injectable()
 export class FindUserSubjectsService {
@@ -12,19 +13,56 @@ export class FindUserSubjectsService {
     private readonly subjectClassRepository: SubjectClassRepository,
   ) {}
 
-  async execute(userId: number): Promise<UserSubject[]> {
-    this.logger.log({ message: 'Executing find user subjects' });
-    return this.find(userId);
+  async execute(userId: number, universityId: number): Promise<UserSubject[]> {
+    this.logger.log({
+      message: 'Executing find user subjects',
+      userId,
+      universityId,
+    });
+
+    return this.find(userId, universityId);
   }
 
-  private async find(userId: number): Promise<UserSubject[]> {
-    const latestClass = await this.subjectClassRepository.findLatest();
-    if (!latestClass) return [];
+  private async find(
+    userId: number,
+    universityId: number,
+  ): Promise<UserSubject[]> {
+    try {
+      const latestClass =
+        await this.subjectClassRepository.findLatest(universityId);
 
-    return this.userSubjectRepository.findByUserAndClass(
-      userId,
-      latestClass.year,
-      latestClass.semester,
-    );
+      if (!latestClass) {
+        this.logger.warn({
+          message: 'No subject class found',
+          userId,
+          universityId,
+        });
+        return [];
+      }
+
+      return this.userSubjectRepository.findByUserAndClass(
+        userId,
+        latestClass.year,
+        latestClass.semester,
+      );
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error';
+
+      const errorStack = error instanceof Error ? error.stack : undefined;
+
+      this.logger.error(
+        {
+          message: 'Error while finding user subjects',
+          userId,
+          error: errorMessage,
+        },
+        errorStack,
+      );
+
+      throw new FindUserSubjectsException(
+        'Erro ao buscar disciplinas do usuário',
+      );
+    }
   }
 }

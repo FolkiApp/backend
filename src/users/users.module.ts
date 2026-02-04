@@ -12,7 +12,7 @@ import { AccessUFSCarSigaaService } from './services/access-ufscar-sigaa.service
 import { UserRepository } from './repositories/user.repository';
 import { UserSubjectRepository } from './repositories/user-subject.repository';
 import { UserNotificationIdRepository } from './repositories/user-notification-id.repository';
-import { CountUsersService } from './services/count-users.service';
+import { CoolNumbersService } from './services/cool-numbers.service';
 import { FindUserSubjectsService } from './services/find-user-subjects.service';
 
 @Module({
@@ -27,7 +27,7 @@ import { FindUserSubjectsService } from './services/find-user-subjects.service';
     UserRepository,
     UserSubjectRepository,
     UserNotificationIdRepository,
-    CountUsersService,
+    CoolNumbersService,
     FindUserSubjectsService,
   ],
 })
