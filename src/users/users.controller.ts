@@ -11,6 +11,11 @@ import { AuthDto } from './dto/auth.dto';
 import { AuthResponseDto } from './dto/auth-response.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 
+import { FindUserSubjectsService } from './services/find-user-subjects.service';
+import { UserSubjectDto } from './dto/user-subject.dto';
+import { CoolNumbersDto } from './dto/cool-numbers.dto';
+import { CoolNumbersService } from './services/cool-numbers.service';
+
 @ApiTags('users')
 @Controller('users')
 export class UsersController {
@@ -18,6 +23,8 @@ export class UsersController {
     private readonly findUserByIdService: FindUserByIdService,
     private readonly authenticateUserService: AuthenticateUserService,
     private readonly updateMeService: UpdateMeService,
+    private readonly coolNumbersService: CoolNumbersService,
+    private readonly findUserSubjectsService: FindUserSubjectsService,
   ) {}
 
   @Post('auth')
@@ -72,6 +79,36 @@ export class UsersController {
       user.isAdmin,
       user.universityId,
       user.userVersion,
+    );
+  }
+
+  @Get('cool-numbers')
+  @Auth()
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Retorna a quantidade de usuários',
+  })
+  async count(): Promise<CoolNumbersDto> {
+    return await this.coolNumbersService.execute();
+  }
+
+  @Get('me/subjects')
+  @Auth()
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Retorna as disciplinas do usuário autenticado',
+  })
+  async findMySubjects(
+    @CurrentUser() authUser: AuthUser,
+  ): Promise<UserSubjectDto[]> {
+    const userSubjects = await this.findUserSubjectsService.execute(
+      authUser.id,
+      authUser.universityId!,
+    );
+
+    return userSubjects.map(
+      (us) =>
+        new UserSubjectDto(us.subjectClass, us.id, us.userAbsences, us.grading),
     );
   }
 }
