@@ -22,7 +22,7 @@ services:
       - .:/app
       - /app/node_modules
     environment:
-      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/folki
+      PRISMA_DATABASE_URL: postgresql://postgres:postgres@postgres:5432/folki
       NODE_ENV: development
     depends_on:
       - postgres
