@@ -19,6 +19,12 @@ async function bootstrap() {
   // Use Winston logger
   app.useLogger(app.get(WINSTON_MODULE_NEST_PROVIDER));
 
+  // Enable CORS
+  app.enableCors({
+    origin: ['https://folki.com.br', 'https://www.folki.com.br'],
+    credentials: true,
+  });
+
   app.setGlobalPrefix('api');
 
   app.useGlobalPipes(
