@@ -25,12 +25,13 @@ export interface AuthUser {
 
 @Injectable()
 export class AuthGuard implements CanActivate {
-  private readonly logger: CustomLogger;
-
   constructor(
     private reflector: Reflector,
     private prisma: PrismaService,
-  ) {}
+    private readonly logger: CustomLogger,
+  ) {
+    this.logger.setContext('AuthGuard');
+  }
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const requireAuth = this.reflector.getAllAndOverride<boolean>(
