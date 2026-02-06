@@ -1,5 +1,6 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { AuthUser } from '../../common/guards/auth.guard';
+import { CustomLogger } from '../../common/logger/custom-logger.service';
 import { ActivitiesRepository } from '../repositories/activities.repository';
 import { UpdateActivityDto } from '../dto/update-activity.dto';
 import { Activity } from '../entities/activity.entity';
@@ -13,12 +14,16 @@ import { SubjectClass } from 'src/subjects/entities/subject-class.entity';
 
 @Injectable()
 export class UpdateActivityService {
-  private readonly logger = new Logger(UpdateActivityService.name);
+  private readonly logger: CustomLogger;
 
   constructor(
     private readonly activitiesRepository: ActivitiesRepository,
     private readonly subjectClassRepository: SubjectClassRepository,
-  ) {}
+    logger: CustomLogger,
+  ) {
+    this.logger = logger;
+    this.logger.setContext(UpdateActivityService.name);
+  }
 
   async execute(
     user: AuthUser,

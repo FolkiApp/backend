@@ -5,6 +5,7 @@ import { CreateGradeService } from '../services/create-grade.service';
 import { DeleteGradeService } from '../services/delete-grade.service';
 import { Grade } from '../entities/grade.entity';
 import { CreateGradeDto } from '../dto/create-grade.dto';
+import { CustomLogger } from '../../common/logger/custom-logger.service';
 
 describe('GradesController', () => {
   let controller: GradesController;
@@ -36,6 +37,15 @@ describe('GradesController', () => {
     execute: jest.fn(),
   };
 
+  const mockCustomLogger = {
+    log: jest.fn(),
+    error: jest.fn(),
+    warn: jest.fn(),
+    debug: jest.fn(),
+    verbose: jest.fn(),
+    setContext: jest.fn(),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [GradesController],
@@ -51,6 +61,10 @@ describe('GradesController', () => {
         {
           provide: DeleteGradeService,
           useValue: mockDeleteGradeService,
+        },
+        {
+          provide: CustomLogger,
+          useValue: mockCustomLogger,
         },
       ],
     }).compile();

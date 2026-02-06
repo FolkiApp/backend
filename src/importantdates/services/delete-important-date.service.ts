@@ -1,14 +1,19 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { ImportantDateRepository } from '../repositories/important-date.repository';
+import { CustomLogger } from '../../common/logger/custom-logger.service';
 import { DeletedImportantDateException } from '../exceptions/delete-important-date.exception';
 
 @Injectable()
 export class DeleteImportantDateService {
-  private readonly logger = new Logger(DeleteImportantDateService.name);
+  private readonly logger: CustomLogger;
 
   constructor(
     private readonly importantDateRepository: ImportantDateRepository,
-  ) {}
+    logger: CustomLogger,
+  ) {
+    this.logger = logger;
+    this.logger.setContext(DeleteImportantDateService.name);
+  }
 
   async execute(importantDateId: number): Promise<void> {
     this.logger.log({ message: 'Executing delete important date' });

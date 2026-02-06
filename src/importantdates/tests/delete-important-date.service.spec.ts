@@ -4,6 +4,7 @@ import { Logger } from '@nestjs/common';
 import { DeleteImportantDateService } from '../services/delete-important-date.service';
 import { ImportantDateRepository } from '../repositories/important-date.repository';
 import { DeletedImportantDateException } from '../exceptions/delete-important-date.exception';
+import { CustomLogger } from '../../common/logger/custom-logger.service';
 
 describe('DeleteImportantDateService', () => {
   let service: DeleteImportantDateService;
@@ -13,6 +14,15 @@ describe('DeleteImportantDateService', () => {
     delete: jest.fn(),
   };
 
+  const mockCustomLogger = {
+    log: jest.fn(),
+    error: jest.fn(),
+    warn: jest.fn(),
+    debug: jest.fn(),
+    verbose: jest.fn(),
+    setContext: jest.fn(),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -20,6 +30,10 @@ describe('DeleteImportantDateService', () => {
         {
           provide: ImportantDateRepository,
           useValue: mockImportantDateRepository,
+        },
+        {
+          provide: CustomLogger,
+          useValue: mockCustomLogger,
         },
       ],
     }).compile();

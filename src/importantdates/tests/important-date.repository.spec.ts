@@ -3,6 +3,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { PrismaService } from '../../prisma/prisma.service';
 import { ImportantDateRepository } from '../repositories/important-date.repository';
 import { ImportantDateType } from '../entities/important-date-type.entity';
+import { CustomLogger } from '../../common/logger/custom-logger.service';
 
 describe('ImportantDateRepository', () => {
   let repository: ImportantDateRepository;
@@ -16,11 +17,24 @@ describe('ImportantDateRepository', () => {
     },
   };
 
+  const mockCustomLogger = {
+    log: jest.fn(),
+    error: jest.fn(),
+    warn: jest.fn(),
+    debug: jest.fn(),
+    verbose: jest.fn(),
+    setContext: jest.fn(),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         ImportantDateRepository,
         { provide: PrismaService, useValue: mockPrisma },
+        {
+          provide: CustomLogger,
+          useValue: mockCustomLogger,
+        },
       ],
     }).compile();
 

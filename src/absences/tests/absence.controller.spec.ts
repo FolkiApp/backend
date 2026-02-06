@@ -7,6 +7,7 @@ import { PostAbsence } from '../services/post-absence.service';
 import { DeleteAbsence } from '../services/delete-absence.service';
 import { CreateAbsenceDto } from '../dto/create-absence.dto';
 import type { AuthUser } from '../../common/guards/auth.guard';
+import { CustomLogger } from '../../common/logger/custom-logger.service';
 
 describe('AbsenceController', () => {
   let controller: AbsenceController;
@@ -37,6 +38,15 @@ describe('AbsenceController', () => {
     execute: jest.fn(),
   };
 
+  const mockCustomLogger = {
+    log: jest.fn(),
+    error: jest.fn(),
+    warn: jest.fn(),
+    debug: jest.fn(),
+    verbose: jest.fn(),
+    setContext: jest.fn(),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [AbsenceController],
@@ -52,6 +62,10 @@ describe('AbsenceController', () => {
         {
           provide: DeleteAbsence,
           useValue: mockDeleteService,
+        },
+        {
+          provide: CustomLogger,
+          useValue: mockCustomLogger,
         },
       ],
     }).compile();

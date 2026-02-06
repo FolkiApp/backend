@@ -1,13 +1,20 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { CoolNumbersEntity } from '../entities/cool-numbers.entity';
+import { CustomLogger } from '../../common/logger/custom-logger.service';
 import { UserRepository } from '../repositories/user.repository';
 import { UsersCountException } from '../exceptions/users-count.exception';
 
 @Injectable()
 export class CoolNumbersService {
-  private readonly logger = new Logger(CoolNumbersService.name);
+  private readonly logger: CustomLogger;
 
-  constructor(private readonly userRepository: UserRepository) {}
+  constructor(
+    private readonly userRepository: UserRepository,
+    logger: CustomLogger,
+  ) {
+    this.logger = logger;
+    this.logger.setContext(CoolNumbersService.name);
+  }
 
   async execute(): Promise<CoolNumbersEntity> {
     this.logger.log({ message: 'Executing count users' });

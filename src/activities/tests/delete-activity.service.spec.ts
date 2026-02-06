@@ -7,6 +7,7 @@ import { PermissionDeniedToDeleteException } from '../exceptions/permission-deni
 import { UserBlockedException } from '../exceptions/user-blocked.exception';
 import { ActivityDeleteException } from '../exceptions/activity-delete.exception';
 import { Activity } from '../entities/activity.entity';
+import { CustomLogger } from '../../common/logger/custom-logger.service';
 
 describe('DeleteActivityService', () => {
   let service: DeleteActivityService;
@@ -55,6 +56,15 @@ describe('DeleteActivityService', () => {
     findByIdAndUserId: jest.fn(),
   };
 
+  const mockCustomLogger = {
+    log: jest.fn(),
+    error: jest.fn(),
+    warn: jest.fn(),
+    debug: jest.fn(),
+    verbose: jest.fn(),
+    setContext: jest.fn(),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -66,6 +76,10 @@ describe('DeleteActivityService', () => {
         {
           provide: SubjectClassRepository,
           useValue: mockSubjectClassRepository,
+        },
+        {
+          provide: CustomLogger,
+          useValue: mockCustomLogger,
         },
       ],
     }).compile();

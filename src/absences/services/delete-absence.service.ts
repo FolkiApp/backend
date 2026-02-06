@@ -1,5 +1,6 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { AuthUser } from '../../common/guards/auth.guard';
+import { CustomLogger } from '../../common/logger/custom-logger.service';
 import { AbsenceRepository } from '../repositories/absence.repository';
 import { UserAbsence } from '../entities/absence.entity';
 import { NotFoundAbsences } from '../exceptions/absence-not-found.exception';
@@ -8,9 +9,15 @@ import { AbsenceUnauthorized } from '../exceptions/absence-unauthorized.exceptio
 
 @Injectable()
 export class DeleteAbsence {
-  private readonly logger = new Logger(DeleteAbsence.name);
+  private readonly logger: CustomLogger;
 
-  constructor(private readonly absenceRepository: AbsenceRepository) {}
+  constructor(
+    private readonly absenceRepository: AbsenceRepository,
+    logger: CustomLogger,
+  ) {
+    this.logger = logger;
+    this.logger.setContext(DeleteAbsence.name);
+  }
 
   async execute(user: AuthUser, absenceId: number) {
     this.logger.log({

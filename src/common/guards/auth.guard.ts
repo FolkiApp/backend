@@ -1,9 +1,4 @@
-import {
-  CanActivate,
-  ExecutionContext,
-  Injectable,
-  Logger,
-} from '@nestjs/common';
+import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { Request } from 'express';
 import * as jwt from 'jsonwebtoken';
@@ -12,6 +7,7 @@ import { InvalidAuthHeaderException } from '../exceptions/invalid-auth-header.ex
 import { UserNotFoundException } from '../exceptions/user-not-found.exception';
 import { UserBlockedException } from '../exceptions/user-blocked.exception';
 import { InvalidTokenException } from '../exceptions/invalid-token.exception';
+import { CustomLogger } from '../logger/custom-logger.service';
 
 export const AUTH_METADATA = 'requireAuth';
 
@@ -29,7 +25,7 @@ export interface AuthUser {
 
 @Injectable()
 export class AuthGuard implements CanActivate {
-  private readonly logger = new Logger(AuthGuard.name);
+  private readonly logger: CustomLogger;
 
   constructor(
     private reflector: Reflector,

@@ -1,17 +1,22 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { UserSubjectRepository } from '../repositories/user-subject.repository';
+import { CustomLogger } from '../../common/logger/custom-logger.service';
 import { SubjectClassRepository } from '../../subjects/repositories/subject-class.repository';
 import { UserSubject } from '../entities/user-subject.entity';
 import { FindUserSubjectsException } from '../exceptions/find-user-subjects.exception';
 
 @Injectable()
 export class FindUserSubjectsService {
-  private readonly logger = new Logger(FindUserSubjectsService.name);
+  private readonly logger: CustomLogger;
 
   constructor(
     private readonly userSubjectRepository: UserSubjectRepository,
     private readonly subjectClassRepository: SubjectClassRepository,
-  ) {}
+    logger: CustomLogger,
+  ) {
+    this.logger = logger;
+    this.logger.setContext(FindUserSubjectsService.name);
+  }
 
   async execute(userId: number, universityId: number): Promise<UserSubject[]> {
     this.logger.log({

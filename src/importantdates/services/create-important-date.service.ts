@@ -1,16 +1,21 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { ImportantDateRepository } from '../repositories/important-date.repository';
+import { CustomLogger } from '../../common/logger/custom-logger.service';
 import { ImportantDate } from '../entities/important-date.entity';
 import { CreateImportantDateException } from '../exceptions/create-important-date.exception';
 import { CreateImportantDateDto } from '../dtos/create-important-date.dto';
 
 @Injectable()
 export class CreateImportantDateService {
-  private readonly logger = new Logger(CreateImportantDateService.name);
+  private readonly logger: CustomLogger;
 
   constructor(
     private readonly importantDateRepository: ImportantDateRepository,
-  ) {}
+    logger: CustomLogger,
+  ) {
+    this.logger = logger;
+    this.logger.setContext(CreateImportantDateService.name);
+  }
 
   async execute(data: CreateImportantDateDto): Promise<ImportantDate> {
     this.logger.log({ message: 'Executing create important date' });

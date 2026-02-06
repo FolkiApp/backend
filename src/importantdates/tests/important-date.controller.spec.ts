@@ -9,6 +9,7 @@ import { ImportantDateResponseDto } from '../dtos/important-date.dto';
 import { ImportantDateType } from '../entities/important-date-type.entity';
 import { CreateImportantDateDto } from '../dtos/create-important-date.dto';
 import type { AuthUser } from '../../common/guards/auth.guard';
+import { CustomLogger } from '../../common/logger/custom-logger.service';
 
 describe('ImportantDateController', () => {
   let controller: ImportantDateController;
@@ -26,6 +27,15 @@ describe('ImportantDateController', () => {
 
   const mockDeleteService = {
     execute: jest.fn(),
+  };
+
+  const mockCustomLogger = {
+    log: jest.fn(),
+    error: jest.fn(),
+    warn: jest.fn(),
+    debug: jest.fn(),
+    verbose: jest.fn(),
+    setContext: jest.fn(),
   };
 
   const authUser: AuthUser = {
@@ -47,6 +57,10 @@ describe('ImportantDateController', () => {
         { provide: FindAllImportantDateService, useValue: mockFindAllService },
         { provide: CreateImportantDateService, useValue: mockCreateService },
         { provide: DeleteImportantDateService, useValue: mockDeleteService },
+        {
+          provide: CustomLogger,
+          useValue: mockCustomLogger,
+        },
       ],
     }).compile();
 

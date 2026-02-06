@@ -10,6 +10,7 @@ import { IgnoreActivityService } from '../services/ignore-activity.service';
 import { UnignoreActivityService } from '../services/unignore-activity.service';
 import { Activity } from '../entities/activity.entity';
 import { ActivityType } from '../dto/create-activity.dto';
+import { CustomLogger } from '../../common/logger/custom-logger.service';
 
 describe('ActivitiesController', () => {
   let controller: ActivitiesController;
@@ -59,6 +60,15 @@ describe('ActivitiesController', () => {
     execute: jest.fn(),
   };
 
+  const mockCustomLogger = {
+    log: jest.fn(),
+    error: jest.fn(),
+    warn: jest.fn(),
+    debug: jest.fn(),
+    verbose: jest.fn(),
+    setContext: jest.fn(),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [ActivitiesController],
@@ -94,6 +104,10 @@ describe('ActivitiesController', () => {
         {
           provide: UnignoreActivityService,
           useValue: mockUnignoreActivityService,
+        },
+        {
+          provide: CustomLogger,
+          useValue: mockCustomLogger,
         },
       ],
     }).compile();

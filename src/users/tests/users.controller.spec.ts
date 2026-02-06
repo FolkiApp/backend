@@ -6,6 +6,7 @@ import { AuthenticateUserService } from '../services/authenticate-user.service';
 import { UpdateMeService } from '../services/update-me.service';
 import { FindUserSubjectsService } from '../services/find-user-subjects.service';
 import { CoolNumbersService } from '../services/cool-numbers.service';
+import { CustomLogger } from '../../common/logger/custom-logger.service';
 
 import { AuthDto } from '../dto/auth.dto';
 import { AuthResponseDto } from '../dto/auth-response.dto';
@@ -30,6 +31,15 @@ describe('UsersController', () => {
   const mockCoolNumbersService = { execute: jest.fn() };
   const mockFindUserSubjectsService = { execute: jest.fn() };
 
+  const mockCustomLogger = {
+    log: jest.fn(),
+    error: jest.fn(),
+    warn: jest.fn(),
+    debug: jest.fn(),
+    verbose: jest.fn(),
+    setContext: jest.fn(),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [UsersController],
@@ -44,6 +54,10 @@ describe('UsersController', () => {
         {
           provide: FindUserSubjectsService,
           useValue: mockFindUserSubjectsService,
+        },
+        {
+          provide: CustomLogger,
+          useValue: mockCustomLogger,
         },
       ],
     }).compile();

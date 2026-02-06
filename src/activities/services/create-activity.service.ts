@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { AuthUser } from '../../common/guards/auth.guard';
 import { ActivitiesRepository } from '../repositories/activities.repository';
 import { CreateActivityDto } from '../dto/create-activity.dto';
@@ -11,17 +11,22 @@ import { SubjectClassRepository } from '../../subjects/repositories/subject-clas
 import { UserSubjectsRepository } from '../../subjects/repositories/user-subjects.repository';
 import { PipoNotificationService } from '../../notifications/services/pipo-notification.service';
 import { getActivityStringDate } from '../../common/utils/date.utils';
+import { CustomLogger } from '../../common/logger/custom-logger.service';
 
 @Injectable()
 export class CreateActivityService {
-  private readonly logger = new Logger(CreateActivityService.name);
+  private readonly logger: CustomLogger;
 
   constructor(
     private readonly activitiesRepository: ActivitiesRepository,
     private readonly subjectClassRepository: SubjectClassRepository,
     private readonly userSubjectsRepository: UserSubjectsRepository,
     private readonly pipoNotificationService: PipoNotificationService,
-  ) {}
+    logger: CustomLogger,
+  ) {
+    this.logger = logger;
+    this.logger.setContext(CreateActivityService.name);
+  }
 
   async execute(
     user: AuthUser,

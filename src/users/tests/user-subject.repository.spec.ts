@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { PrismaService } from '../../prisma/prisma.service';
 import { UserSubjectRepository } from '../repositories/user-subject.repository';
 import { user_subject } from '@prisma/client';
+import { CustomLogger } from '../../common/logger/custom-logger.service';
 
 type UserSubjectWithRelations = user_subject & {
   subjectClass: {
@@ -29,6 +30,15 @@ describe('UserSubjectRepository', () => {
     },
   };
 
+  const mockCustomLogger = {
+    log: jest.fn(),
+    error: jest.fn(),
+    warn: jest.fn(),
+    debug: jest.fn(),
+    verbose: jest.fn(),
+    setContext: jest.fn(),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -36,6 +46,10 @@ describe('UserSubjectRepository', () => {
         {
           provide: PrismaService,
           useValue: mockPrisma,
+        },
+        {
+          provide: CustomLogger,
+          useValue: mockCustomLogger,
         },
       ],
     }).compile();
