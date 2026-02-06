@@ -11,10 +11,10 @@ export class CorrelationIdMiddleware implements NestMiddleware {
     const correlationId =
       (req.headers['x-correlation-id'] as string) || uuidv4();
 
-    this.correlationIdService.setCorrelationId(correlationId);
-
     res.setHeader('x-correlation-id', correlationId);
 
-    next();
+    this.correlationIdService.runWithCorrelationId(correlationId, () => {
+      next();
+    });
   }
 }
