@@ -1,3 +1,7 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+
 import { Injectable } from '@nestjs/common';
 import * as cls from 'cls-hooked';
 
@@ -9,7 +13,8 @@ export class CorrelationIdService {
   private namespace: cls.Namespace;
 
   constructor() {
-    this.namespace = cls.getNamespace(NAMESPACE) || cls.createNamespace(NAMESPACE);
+    this.namespace =
+      cls.getNamespace(NAMESPACE) || cls.createNamespace(NAMESPACE);
   }
 
   setCorrelationId(correlationId: string): void {

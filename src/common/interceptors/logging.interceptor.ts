@@ -28,8 +28,7 @@ export class LoggingInterceptor implements NestInterceptor {
     const request = context
       .switchToHttp()
       .getRequest<Request & { user?: AuthUser }>();
-    const { method, url, user, headers } = request;
-    const correlationId = this.correlationIdService.getCorrelationId();
+    const { method, url, user } = request;
     const now = Date.now();
 
     return next.handle().pipe(
