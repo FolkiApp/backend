@@ -23,12 +23,16 @@ export class CustomLogger implements NestLoggerService {
 
   private formatMessage(message: any): Record<string, any> {
     const correlationId = this.correlationIdService.getCorrelationId();
+    const userId = this.correlationIdService.getUserId();
+    const userEmail = this.correlationIdService.getUserEmail();
 
     if (typeof message === 'object' && message !== null) {
       return {
         ...(message as Record<string, any>),
         context: this.context,
         correlationId,
+        ...(userId && { userId }),
+        ...(userEmail && { userEmail }),
       };
     }
 
@@ -36,6 +40,8 @@ export class CustomLogger implements NestLoggerService {
       message: String(message),
       context: this.context,
       correlationId,
+      ...(userId && { userId }),
+      ...(userEmail && { userEmail }),
     };
   }
 

@@ -7,6 +7,8 @@ import * as cls from 'cls-hooked';
 
 const NAMESPACE = 'app-namespace';
 const CORRELATION_ID_KEY = 'correlationId';
+const USER_ID_KEY = 'userId';
+const USER_EMAIL_KEY = 'userEmail';
 
 @Injectable()
 export class CorrelationIdService {
@@ -23,6 +25,22 @@ export class CorrelationIdService {
 
   getCorrelationId(): string | undefined {
     return this.namespace.get(CORRELATION_ID_KEY) as string | undefined;
+  }
+
+  setUserId(userId: number): void {
+    this.namespace.set(USER_ID_KEY, userId);
+  }
+
+  getUserId(): number | undefined {
+    return this.namespace.get(USER_ID_KEY) as number | undefined;
+  }
+
+  setUserEmail(userEmail: string): void {
+    this.namespace.set(USER_EMAIL_KEY, userEmail);
+  }
+
+  getUserEmail(): string | undefined {
+    return this.namespace.get(USER_EMAIL_KEY) as string | undefined;
   }
 
   runWithCorrelationId<T>(correlationId: string, fn: () => T): T {

@@ -41,7 +41,7 @@ async function bootstrap() {
   const prisma = app.get(PrismaService);
   app.useGlobalGuards(
     new ApiKeyGuard(reflector),
-    new AuthGuard(reflector, prisma, customLogger),
+    new AuthGuard(reflector, prisma, customLogger, correlationIdService),
   );
 
   const config = new DocumentBuilder()

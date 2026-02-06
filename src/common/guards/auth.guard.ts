@@ -8,6 +8,7 @@ import { UserNotFoundException } from '../exceptions/user-not-found.exception';
 import { UserBlockedException } from '../exceptions/user-blocked.exception';
 import { InvalidTokenException } from '../exceptions/invalid-token.exception';
 import { CustomLogger } from '../logger/custom-logger.service';
+import { CorrelationIdService } from '../services/correlation-id.service';
 
 export const AUTH_METADATA = 'requireAuth';
 
@@ -29,6 +30,7 @@ export class AuthGuard implements CanActivate {
     private reflector: Reflector,
     private prisma: PrismaService,
     private readonly logger: CustomLogger,
+    private readonly correlationIdService: CorrelationIdService,
   ) {
     this.logger.setContext('AuthGuard');
   }
@@ -113,6 +115,10 @@ export class AuthGuard implements CanActivate {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { securePin, ...userWithoutPin } = user;
       (request as Request & { user: AuthUser }).user = userWithoutPin;
+
+      // Set user context for subsequent logs
+      this.correlationIdService.setUserId(user.id);
+      this.correlationIdService.setUserEmail(user.email);
 
       this.logger.log({
         message: 'User authenticated via guard',
