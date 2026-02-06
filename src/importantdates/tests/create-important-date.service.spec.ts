@@ -6,6 +6,7 @@ import { ImportantDateRepository } from '../repositories/important-date.reposito
 import { CreateImportantDateException } from '../exceptions/create-important-date.exception';
 import { CreateImportantDateDto } from '../dtos/create-important-date.dto';
 import { ImportantDateType } from '../entities/important-date-type.entity';
+import { CustomLogger } from '../../common/logger/custom-logger.service';
 
 describe('CreateImportantDateService', () => {
   let service: CreateImportantDateService;
@@ -15,6 +16,15 @@ describe('CreateImportantDateService', () => {
     create: jest.fn(),
   };
 
+  const mockCustomLogger = {
+    log: jest.fn(),
+    error: jest.fn(),
+    warn: jest.fn(),
+    debug: jest.fn(),
+    verbose: jest.fn(),
+    setContext: jest.fn(),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -22,6 +32,10 @@ describe('CreateImportantDateService', () => {
         {
           provide: ImportantDateRepository,
           useValue: mockImportantDateRepository,
+        },
+        {
+          provide: CustomLogger,
+          useValue: mockCustomLogger,
         },
       ],
     }).compile();

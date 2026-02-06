@@ -6,6 +6,7 @@ import { UserSubjectRepository } from '../../users/repositories/user-subject.rep
 import { UserAbsence } from '../entities/absence.entity';
 import { InvalidSubjectIdException } from '../../subjects/exceptions/subject-fetch-id.exception';
 import { AbsenceInternalErrorException } from '../exceptions/absence-internal-error.exception';
+import { CustomLogger } from '../../common/logger/custom-logger.service';
 
 describe('PostAbsence', () => {
   let service: PostAbsence;
@@ -18,6 +19,15 @@ describe('PostAbsence', () => {
 
   const mockUserSubjectRepository = {
     findByUserAndSubjectClass: jest.fn(),
+  };
+
+  const mockCustomLogger = {
+    log: jest.fn(),
+    error: jest.fn(),
+    warn: jest.fn(),
+    debug: jest.fn(),
+    verbose: jest.fn(),
+    setContext: jest.fn(),
   };
 
   const mockAuthUser: AuthUser = {
@@ -38,6 +48,10 @@ describe('PostAbsence', () => {
         PostAbsence,
         { provide: AbsenceRepository, useValue: mockAbsenceRepository },
         { provide: UserSubjectRepository, useValue: mockUserSubjectRepository },
+        {
+          provide: CustomLogger,
+          useValue: mockCustomLogger,
+        },
       ],
     }).compile();
 

@@ -3,6 +3,7 @@ import { GetAllActivitiesService } from '../services/get-all-activities.service'
 import { ActivitiesRepository } from '../repositories/activities.repository';
 import { Activity } from '../entities/activity.entity';
 import { ActivitiesFetchException } from '../exceptions/activities-fetch.exception';
+import { CustomLogger } from '../../common/logger/custom-logger.service';
 
 describe('GetAllActivitiesService', () => {
   let service: GetAllActivitiesService;
@@ -24,6 +25,15 @@ describe('GetAllActivitiesService', () => {
     findAllByUser: jest.fn(),
   };
 
+  const mockCustomLogger = {
+    log: jest.fn(),
+    error: jest.fn(),
+    warn: jest.fn(),
+    debug: jest.fn(),
+    verbose: jest.fn(),
+    setContext: jest.fn(),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -31,6 +41,10 @@ describe('GetAllActivitiesService', () => {
         {
           provide: ActivitiesRepository,
           useValue: mockActivitiesRepository,
+        },
+        {
+          provide: CustomLogger,
+          useValue: mockCustomLogger,
         },
       ],
     }).compile();

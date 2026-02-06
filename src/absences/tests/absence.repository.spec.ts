@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AbsenceRepository } from '../repositories/absence.repository';
 import { UserAbsence } from '../entities/absence.entity';
+import { CustomLogger } from '../../common/logger/custom-logger.service';
 
 describe('AbsenceRepository', () => {
   let repository: AbsenceRepository;
@@ -18,6 +19,15 @@ describe('AbsenceRepository', () => {
     $transaction: jest.fn(),
   };
 
+  const mockCustomLogger = {
+    log: jest.fn(),
+    error: jest.fn(),
+    warn: jest.fn(),
+    debug: jest.fn(),
+    verbose: jest.fn(),
+    setContext: jest.fn(),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -25,6 +35,10 @@ describe('AbsenceRepository', () => {
         {
           provide: PrismaService,
           useValue: mockPrismaService,
+        },
+        {
+          provide: CustomLogger,
+          useValue: mockCustomLogger,
         },
       ],
     }).compile();

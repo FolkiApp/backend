@@ -4,6 +4,7 @@ import { InstituteRepository } from '../../institutes/repositories/institute.rep
 import { ImportantDateRepository } from '../repositories/important-date.repository';
 import { InvalidUniversityException } from '../../common/exceptions/invalid-university.exception';
 import { AuthUser } from '../../common/guards/auth.guard';
+import { CustomLogger } from '../../common/logger/custom-logger.service';
 
 describe('FindAllImportantDateService', () => {
   let service: FindAllImportantDateService;
@@ -18,6 +19,15 @@ describe('FindAllImportantDateService', () => {
     findAll: jest.fn(),
   };
 
+  const mockCustomLogger = {
+    log: jest.fn(),
+    error: jest.fn(),
+    warn: jest.fn(),
+    debug: jest.fn(),
+    verbose: jest.fn(),
+    setContext: jest.fn(),
+  };
+
   beforeEach(async () => {
     jest.clearAllMocks();
 
@@ -28,6 +38,10 @@ describe('FindAllImportantDateService', () => {
         {
           provide: ImportantDateRepository,
           useValue: mockImportantDateRepository,
+        },
+        {
+          provide: CustomLogger,
+          useValue: mockCustomLogger,
         },
       ],
     }).compile();

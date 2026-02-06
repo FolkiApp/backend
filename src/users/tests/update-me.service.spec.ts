@@ -5,6 +5,7 @@ import { UserNotificationIdRepository } from '../repositories/user-notification-
 import { UserUpdateException } from '../exceptions/user-update.exception';
 import { UpdateUserDto } from '../dto/update-user.dto';
 import { User } from '../entities/user.entity';
+import { CustomLogger } from '../../common/logger/custom-logger.service';
 
 describe('UpdateMeService', () => {
   let service: UpdateMeService;
@@ -19,6 +20,15 @@ describe('UpdateMeService', () => {
     upsert: jest.fn(),
   };
 
+  const mockCustomLogger = {
+    log: jest.fn(),
+    error: jest.fn(),
+    warn: jest.fn(),
+    debug: jest.fn(),
+    verbose: jest.fn(),
+    setContext: jest.fn(),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -30,6 +40,10 @@ describe('UpdateMeService', () => {
         {
           provide: UserNotificationIdRepository,
           useValue: mockUserNotificationIdRepository,
+        },
+        {
+          provide: CustomLogger,
+          useValue: mockCustomLogger,
         },
       ],
     }).compile();

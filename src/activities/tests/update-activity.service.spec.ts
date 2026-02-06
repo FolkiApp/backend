@@ -8,6 +8,7 @@ import { PermissionDeniedToUpdateException } from '../exceptions/permission-deni
 import { UserBlockedException } from '../exceptions/user-blocked.exception';
 import { ActivityUpdateException } from '../exceptions/activity-update.exception';
 import { Activity } from '../entities/activity.entity';
+import { CustomLogger } from '../../common/logger/custom-logger.service';
 
 describe('UpdateActivityService', () => {
   let service: UpdateActivityService;
@@ -61,6 +62,15 @@ describe('UpdateActivityService', () => {
     findByIdAndUserId: jest.fn(),
   };
 
+  const mockCustomLogger = {
+    log: jest.fn(),
+    error: jest.fn(),
+    warn: jest.fn(),
+    debug: jest.fn(),
+    verbose: jest.fn(),
+    setContext: jest.fn(),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -72,6 +82,10 @@ describe('UpdateActivityService', () => {
         {
           provide: SubjectClassRepository,
           useValue: mockSubjectClassRepository,
+        },
+        {
+          provide: CustomLogger,
+          useValue: mockCustomLogger,
         },
       ],
     }).compile();

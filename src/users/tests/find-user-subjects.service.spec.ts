@@ -4,6 +4,7 @@ import { UserSubjectRepository } from '../repositories/user-subject.repository';
 import { UserSubject } from '../entities/user-subject.entity';
 import { SubjectClassRepository } from '../../subjects/repositories/subject-class.repository';
 import { SubjectClass } from '../../subjects/entities/subject-class.entity';
+import { CustomLogger } from '../../common/logger/custom-logger.service';
 
 describe('FindUserSubjectsService', () => {
   let service: FindUserSubjectsService;
@@ -18,6 +19,15 @@ describe('FindUserSubjectsService', () => {
     findLatest: jest.fn(),
   };
 
+  const mockCustomLogger = {
+    log: jest.fn(),
+    error: jest.fn(),
+    warn: jest.fn(),
+    debug: jest.fn(),
+    verbose: jest.fn(),
+    setContext: jest.fn(),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -29,6 +39,10 @@ describe('FindUserSubjectsService', () => {
         {
           provide: SubjectClassRepository,
           useValue: mockSubjectClassRepository,
+        },
+        {
+          provide: CustomLogger,
+          useValue: mockCustomLogger,
         },
       ],
     }).compile();

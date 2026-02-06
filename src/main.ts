@@ -7,9 +7,17 @@ import { ApiKeyGuard } from './common/guards/api-key.guard';
 import { AuthGuard } from './common/guards/auth.guard';
 import { PrismaService } from './prisma/prisma.service';
 import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
+import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
+import { CustomLogger } from './common/logger/custom-logger.service';
+import { CorrelationIdService } from './common/services/correlation-id.service';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, {
+    bufferLogs: true,
+  });
+
+  // Use Winston logger
+  app.useLogger(app.get(WINSTON_MODULE_NEST_PROVIDER));
 
   app.setGlobalPrefix('api');
 
@@ -23,7 +31,11 @@ async function bootstrap() {
 
   app.useGlobalFilters(new HttpExceptionFilter());
 
-  app.useGlobalInterceptors(new LoggingInterceptor());
+  const customLogger = app.get(CustomLogger);
+  const correlationIdService = app.get(CorrelationIdService);
+  app.useGlobalInterceptors(
+    new LoggingInterceptor(customLogger, correlationIdService),
+  );
 
   const reflector = app.get(Reflector);
   const prisma = app.get(PrismaService);

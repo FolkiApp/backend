@@ -1,13 +1,17 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import * as OneSignal from 'onesignal-node';
+import { CustomLogger } from '../../common/logger/custom-logger.service';
 import { SendNotificationDto } from '../dto/send-notification.dto';
 
 @Injectable()
 export class PipoNotificationService {
-  private readonly logger = new Logger(PipoNotificationService.name);
+  private readonly logger: CustomLogger;
   private readonly client: OneSignal.Client;
 
-  constructor() {
+  constructor(logger: CustomLogger) {
+    this.logger = logger;
+    this.logger.setContext(PipoNotificationService.name);
+
     const appId = process.env.ONESIGNAL_APP_ID;
     const apiKey = process.env.ONESIGNAL_API_KEY;
 

@@ -1,5 +1,6 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import puppeteer from 'puppeteer-extra';
+import { CustomLogger } from '../../common/logger/custom-logger.service';
 import type { Browser, Page } from 'puppeteer';
 import { user } from '@prisma/client';
 import { UserRepository } from '../repositories/user.repository';
@@ -16,7 +17,7 @@ const USP_UNIVERSITY_ID = 1;
 
 @Injectable()
 export class ScrapJupiterService {
-  private readonly logger = new Logger(ScrapJupiterService.name);
+  private readonly logger: CustomLogger;
 
   constructor(
     private readonly userRepository: UserRepository,
@@ -25,7 +26,11 @@ export class ScrapJupiterService {
     private readonly subjectRepository: SubjectRepository,
     private readonly subjectClassRepository: SubjectClassRepository,
     private readonly userSubjectRepository: UserSubjectRepository,
-  ) {}
+    logger: CustomLogger,
+  ) {
+    this.logger = logger;
+    this.logger.setContext(ScrapJupiterService.name);
+  }
 
   async execute(nUsp: string, password: string, retry = 0): Promise<user> {
     let browser: Browser | undefined;

@@ -6,6 +6,7 @@ import { InstituteRepository } from '../../institutes/repositories/institute.rep
 import { SubjectRepository } from '../../subjects/repositories/subject.repository';
 import { SubjectClassRepository } from '../../subjects/repositories/subject-class.repository';
 import { UserSubjectRepository } from '../repositories/user-subject.repository';
+import { CustomLogger } from '../../common/logger/custom-logger.service';
 
 // Mock global fetch
 global.fetch = jest.fn();
@@ -51,6 +52,15 @@ describe('AccessUFSCarSigaaService', () => {
     softDeleteMany: jest.fn(),
   };
 
+  const mockCustomLogger = {
+    log: jest.fn(),
+    error: jest.fn(),
+    warn: jest.fn(),
+    debug: jest.fn(),
+    verbose: jest.fn(),
+    setContext: jest.fn(),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -78,6 +88,10 @@ describe('AccessUFSCarSigaaService', () => {
         {
           provide: UserSubjectRepository,
           useValue: mockUserSubjectRepository,
+        },
+        {
+          provide: CustomLogger,
+          useValue: mockCustomLogger,
         },
       ],
     }).compile();

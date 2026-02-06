@@ -5,6 +5,7 @@ import { UserAbsence } from '../entities/absence.entity';
 import { NotFoundAbsences } from '../exceptions/absence-not-found.exception';
 import { AbsenceInternalErrorException } from '../exceptions/absence-internal-error.exception';
 import { AbsenceUnauthorized } from '../exceptions/absence-unauthorized.exception';
+import { CustomLogger } from '../../common/logger/custom-logger.service';
 
 describe('DeleteAbsence', () => {
   let service: DeleteAbsence;
@@ -14,6 +15,15 @@ describe('DeleteAbsence', () => {
     deleteAbsence: jest.fn(),
   };
 
+  const mockCustomLogger = {
+    log: jest.fn(),
+    error: jest.fn(),
+    warn: jest.fn(),
+    debug: jest.fn(),
+    verbose: jest.fn(),
+    setContext: jest.fn(),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -21,6 +31,10 @@ describe('DeleteAbsence', () => {
         {
           provide: AbsenceRepository,
           useValue: mockRepository,
+        },
+        {
+          provide: CustomLogger,
+          useValue: mockCustomLogger,
         },
       ],
     }).compile();

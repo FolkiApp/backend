@@ -5,6 +5,7 @@ import { UserSubjectsRepository } from '../../subjects/repositories/user-subject
 import { UserSubjectNotFoundException } from '../exceptions/user-subject-not-found.exception';
 import { GradesFetchException } from '../exceptions/grades-fetch.exception';
 import { Grade } from '../entities/grade.entity';
+import { CustomLogger } from '../../common/logger/custom-logger.service';
 
 describe('GetAllGradesFromSubjectService', () => {
   let service: GetAllGradesFromSubjectService;
@@ -52,6 +53,15 @@ describe('GetAllGradesFromSubjectService', () => {
     findByIdAndUserId: jest.fn(),
   };
 
+  const mockCustomLogger = {
+    log: jest.fn(),
+    error: jest.fn(),
+    warn: jest.fn(),
+    debug: jest.fn(),
+    verbose: jest.fn(),
+    setContext: jest.fn(),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -63,6 +73,10 @@ describe('GetAllGradesFromSubjectService', () => {
         {
           provide: UserSubjectsRepository,
           useValue: mockUserSubjectsRepository,
+        },
+        {
+          provide: CustomLogger,
+          useValue: mockCustomLogger,
         },
       ],
     }).compile();

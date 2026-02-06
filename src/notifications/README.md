@@ -61,7 +61,7 @@ import { PipoNotificationService } from '../notifications/services/pipo-notifica
 
 @Injectable()
 export class ActivityNotificationService {
-  private readonly logger = new Logger(ActivityNotificationService.name);
+  private readonly logger: CustomLogger(ActivityNotificationService.name);
 
   constructor(private readonly notificationService: PipoNotificationService) {}
 

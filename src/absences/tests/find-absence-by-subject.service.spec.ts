@@ -5,6 +5,7 @@ import { SubjectRepository } from '../../subjects/repositories/subject.repositor
 import { UserAbsence } from '../entities/absence.entity';
 import { InvalidSubjectIdException } from '../../subjects/exceptions/subject-fetch-id.exception';
 import { AbsenceBySubjectException } from '../exceptions/absence-by-subject.exception';
+import { CustomLogger } from '../../common/logger/custom-logger.service';
 
 describe('AbsenceBySubjectService', () => {
   let service: AbsenceBySubjectService;
@@ -31,6 +32,15 @@ describe('AbsenceBySubjectService', () => {
     findById: jest.fn(),
   };
 
+  const mockCustomLogger = {
+    log: jest.fn(),
+    error: jest.fn(),
+    warn: jest.fn(),
+    debug: jest.fn(),
+    verbose: jest.fn(),
+    setContext: jest.fn(),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -42,6 +52,10 @@ describe('AbsenceBySubjectService', () => {
         {
           provide: SubjectRepository,
           useValue: mockSubjectRepository,
+        },
+        {
+          provide: CustomLogger,
+          useValue: mockCustomLogger,
         },
       ],
     }).compile();

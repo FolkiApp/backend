@@ -1,14 +1,21 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { UniversityRepository } from '../repositories/university.repository';
+import { CustomLogger } from '../../common/logger/custom-logger.service';
 import { CreateUniversityDto } from '../dto/create-university.dto';
 import { University } from '../entities/university.entity';
 import { UniversityAlreadyExistsException } from '../exceptions/university-already-exists.exception';
 
 @Injectable()
 export class CreateUniversityService {
-  private readonly logger = new Logger(CreateUniversityService.name);
+  private readonly logger: CustomLogger;
 
-  constructor(private readonly universityRepository: UniversityRepository) {}
+  constructor(
+    private readonly universityRepository: UniversityRepository,
+    logger: CustomLogger,
+  ) {
+    this.logger = logger;
+    this.logger.setContext(CreateUniversityService.name);
+  }
 
   async execute(data: CreateUniversityDto): Promise<University> {
     this.logger.log({
