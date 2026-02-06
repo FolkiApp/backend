@@ -1,14 +1,13 @@
 import {
   Injectable,
   LoggerService as NestLoggerService,
-  Scope,
   Inject,
 } from '@nestjs/common';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Logger as WinstonLogger } from 'winston';
 import { CorrelationIdService } from '../services/correlation-id.service';
 
-@Injectable({ scope: Scope.TRANSIENT })
+@Injectable()
 export class CustomLogger implements NestLoggerService {
   private context?: string;
 
