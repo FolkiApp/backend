@@ -12,13 +12,13 @@ import { GradesModule } from './grades/grades.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { WinstonModule } from 'nest-winston';
 import { winstonConfig } from './common/logger/winston.config';
-import { CorrelationIdService } from './common/services/correlation-id.service';
 import { CorrelationIdMiddleware } from './common/middleware/correlation-id.middleware';
-import { CustomLogger } from './common/logger/custom-logger.service';
+import { CommonModule } from './common/common.module';
 
 @Module({
   imports: [
     WinstonModule.forRoot(winstonConfig),
+    CommonModule,
     PrismaModule,
     NotificationsModule,
     UniversitiesModule,
@@ -30,8 +30,7 @@ import { CustomLogger } from './common/logger/custom-logger.service';
     GradesModule,
   ],
   controllers: [AppController],
-  providers: [AppService, CorrelationIdService, CustomLogger],
-  exports: [CorrelationIdService, CustomLogger],
+  providers: [AppService],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
