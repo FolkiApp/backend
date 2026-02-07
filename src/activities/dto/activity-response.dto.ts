@@ -72,6 +72,12 @@ export class ActivityResponseDto {
   @ApiProperty({ example: 1 })
   subjectClassId: number;
 
+  @ApiProperty({
+    example: 'EXAM',
+    enum: ['EXAM', 'HOMEWORK', 'ACTIVITY', 'LIST'],
+  })
+  type: string;
+
   @ApiProperty({ example: 10.0, nullable: true })
   value: number | null;
 
@@ -95,6 +101,7 @@ export class ActivityResponseDto {
     isPrivate: boolean,
     userId: number,
     subjectClassId: number,
+    type: string,
     value: number | null,
     checked: boolean,
     subjectClass: SubjectClassDto,
@@ -110,6 +117,7 @@ export class ActivityResponseDto {
     this.isPrivate = isPrivate;
     this.userId = userId;
     this.subjectClassId = subjectClassId;
+    this.type = type;
     this.value = value;
     this.checked = checked;
     this.subjectClass = subjectClass;
