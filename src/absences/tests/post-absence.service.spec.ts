@@ -89,9 +89,10 @@ describe('PostAbsence', () => {
       );
 
       expect(result).toEqual(created);
-      expect(
-        userSubjectRepository.findByUserAndSubject,
-      ).toHaveBeenCalledWith(3, 7);
+      expect(userSubjectRepository.findByUserAndSubject).toHaveBeenCalledWith(
+        3,
+        7,
+      );
       expect(absenceRepository.postAbsence).toHaveBeenCalledWith(
         3,
         7,
@@ -100,9 +101,7 @@ describe('PostAbsence', () => {
     });
 
     it('deve lançar InvalidSubjectIdException quando userSubject não existe', async () => {
-      mockUserSubjectRepository.findByUserAndSubject.mockResolvedValue(
-        null,
-      );
+      mockUserSubjectRepository.findByUserAndSubject.mockResolvedValue(null);
 
       await expect(
         service.execute(mockAuthUser, 999, new Date()),
