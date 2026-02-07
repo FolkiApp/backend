@@ -9,6 +9,8 @@ import { UserBlockedException } from '../exceptions/user-blocked.exception';
 import { InvalidTokenException } from '../exceptions/invalid-token.exception';
 import { CustomLogger } from '../logger/custom-logger.service';
 import { CorrelationIdService } from '../services/correlation-id.service';
+import { Institute } from '../../institutes/entities/institute.entity';
+import { University } from '../../universities/entities/university.entity';
 
 export const AUTH_METADATA = 'requireAuth';
 
@@ -22,6 +24,8 @@ export interface AuthUser {
   universityId: number | null;
   isBlocked: boolean;
   userVersion: string | null;
+  institute: Institute | null;
+  university: University | null;
 }
 
 @Injectable()
@@ -92,6 +96,8 @@ export class AuthGuard implements CanActivate {
           userVersion: true,
           isBlocked: true,
           universityId: true,
+          institute: true,
+          university: true,
         },
       });
 

@@ -58,6 +58,8 @@ export class UsersController {
         user.isAdmin,
         user.universityId,
         user.userVersion,
+        authUser.institute,
+        authUser.university,
       ),
     );
   }
