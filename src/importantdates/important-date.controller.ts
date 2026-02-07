@@ -5,6 +5,7 @@ import { FindAllImportantDateService } from './services/find-all-important-date.
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import type { AuthUser } from '../common/guards/auth.guard';
 import { ImportantDateResponseDto } from './dtos/important-date.dto';
+import { ImportantDatesResponseDto } from './dtos/important-dates-response.dto';
 import { CreateImportantDateService } from './services/create-important-date.service';
 import { CreateImportantDateDto } from './dtos/create-important-date.dto';
 import { ApiKey } from '../common/decorators/api-key.decorator';
@@ -29,11 +30,12 @@ export class ImportantDateController {
   })
   async findAll(
     @CurrentUser() authUser: AuthUser,
-  ): Promise<ImportantDateResponseDto[]> {
-    {
-      const importantDates =
-        await this.findAllImportantDateService.execute(authUser);
-      return importantDates.map(
+  ): Promise<ImportantDatesResponseDto> {
+    const importantDates =
+      await this.findAllImportantDateService.execute(authUser);
+
+    return new ImportantDatesResponseDto(
+      importantDates.map(
         (date) =>
           new ImportantDateResponseDto(
             date.id,
@@ -44,8 +46,8 @@ export class ImportantDateController {
             date.campusId,
             date.universityId,
           ),
-      );
-    }
+      ),
+    );
   }
 
   @Post()

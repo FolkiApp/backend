@@ -210,7 +210,7 @@ describe('ActivitiesController', () => {
 
       const result = await controller.create(mockAuthUser, createDto);
 
-      expect(result.name).toBe(createDto.name);
+      expect(result.activity.name).toBe(createDto.name);
       expect(mockCreateActivityService.execute).toHaveBeenCalledWith(
         mockAuthUser,
         createDto,

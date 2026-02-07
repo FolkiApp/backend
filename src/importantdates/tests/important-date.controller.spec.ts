@@ -91,8 +91,8 @@ describe('ImportantDateController', () => {
       const result = await controller.findAll(authUser);
 
       expect(findAllService.execute).toHaveBeenCalledWith(authUser);
-      expect(result).toHaveLength(1);
-      expect(result[0]).toBeInstanceOf(ImportantDateResponseDto);
+      expect(result.importantDates).toHaveLength(1);
+      expect(result.importantDates[0]).toBeInstanceOf(ImportantDateResponseDto);
     });
   });
 

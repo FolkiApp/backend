@@ -11,6 +11,7 @@ import { CustomLogger } from '../../common/logger/custom-logger.service';
 import { AuthDto } from '../dto/auth.dto';
 import { AuthResponseDto } from '../dto/auth-response.dto';
 import { UserResponseDto } from '../dto/user-response.dto';
+import { MeResponseDto } from '../dto/me-response.dto';
 import { UpdateUserDto } from '../dto/update-user.dto';
 import { CoolNumbersDto } from '../dto/cool-numbers.dto';
 
@@ -124,15 +125,17 @@ describe('UsersController', () => {
       const result = controller.me(authUser);
 
       expect(result).toEqual(
-        new UserResponseDto(
-          1,
-          'test@usp.br',
-          'Test User',
-          1,
-          1,
-          false,
-          1,
-          '1.0.0',
+        new MeResponseDto(
+          new UserResponseDto(
+            1,
+            'test@usp.br',
+            'Test User',
+            1,
+            1,
+            false,
+            1,
+            '1.0.0',
+          ),
         ),
       );
 
@@ -230,7 +233,7 @@ describe('UsersController', () => {
 
       const result = await controller.findMySubjects(authUser);
 
-      expect(result).toHaveLength(1);
+      expect(result.userSubjects).toHaveLength(1);
       expect(findUserSubjectsService.execute).toHaveBeenCalledWith(1, 1);
     });
   });
