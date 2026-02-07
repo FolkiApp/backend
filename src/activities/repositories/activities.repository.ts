@@ -71,6 +71,7 @@ export class ActivitiesRepository {
           activity.isPrivate,
           activity.userId,
           activity.subjectClassId,
+          activity.value,
           activity.user_activity_check.length > 0,
           new ActivitySubjectClass(
             activity.subjectClass.id,
@@ -113,6 +114,7 @@ export class ActivitiesRepository {
       activity.isPrivate,
       activity.userId,
       activity.subjectClassId,
+      activity.value,
     );
   }
 
@@ -162,6 +164,7 @@ export class ActivitiesRepository {
       activity.isPrivate,
       activity.userId,
       activity.subjectClassId,
+      activity.value,
       false,
       new ActivitySubjectClass(
         activity.subjectClass.id,
@@ -206,6 +209,7 @@ export class ActivitiesRepository {
       activity.isPrivate,
       activity.userId,
       activity.subjectClassId,
+      activity.value,
       false,
       new ActivitySubjectClass(
         activity.subjectClass.id,
@@ -252,6 +256,7 @@ export class ActivitiesRepository {
       activity.isPrivate,
       activity.userId,
       activity.subjectClassId,
+      activity.value,
       false,
       new ActivitySubjectClass(
         activity.subjectClass.id,

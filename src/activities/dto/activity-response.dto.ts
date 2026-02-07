@@ -72,6 +72,9 @@ export class ActivityResponseDto {
   @ApiProperty({ example: 1 })
   subjectClassId: number;
 
+  @ApiProperty({ example: 10.0, nullable: true })
+  value: number | null;
+
   @ApiProperty({ example: false })
   checked: boolean;
 
@@ -92,6 +95,7 @@ export class ActivityResponseDto {
     isPrivate: boolean,
     userId: number,
     subjectClassId: number,
+    value: number | null,
     checked: boolean,
     subjectClass: SubjectClassDto,
     user: ActivityUserDto,
@@ -106,6 +110,7 @@ export class ActivityResponseDto {
     this.isPrivate = isPrivate;
     this.userId = userId;
     this.subjectClassId = subjectClassId;
+    this.value = value;
     this.checked = checked;
     this.subjectClass = subjectClass;
     this.user = user;

@@ -10,6 +10,7 @@ export class Activity {
     public isPrivate: boolean,
     public userId: number,
     public subjectClassId: number,
+    public value?: number | null,
     public checked?: boolean,
     public subjectClass?: ActivitySubjectClass,
     public user?: ActivityUser,
