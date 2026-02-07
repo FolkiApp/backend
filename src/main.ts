@@ -21,7 +21,11 @@ async function bootstrap() {
 
   // Enable CORS
   app.enableCors({
-    origin: ['https://folki.com.br', 'https://www.folki.com.br'],
+    origin: [
+      'https://folki.com.br',
+      'https://www.folki.com.br',
+      /^http:\/\/localhost:\d+$/,
+    ],
     credentials: true,
   });
 
