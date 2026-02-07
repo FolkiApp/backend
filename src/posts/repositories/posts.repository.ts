@@ -49,4 +49,31 @@ export class PostsRepository {
       orderBy: { id: 'desc' },
     });
   }
+
+  async getPostById(id: number): Promise<PostsEntity | null> {
+    const post = await this.prisma.post.findUnique({
+      where: { id },
+    });
+
+    if (!post) {
+      return null;
+    }
+
+    return new PostsEntity(
+      post.id,
+      post.postDate,
+      post.title,
+      post.content,
+      post.userId,
+      post.commentsCount,
+      undefined,
+      post.tags,
+    );
+  }
+
+  async deletePost(id: number): Promise<void> {
+    await this.prisma.post.delete({
+      where: { id },
+    });
+  }
 }

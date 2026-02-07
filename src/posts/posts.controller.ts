@@ -1,4 +1,12 @@
-import { Get, Controller, Post, Body, Query } from '@nestjs/common';
+import {
+  Get,
+  Controller,
+  Post,
+  Body,
+  Query,
+  Delete,
+  Param,
+} from '@nestjs/common';
 import { Auth } from '../common/decorators/auth.decorator';
 import { ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
@@ -8,6 +16,7 @@ import { PostDto } from './dto/post.dto';
 import { CreatePostDto } from './dto/create-post.dto';
 import { ListFirstPostsService } from './services/list-first-posts.service';
 import { ListNextPostsService } from './services/list-next-posts.service';
+import { DeletePostService } from './services/delete-post.service';
 
 @Controller()
 export class PostController {
@@ -15,6 +24,7 @@ export class PostController {
     private readonly createPostService: PostPostsService,
     private readonly listFirstPostsService: ListFirstPostsService,
     private readonly listNextPostsService: ListNextPostsService,
+    private readonly deletePostService: DeletePostService,
   ) {}
 
   @Post('posts')
@@ -109,5 +119,20 @@ export class PostController {
       ),
       nextId,
     };
+  }
+
+  @Delete('posts/:id')
+  @Auth()
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Deletar uma postagem',
+    description: 'Remove um post do mural (apenas o autor pode deletar)',
+  })
+  async deletePost(
+    @Param('id') id: number,
+    @CurrentUser() authUser: AuthUser,
+  ): Promise<{ message: string }> {
+    await this.deletePostService.execute(Number(id), authUser);
+    return { message: 'Post deleted successfully' };
   }
 }
