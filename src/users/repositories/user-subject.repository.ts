@@ -37,7 +37,6 @@ export class UserSubjectRepository {
             subject: true,
           },
         },
-        user_absences: true,
       },
     });
 

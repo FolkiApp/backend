@@ -1,5 +1,4 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { UserAbsence } from '../../absences/entities/absence.entity';
 import { SubjectClass } from '../../subjects/entities/subject-class.entity';
 
 export class UserSubjectDto {
@@ -11,20 +10,11 @@ export class UserSubjectDto {
   id?: number;
 
   @ApiProperty({
-    type: [UserAbsence],
-    description: 'Lista de faltas do usuário na disciplina',
+    example: 3,
+    description: 'Número de faltas do usuário na disciplina',
     required: false,
-    example: [
-      {
-        id: 1,
-        date: '2026-02-05T10:00:00.000Z',
-        createdAt: '2026-02-05T10:00:00.000Z',
-        userId: 1,
-        userSubjectId: 1,
-      },
-    ],
   })
-  absences?: UserAbsence[];
+  absences?: number;
 
   @ApiProperty({
     example: 8.5,
@@ -58,7 +48,7 @@ export class UserSubjectDto {
   constructor(
     subjectClass: SubjectClass,
     id?: number,
-    absences?: UserAbsence[],
+    absences?: number,
     grading?: number,
   ) {
     this.subjectClass = subjectClass;

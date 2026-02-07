@@ -86,6 +86,8 @@ export class UsersController {
       user.isAdmin,
       user.universityId,
       user.userVersion,
+      authUser.institute,
+      authUser.university,
     );
   }
 
@@ -119,7 +121,7 @@ export class UsersController {
           new UserSubjectDto(
             us.subjectClass as unknown as SubjectClass,
             us.id,
-            us.userAbsences,
+            us.absences,
             us.grading,
           ),
       ),

@@ -214,6 +214,8 @@ describe('UsersController', () => {
         isBlocked: false,
         universityId: 1,
         userVersion: '1.0.0',
+        institute: null,
+        university: null,
       };
 
       const mockSubjects = [
@@ -225,7 +227,6 @@ describe('UsersController', () => {
           grading: 8,
           createdAt: new Date(),
           deletedAt: null,
-          userAbsences: [],
         },
       ];
 
@@ -234,6 +235,7 @@ describe('UsersController', () => {
       const result = await controller.findMySubjects(authUser);
 
       expect(result.userSubjects).toHaveLength(1);
+      expect(result.userSubjects[0].absences).toBe(2);
       expect(findUserSubjectsService.execute).toHaveBeenCalledWith(1, 1);
     });
   });
