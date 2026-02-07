@@ -80,7 +80,14 @@ describe('AbsenceRepository', () => {
       expect(result[0].userId).toBe(3);
       expect(result[0].userSubjectId).toBe(7);
       expect(prismaService.user_absence.findMany).toHaveBeenCalledWith({
-        where: { userId: 3, userSubjectId: 7 },
+        where: {
+          userId: 3,
+          userSubject: {
+            subjectClass: {
+              subjectId: 7,
+            },
+          },
+        },
         orderBy: { date: 'desc' },
       });
     });
@@ -92,7 +99,14 @@ describe('AbsenceRepository', () => {
 
       expect(result).toEqual([]);
       expect(prismaService.user_absence.findMany).toHaveBeenCalledWith({
-        where: { userId: 3, userSubjectId: 7 },
+        where: {
+          userId: 3,
+          userSubject: {
+            subjectClass: {
+              subjectId: 7,
+            },
+          },
+        },
         orderBy: { date: 'desc' },
       });
     });

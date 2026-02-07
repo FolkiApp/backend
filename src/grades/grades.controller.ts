@@ -25,7 +25,7 @@ import { GradesResponseDto, GradeDto } from './dto/grades-response.dto';
 import { CreateGradeDto } from './dto/create-grade.dto';
 
 @ApiTags('grades')
-@Controller('subjects/:subjectId/grades')
+@Controller()
 export class GradesController {
   constructor(
     private readonly getAllGradesFromSubjectService: GetAllGradesFromSubjectService,
@@ -33,7 +33,7 @@ export class GradesController {
     private readonly deleteGradeService: DeleteGradeService,
   ) {}
 
-  @Get()
+  @Get('subjects/:userSubjectId/grades')
   @Auth()
   @ApiBearerAuth()
   @ApiOperation({
@@ -41,7 +41,7 @@ export class GradesController {
     description: 'Retorna todas as notas associadas a uma matéria do usuário.',
   })
   @ApiParam({
-    name: 'subjectId',
+    name: 'userSubjectId',
     description: 'ID da matéria do usuário (user_subject)',
     type: Number,
   })
@@ -56,16 +56,16 @@ export class GradesController {
   })
   async findAll(
     @CurrentUser() authUser: AuthUser,
-    @Param('subjectId') subjectId: string,
+    @Param('userSubjectId') userSubjectId: string,
   ): Promise<GradesResponseDto> {
     const grades = await this.getAllGradesFromSubjectService.execute(
       authUser,
-      Number(subjectId),
+      Number(userSubjectId),
     );
     return { grades };
   }
 
-  @Post()
+  @Post('grades')
   @Auth()
   @ApiBearerAuth()
   @HttpCode(HttpStatus.CREATED)
@@ -105,7 +105,7 @@ export class GradesController {
     };
   }
 
-  @Delete(':id')
+  @Delete('grades/:id')
   @Auth()
   @ApiBearerAuth()
   @HttpCode(HttpStatus.NO_CONTENT)
