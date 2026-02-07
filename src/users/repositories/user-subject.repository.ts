@@ -65,6 +65,21 @@ export class UserSubjectRepository {
     });
   }
 
+  async findByUserAndSubject(userId: number, subjectId: number) {
+    return this.prisma.user_subject.findFirst({
+      where: {
+        userId,
+        deletedAt: null,
+        subjectClass: {
+          subjectId,
+        },
+      },
+      select: {
+        id: true,
+      },
+    });
+  }
+
   async create(userId: number, subjectClassId: number) {
     return this.prisma.user_subject.create({
       data: { userId, subjectClassId },

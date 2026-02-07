@@ -26,8 +26,8 @@ export class PostAbsence {
     date: Date,
   ): Promise<UserAbsence> {
     this.logger.log({ message: 'Executing post absence per subject' });
-    const userSubject = await this.findUserSubject(user.id, subjectId);
-    return this.postAbsence(user.id, userSubject.id, date);
+    const userSubjectId = await this.findUserSubject(user.id, subjectId);
+    return this.postAbsence(user.id, userSubjectId, date);
   }
 
   private async postAbsence(
@@ -61,10 +61,10 @@ export class PostAbsence {
   private async findUserSubject(
     userId: number,
     subjectId: number,
-  ): Promise<{ id: number }> {
+  ): Promise<number> {
     let userSubject: { id: number } | null | undefined;
     try {
-      userSubject = await this.userSubjectRepository.findByUserAndSubjectClass(
+      userSubject = await this.userSubjectRepository.findByUserAndSubject(
         userId,
         subjectId,
       );
@@ -80,6 +80,6 @@ export class PostAbsence {
     if (!userSubject) {
       throw new InvalidSubjectIdException();
     }
-    return userSubject;
+    return userSubject.id;
   }
 }

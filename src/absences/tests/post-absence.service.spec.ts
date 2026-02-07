@@ -18,7 +18,7 @@ describe('PostAbsence', () => {
   };
 
   const mockUserSubjectRepository = {
-    findByUserAndSubjectClass: jest.fn(),
+    findByUserAndSubject: jest.fn(),
   };
 
   const mockCustomLogger = {
@@ -77,7 +77,7 @@ describe('PostAbsence', () => {
         7,
       );
 
-      mockUserSubjectRepository.findByUserAndSubjectClass.mockResolvedValue(
+      mockUserSubjectRepository.findByUserAndSubject.mockResolvedValue(
         userSubject,
       );
       mockAbsenceRepository.postAbsence.mockResolvedValue(created);
@@ -90,7 +90,7 @@ describe('PostAbsence', () => {
 
       expect(result).toEqual(created);
       expect(
-        userSubjectRepository.findByUserAndSubjectClass,
+        userSubjectRepository.findByUserAndSubject,
       ).toHaveBeenCalledWith(3, 7);
       expect(absenceRepository.postAbsence).toHaveBeenCalledWith(
         3,
@@ -100,7 +100,7 @@ describe('PostAbsence', () => {
     });
 
     it('deve lançar InvalidSubjectIdException quando userSubject não existe', async () => {
-      mockUserSubjectRepository.findByUserAndSubjectClass.mockResolvedValue(
+      mockUserSubjectRepository.findByUserAndSubject.mockResolvedValue(
         null,
       );
 
@@ -110,7 +110,7 @@ describe('PostAbsence', () => {
     });
 
     it('deve lançar AbsenceInternalErrorException quando erro ao buscar userSubject', async () => {
-      mockUserSubjectRepository.findByUserAndSubjectClass.mockRejectedValue(
+      mockUserSubjectRepository.findByUserAndSubject.mockRejectedValue(
         new Error('DB fail'),
       );
 
@@ -121,7 +121,7 @@ describe('PostAbsence', () => {
 
     it('deve lançar AbsenceInternalErrorException quando o repositório falha', async () => {
       const userSubject = { id: 7 };
-      mockUserSubjectRepository.findByUserAndSubjectClass.mockResolvedValue(
+      mockUserSubjectRepository.findByUserAndSubject.mockResolvedValue(
         userSubject,
       );
       mockAbsenceRepository.postAbsence.mockRejectedValue(new Error('DB fail'));
