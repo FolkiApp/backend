@@ -25,8 +25,12 @@ export class PostDto {
   @ApiProperty({ example: 3 })
   userId: number;
 
-  @ApiProperty({ example: 21 })
-  commentsCount: number;
+  @ApiProperty({
+    example: null,
+    description: 'ID do post pai (null se for um post raiz)',
+    nullable: true,
+  })
+  parentPostId: number | null;
 
   @ApiProperty({
     example: ['Value', 'Value2'],
@@ -40,7 +44,7 @@ export class PostDto {
     title: string,
     content: string,
     userId: number,
-    commentsCount: number,
+    parentPostId: number | null,
     tags?: string[],
   ) {
     this.id = id;
@@ -48,7 +52,7 @@ export class PostDto {
     this.title = title;
     this.content = content;
     this.userId = userId;
-    this.commentsCount = commentsCount;
+    this.parentPostId = parentPostId;
     this.tags = tags ?? [];
   }
 }

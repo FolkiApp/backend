@@ -26,8 +26,7 @@ describe('PostPostsService', () => {
     'Test Post',
     'Test Content',
     1,
-    0,
-    undefined,
+    null,
     ['tag1', 'tag2'],
   );
 
@@ -69,6 +68,7 @@ describe('PostPostsService', () => {
         'Test Content',
         1,
         ['tag1', 'tag2'],
+        undefined,
       );
     });
 
@@ -123,8 +123,7 @@ describe('PostPostsService', () => {
           'Test Post',
           'Test Content',
           1,
-          0,
-          undefined,
+          null,
           tags,
         ),
       );
@@ -142,6 +141,7 @@ describe('PostPostsService', () => {
         'Test Content',
         1,
         tags,
+        undefined,
       );
     });
 
@@ -155,6 +155,32 @@ describe('PostPostsService', () => {
         'Test Content',
         1,
         [],
+        undefined,
+      );
+    });
+
+    it('should create post with parentPostId when provided', async () => {
+      mockPostsRepository.createPost.mockResolvedValue(
+        new PostsEntity(2, new Date(), 'Child Post', 'Child Content', 1, 1, [
+          'tag1',
+        ]),
+      );
+
+      const result = await service.execute(
+        'Child Post',
+        'Child Content',
+        mockAuthUser,
+        ['tag1'],
+        1,
+      );
+
+      expect(result.parentPostId).toBe(1);
+      expect(postsRepository.createPost).toHaveBeenCalledWith(
+        'Child Post',
+        'Child Content',
+        1,
+        ['tag1'],
+        1,
       );
     });
   });
@@ -163,46 +189,74 @@ describe('PostPostsService', () => {
     it('should create post with valid parameters', async () => {
       mockPostsRepository.createPost.mockResolvedValue(mockPost);
 
-      const result = await service.createPost('Test Post', 'Test Content', 1, [
-        'tag1',
-      ]);
+      const result = await service.createPost(
+        'Test Post',
+        'Test Content',
+        1,
+        ['tag1'],
+        undefined,
+      );
 
       expect(result).toEqual(mockPost);
     });
 
+    it('should create post with parentPostId when provided', async () => {
+      const childPost = new PostsEntity(
+        2,
+        new Date(),
+        'Child Post',
+        'Child Content',
+        1,
+        1,
+        ['tag1'],
+      );
+      mockPostsRepository.createPost.mockResolvedValue(childPost);
+
+      const result = await service.createPost(
+        'Child Post',
+        'Child Content',
+        1,
+        ['tag1'],
+        1,
+      );
+
+      expect(result).toEqual(childPost);
+      expect(result.parentPostId).toBe(1);
+    });
+
     it('should throw EmptyPostException for empty title', async () => {
       await expect(
-        service.createPost('', 'Test Content', 1, []),
+        service.createPost('', 'Test Content', 1, [], undefined),
       ).rejects.toThrow(EmptyPostException);
     });
 
     it('should throw EmptyPostException for empty content', async () => {
-      await expect(service.createPost('Test Post', '', 1, [])).rejects.toThrow(
-        EmptyPostException,
-      );
+      await expect(
+        service.createPost('Test Post', '', 1, [], undefined),
+      ).rejects.toThrow(EmptyPostException);
     });
 
     it('should throw EmptyPostException for null title', async () => {
       await expect(
-        service.createPost(null as any, 'Test Content', 1, []),
+        service.createPost(null as any, 'Test Content', 1, [], undefined),
       ).rejects.toThrow(EmptyPostException);
     });
 
     it('should throw EmptyPostException for null content', async () => {
       await expect(
-        service.createPost('Test Post', null as any, 1, []),
+        service.createPost('Test Post', null as any, 1, [], undefined),
       ).rejects.toThrow(EmptyPostException);
     });
 
     it('should throw EmptyPostException for undefined title', async () => {
       await expect(
-        service.createPost(undefined as any, 'Test Content', 1, []),
+        service.createPost(undefined as any, 'Test Content', 1, [], undefined),
       ).rejects.toThrow(EmptyPostException);
     });
 
     it('should throw EmptyPostException for undefined content', async () => {
       await expect(
-        service.createPost('Test Post', undefined as any, 1, []),
+        service.createPost('Test Post', undefined as any, 1, [], undefined),
       ).rejects.toThrow(EmptyPostException);
     });
   });

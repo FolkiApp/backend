@@ -16,15 +16,17 @@ export class PostPostsService {
     content: string,
     user: AuthUser,
     tags: string[],
+    parentPostId?: number,
   ): Promise<PostsEntity> {
-    this.logger.log({ message: 'Creating Post' });
-    return this.createPost(title, content, user.id, tags);
+    this.logger.log({ message: 'Creating Post', parentPostId });
+    return this.createPost(title, content, user.id, tags, parentPostId);
   }
   async createPost(
     title: string,
     content: string,
     userId: number,
     tags: string[],
+    parentPostId?: number,
   ): Promise<PostsEntity> {
     try {
       if (!title?.trim() || !content?.trim()) {
@@ -35,6 +37,7 @@ export class PostPostsService {
         content,
         userId,
         tags,
+        parentPostId,
       );
       return post;
     } catch (error: unknown) {

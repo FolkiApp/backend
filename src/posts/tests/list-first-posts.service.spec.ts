@@ -20,8 +20,7 @@ describe('ListFirstPostsService', () => {
       'Third Post',
       'Content 3',
       1,
-      0,
-      undefined,
+      null,
       ['tag3'],
     ),
     new PostsEntity(
@@ -30,8 +29,7 @@ describe('ListFirstPostsService', () => {
       'Second Post',
       'Content 2',
       1,
-      5,
-      undefined,
+      null,
       ['tag2'],
     ),
     new PostsEntity(
@@ -40,8 +38,7 @@ describe('ListFirstPostsService', () => {
       'First Post',
       'Content 1',
       2,
-      10,
-      undefined,
+      null,
       ['tag1'],
     ),
   ];
@@ -188,6 +185,19 @@ describe('ListFirstPostsService', () => {
         expect(error).toBeInstanceOf(NotFoundPostException);
         expect(error.code).toBe('NOT_FOUND_POSTS_EXCEPTION');
       }
+    });
+
+    it('should only return posts without parentPostId', async () => {
+      const parentPostsOnly = mockPosts.filter(
+        (post) => post.parentPostId === null,
+      );
+      mockPostsRepository.listPosts.mockResolvedValue(parentPostsOnly);
+
+      const result = await service.listFirstPosts(10);
+
+      result.forEach((post) => {
+        expect(post.parentPostId).toBeNull();
+      });
     });
   });
 });

@@ -6,6 +6,7 @@ import { PostsRepository } from './repositories/posts.repository';
 import { ListFirstPostsService } from './services/list-first-posts.service';
 import { ListNextPostsService } from './services/list-next-posts.service';
 import { DeletePostService } from './services/delete-post.service';
+import { ListChildPostsService } from './services/list-child-posts.service';
 
 @Module({
   imports: [PrismaModule],
@@ -16,6 +17,7 @@ import { DeletePostService } from './services/delete-post.service';
     ListFirstPostsService,
     ListNextPostsService,
     DeletePostService,
+    ListChildPostsService,
   ],
 })
 export class PostsModule {}

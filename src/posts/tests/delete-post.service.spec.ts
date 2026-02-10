@@ -28,8 +28,7 @@ describe('DeletePostService', () => {
     'Test Post',
     'Test Content',
     1,
-    0,
-    undefined,
+    null,
     ['tag1', 'tag2'],
   );
 

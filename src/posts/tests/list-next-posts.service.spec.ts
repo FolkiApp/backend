@@ -20,8 +20,7 @@ describe('ListNextPostsService', () => {
       'Ninth Post',
       'Content 9',
       1,
-      0,
-      undefined,
+      null,
       ['tag9'],
     ),
     new PostsEntity(
@@ -30,8 +29,7 @@ describe('ListNextPostsService', () => {
       'Eighth Post',
       'Content 8',
       2,
-      3,
-      undefined,
+      null,
       ['tag8'],
     ),
     new PostsEntity(
@@ -40,8 +38,7 @@ describe('ListNextPostsService', () => {
       'Seventh Post',
       'Content 7',
       3,
-      5,
-      undefined,
+      null,
       ['tag7'],
     ),
   ];
@@ -185,7 +182,7 @@ describe('ListNextPostsService', () => {
       expect(result[0].title).toBe('Ninth Post');
       expect(result[0].content).toBe('Content 9');
       expect(result[0].userId).toBe(1);
-      expect(result[0].commentsCount).toBe(0);
+      expect(result[0].parentPostId).toBeNull();
       expect(result[0].tags).toEqual(['tag9']);
     });
 
@@ -218,6 +215,19 @@ describe('ListNextPostsService', () => {
 
       expect(result.length).toBe(1);
       expect(result[0].id).toBe(9);
+    });
+
+    it('should only return posts without parentPostId', async () => {
+      const parentPostsOnly = mockPosts.filter(
+        (post) => post.parentPostId === null,
+      );
+      mockPostsRepository.listNextPosts.mockResolvedValue(parentPostsOnly);
+
+      const result = await service.listNextPosts(10, 10);
+
+      result.forEach((post) => {
+        expect(post.parentPostId).toBeNull();
+      });
     });
   });
 });

@@ -105,7 +105,6 @@ model user {
   user_activity_ignore   user_activity_ignore[]
   user_notification_id   user_notification_id[]
   posts                  post[]
-  comments               comment[]
 }
 
 model user_subject {
@@ -248,25 +247,19 @@ model user_notification_id {
 }
 
 model post {
-  id         Int       @id @default(autoincrement())
-  postDate   DateTime  @default(now())
-  title      String
-  content    String
-  userId     Int
-  commentsCount Int
-  user       user      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  tags String[]
-  comments   comment[]
-}
+  id            Int       @id @default(autoincrement())
+  postDate      DateTime  @default(now())
+  title         String
+  content       String
+  userId        Int
+  parentPostId  Int?
+  user          user      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  parentPost    post?     @relation("ChildPosts", fields: [parentPostId], references: [id], onDelete: Cascade)
+  childPosts    post[]    @relation("ChildPosts")
+  tags          String[]
 
-model comment {
-  id      Int      @id @default(autoincrement())
-  postId  Int
-  userId  Int
-  content String
-  date    DateTime @default(now())
-  user    user     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  post    post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  @@index([userId])
+  @@index([parentPostId])
 }
 
 

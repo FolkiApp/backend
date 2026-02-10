@@ -1,5 +1,12 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsNotEmpty, IsArray, ArrayNotEmpty } from 'class-validator';
+import {
+  IsString,
+  IsNotEmpty,
+  IsArray,
+  ArrayNotEmpty,
+  IsOptional,
+  IsNumber,
+} from 'class-validator';
 
 export class CreatePostDto {
   @ApiProperty({
@@ -23,4 +30,15 @@ export class CreatePostDto {
   @ArrayNotEmpty()
   @IsString({ each: true })
   tags: string[];
+
+  @ApiProperty({
+    example: null,
+    description:
+      'ID do post pai (opcional - usado para criar respostas/comentários)',
+    nullable: true,
+    required: false,
+  })
+  @IsOptional()
+  @IsNumber()
+  parentPostId?: number;
 }

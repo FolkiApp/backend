@@ -1,5 +1,3 @@
-import { CommentEntity } from 'src/comments/entities/comment.entity';
-
 export class PostsEntity {
   constructor(
     public id: number,
@@ -7,8 +5,8 @@ export class PostsEntity {
     public title: string,
     public content: string,
     public userId: number,
-    public commentsCount: number,
-    public comments?: CommentEntity[],
+    public parentPostId: number | null,
     public tags?: string[],
+    public childPosts?: PostsEntity[],
   ) {}
 }
