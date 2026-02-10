@@ -19,7 +19,13 @@ describe('DeletePostService', () => {
   const mockAuthUser: AuthUser = {
     id: 1,
     email: 'test@example.com',
-    username: 'testuser',
+    name: 'Test User',
+    isAdmin: false,
+    instituteId: null,
+    courseId: null,
+    universityId: null,
+    isBlocked: false,
+    userVersion: null,
   };
 
   const mockPost = new PostsEntity(
@@ -28,8 +34,8 @@ describe('DeletePostService', () => {
     'Test Post',
     'Test Content',
     1,
+    null,
     0,
-    undefined,
     ['tag1', 'tag2'],
   );
 
@@ -80,7 +86,13 @@ describe('DeletePostService', () => {
       const differentUser: AuthUser = {
         id: 2,
         email: 'other@example.com',
-        username: 'otheruser',
+        name: 'Other User',
+        isAdmin: false,
+        instituteId: null,
+        courseId: null,
+        universityId: null,
+        isBlocked: false,
+        userVersion: null,
       };
 
       mockPostsRepository.getPostById.mockResolvedValue(mockPost);
@@ -122,7 +134,13 @@ describe('DeletePostService', () => {
       const differentUser: AuthUser = {
         id: 2,
         email: 'other@example.com',
-        username: 'otheruser',
+        name: 'Other User',
+        isAdmin: false,
+        instituteId: null,
+        courseId: null,
+        universityId: null,
+        isBlocked: false,
+        userVersion: null,
       };
 
       mockPostsRepository.getPostById.mockResolvedValue(mockPost);

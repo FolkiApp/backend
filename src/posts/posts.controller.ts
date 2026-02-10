@@ -17,6 +17,7 @@ import { CreatePostDto } from './dto/create-post.dto';
 import { ListFirstPostsService } from './services/list-first-posts.service';
 import { ListNextPostsService } from './services/list-next-posts.service';
 import { DeletePostService } from './services/delete-post.service';
+import { ListPostChildrenService } from './services/list-post-children.service';
 
 @Controller()
 export class PostController {
@@ -25,6 +26,7 @@ export class PostController {
     private readonly listFirstPostsService: ListFirstPostsService,
     private readonly listNextPostsService: ListNextPostsService,
     private readonly deletePostService: DeletePostService,
+    private readonly listPostChildrenService: ListPostChildrenService,
   ) {}
 
   @Post('posts')
@@ -43,6 +45,7 @@ export class PostController {
       body.content,
       authUser,
       body.tags,
+      body.parentId,
     );
 
     return new PostDto(
@@ -51,6 +54,7 @@ export class PostController {
       post.title,
       post.content,
       post.userId,
+      post.parentId ?? null,
       post.commentsCount,
       post.tags,
     );
@@ -78,6 +82,7 @@ export class PostController {
             post.title,
             post.content,
             post.userId,
+            post.parentId ?? null,
             post.commentsCount,
             post.tags,
           ),
@@ -113,12 +118,38 @@ export class PostController {
             post.title,
             post.content,
             post.userId,
+            post.parentId ?? null,
             post.commentsCount,
             post.tags,
           ),
       ),
       nextId,
     };
+  }
+
+  @Get('posts/:id/children')
+  @Auth()
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Listar nodes filhos de um post',
+    description: 'Lista todos os nodes filhos (sub posts) de um post pai',
+  })
+  async listPostChildren(@Param('id') id: number): Promise<PostDto[]> {
+    const posts = await this.listPostChildrenService.execute(Number(id));
+
+    return posts.map(
+      (post) =>
+        new PostDto(
+          post.id,
+          post.postDate,
+          post.title,
+          post.content,
+          post.userId,
+          post.parentId ?? null,
+          post.commentsCount,
+          post.tags,
+        ),
+    );
   }
 
   @Delete('posts/:id')

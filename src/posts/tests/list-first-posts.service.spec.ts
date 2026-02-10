@@ -20,8 +20,8 @@ describe('ListFirstPostsService', () => {
       'Third Post',
       'Content 3',
       1,
+      null,
       0,
-      undefined,
       ['tag3'],
     ),
     new PostsEntity(
@@ -30,8 +30,8 @@ describe('ListFirstPostsService', () => {
       'Second Post',
       'Content 2',
       1,
+      null,
       5,
-      undefined,
       ['tag2'],
     ),
     new PostsEntity(
@@ -40,8 +40,8 @@ describe('ListFirstPostsService', () => {
       'First Post',
       'Content 1',
       2,
+      null,
       10,
-      undefined,
       ['tag1'],
     ),
   ];

@@ -4,6 +4,7 @@ import { PostPostsService } from '../services/post-posts.service';
 import { ListFirstPostsService } from '../services/list-first-posts.service';
 import { ListNextPostsService } from '../services/list-next-posts.service';
 import { DeletePostService } from '../services/delete-post.service';
+import { ListPostChildrenService } from '../services/list-post-children.service';
 import { PostsEntity } from '../entities/posts.entity';
 import { PostDto } from '../dto/post.dto';
 import { CreatePostDto } from '../dto/create-post.dto';
@@ -17,6 +18,7 @@ describe('PostController', () => {
   let listFirstPostsService: ListFirstPostsService;
   let listNextPostsService: ListNextPostsService;
   let deletePostService: DeletePostService;
+  let listPostChildrenService: ListPostChildrenService;
 
   const mockCreatePostService = {
     execute: jest.fn(),
@@ -34,10 +36,20 @@ describe('PostController', () => {
     execute: jest.fn(),
   };
 
+  const mockListPostChildrenService = {
+    execute: jest.fn(),
+  };
+
   const mockAuthUser: AuthUser = {
     id: 1,
     email: 'test@example.com',
-    username: 'testuser',
+    name: 'Test User',
+    isAdmin: false,
+    instituteId: null,
+    courseId: null,
+    universityId: null,
+    isBlocked: false,
+    userVersion: null,
   };
 
   const mockPost = new PostsEntity(
@@ -46,8 +58,8 @@ describe('PostController', () => {
     'Test Post',
     'Test Content',
     1,
+    null,
     0,
-    undefined,
     ['tag1', 'tag2'],
   );
 
@@ -59,8 +71,8 @@ describe('PostController', () => {
       'Test Post 2',
       'Test Content 2',
       2,
+      null,
       5,
-      undefined,
       ['tag3'],
     ),
   ];
@@ -85,6 +97,10 @@ describe('PostController', () => {
           provide: DeletePostService,
           useValue: mockDeletePostService,
         },
+        {
+          provide: ListPostChildrenService,
+          useValue: mockListPostChildrenService,
+        },
       ],
     }).compile();
 
@@ -96,6 +112,9 @@ describe('PostController', () => {
     listNextPostsService =
       module.get<ListNextPostsService>(ListNextPostsService);
     deletePostService = module.get<DeletePostService>(DeletePostService);
+    listPostChildrenService = module.get<ListPostChildrenService>(
+      ListPostChildrenService,
+    );
 
     jest.clearAllMocks();
   });
@@ -110,6 +129,7 @@ describe('PostController', () => {
         title: 'Test Post',
         content: 'Test Content',
         tags: ['tag1', 'tag2'],
+        parentId: undefined,
       };
 
       mockCreatePostService.execute.mockResolvedValue(mockPost);
@@ -125,6 +145,7 @@ describe('PostController', () => {
         'Test Content',
         mockAuthUser,
         ['tag1', 'tag2'],
+        undefined,
       );
     });
 
@@ -133,6 +154,7 @@ describe('PostController', () => {
         title: 'Test Post',
         content: 'Test Content',
         tags: ['tag1'],
+        parentId: undefined,
       };
 
       mockCreatePostService.execute.mockResolvedValue(mockPost);
@@ -143,6 +165,7 @@ describe('PostController', () => {
       expect(result.title).toBe(mockPost.title);
       expect(result.content).toBe(mockPost.content);
       expect(result.userId).toBe(mockPost.userId);
+      expect(result.parentId).toBeNull();
       expect(result.commentsCount).toBe(mockPost.commentsCount);
       expect(result.tags).toEqual(mockPost.tags);
     });
@@ -250,7 +273,13 @@ describe('PostController', () => {
       const differentUser: AuthUser = {
         id: 2,
         email: 'other@example.com',
-        username: 'otheruser',
+        name: 'Other User',
+        isAdmin: false,
+        instituteId: null,
+        courseId: null,
+        universityId: null,
+        isBlocked: false,
+        userVersion: null,
       };
 
       await expect(controller.deletePost(1, differentUser)).rejects.toThrow(
@@ -265,6 +294,26 @@ describe('PostController', () => {
 
       expect(deletePostService.execute).toHaveBeenCalledWith(5, mockAuthUser);
       expect(deletePostService.execute).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('listPostChildren', () => {
+    it('should list child posts for a parent', async () => {
+      mockListPostChildrenService.execute.mockResolvedValue(mockPosts);
+
+      const result = await controller.listPostChildren(1);
+
+      expect(result).toHaveLength(2);
+      expect(result[0]).toBeInstanceOf(PostDto);
+      expect(listPostChildrenService.execute).toHaveBeenCalledWith(1);
+    });
+
+    it('should convert string id parameter to number', async () => {
+      mockListPostChildrenService.execute.mockResolvedValue([]);
+
+      await controller.listPostChildren('1' as unknown as number);
+
+      expect(listPostChildrenService.execute).toHaveBeenCalledWith(1);
     });
   });
 });

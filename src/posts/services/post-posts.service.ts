@@ -4,6 +4,7 @@ import { PostsRepository } from '../repositories/posts.repository';
 import { PostsEntity } from '../entities/posts.entity';
 import { PostInternalErrorException } from '../exceptions/post-internal-error.exception';
 import { EmptyPostException } from '../exceptions/empty-post.exception';
+import { NotFoundPostException } from '../exceptions/not-found-posts.exception';
 
 @Injectable()
 export class PostPostsService {
@@ -16,25 +17,34 @@ export class PostPostsService {
     content: string,
     user: AuthUser,
     tags: string[],
+    parentId?: number,
   ): Promise<PostsEntity> {
     this.logger.log({ message: 'Creating Post' });
-    return this.createPost(title, content, user.id, tags);
+    return this.createPost(title, content, user.id, tags, parentId);
   }
   async createPost(
     title: string,
     content: string,
     userId: number,
     tags: string[],
+    parentId?: number,
   ): Promise<PostsEntity> {
     try {
       if (!title?.trim() || !content?.trim()) {
         throw new EmptyPostException();
+      }
+      if (parentId) {
+        const parent = await this.postRepository.getPostById(parentId);
+        if (!parent) {
+          throw new NotFoundPostException('Parent post not found');
+        }
       }
       const post = await this.postRepository.createPost(
         title,
         content,
         userId,
         tags,
+        parentId,
       );
       return post;
     } catch (error: unknown) {
@@ -44,6 +54,9 @@ export class PostPostsService {
       });
       if (error instanceof EmptyPostException) {
         throw new EmptyPostException();
+      }
+      if (error instanceof NotFoundPostException) {
+        throw error;
       }
       throw new PostInternalErrorException();
     }

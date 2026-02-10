@@ -252,8 +252,11 @@ model post {
   title      String
   content    String
   userId     Int
-  commentsCount Int
+  parentId   Int?
+  commentsCount Int     @default(0)
   user       user      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  parent     post?     @relation("post_children", fields: [parentId], references: [id], onDelete: Cascade)
+  children   post[]    @relation("post_children")
   tags String[]
 }
 
