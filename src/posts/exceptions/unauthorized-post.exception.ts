@@ -1,17 +1,17 @@
 import { ForbiddenException } from '@nestjs/common';
 
-export class UnauthorizedPostException extends ForbiddenException {
-  public readonly code = 'UNAUTHORIZED_POST_EXCEPTION';
+export class ForbiddenPostException extends ForbiddenException {
+  public readonly code = 'FORBIDDEN_POST_EXCEPTION';
 
-  constructor(message = 'Unauthorized error', error?: unknown) {
+  constructor(message = 'Forbidden error', error?: unknown) {
     super(
       {
         title: 'Você não tem permissão para deletar este post',
         message,
-        code: 'UNAUTHORIZED_POST_EXCEPTION',
+        code: 'FORBIDDEN_POST_EXCEPTION',
       },
       { cause: error },
     );
-    this.name = 'UnauthorizedPostException';
+    this.name = 'ForbiddenPostException';
   }
 }
