@@ -1,5 +1,6 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { UserRepository } from '../repositories/user.repository';
+import { CustomLogger } from '../../common/logger/custom-logger.service';
 import { UserNotificationIdRepository } from '../repositories/user-notification-id.repository';
 import { UpdateUserDto } from '../dto/update-user.dto';
 import { UpdateUserData } from '../repositories/dto/update-user-data.dto';
@@ -8,12 +9,16 @@ import { UserUpdateException } from '../exceptions/user-update.exception';
 
 @Injectable()
 export class UpdateMeService {
-  private readonly logger = new Logger(UpdateMeService.name);
+  private readonly logger: CustomLogger;
 
   constructor(
     private readonly userRepository: UserRepository,
     private readonly userNotificationIdRepository: UserNotificationIdRepository,
-  ) {}
+    logger: CustomLogger,
+  ) {
+    this.logger = logger;
+    this.logger.setContext(UpdateMeService.name);
+  }
 
   async execute(userId: number, updateUserDto: UpdateUserDto): Promise<User> {
     this.logger.log({

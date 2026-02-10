@@ -2,13 +2,29 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { FindUserByIdService } from '../services/find-user-by-id.service';
 import { User } from '../entities/user.entity';
 import type { AuthUser } from '../../common/guards/auth.guard';
+import { CustomLogger } from '../../common/logger/custom-logger.service';
 
 describe('FindUserByIdService', () => {
   let service: FindUserByIdService;
 
+  const mockCustomLogger = {
+    log: jest.fn(),
+    error: jest.fn(),
+    warn: jest.fn(),
+    debug: jest.fn(),
+    verbose: jest.fn(),
+    setContext: jest.fn(),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [FindUserByIdService],
+      providers: [
+        FindUserByIdService,
+        {
+          provide: CustomLogger,
+          useValue: mockCustomLogger,
+        },
+      ],
     }).compile();
 
     service = module.get<FindUserByIdService>(FindUserByIdService);
@@ -25,10 +41,7 @@ describe('FindUserByIdService', () => {
         isAdmin: false,
         isBlocked: false,
         universityId: 1,
-        userVersion: 1,
-        createdAt: new Date(),
-        lastLogin: new Date(),
-        lastAccess: new Date(),
+        userVersion: '1.0.0',
       };
 
       const result = service.execute(authUser);

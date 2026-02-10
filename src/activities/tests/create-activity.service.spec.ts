@@ -10,6 +10,7 @@ import { Activity } from '../entities/activity.entity';
 import { SubjectClassRepository } from '../../subjects/repositories/subject-class.repository';
 import { UserSubjectsRepository } from '../../subjects/repositories/user-subjects.repository';
 import { PipoNotificationService } from '../../notifications/services/pipo-notification.service';
+import { CustomLogger } from '../../common/logger/custom-logger.service';
 
 describe('CreateActivityService', () => {
   let service: CreateActivityService;
@@ -55,6 +56,15 @@ describe('CreateActivityService', () => {
     sendNotification: jest.fn(),
   };
 
+  const mockCustomLogger = {
+    setContext: jest.fn(),
+    log: jest.fn(),
+    error: jest.fn(),
+    warn: jest.fn(),
+    debug: jest.fn(),
+    verbose: jest.fn(),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -74,6 +84,10 @@ describe('CreateActivityService', () => {
         {
           provide: PipoNotificationService,
           useValue: mockPipoNotificationService,
+        },
+        {
+          provide: CustomLogger,
+          useValue: mockCustomLogger,
         },
       ],
     }).compile();

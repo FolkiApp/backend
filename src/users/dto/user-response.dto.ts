@@ -1,4 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { Institute } from '../../institutes/entities/institute.entity';
+import { University } from '../../universities/entities/university.entity';
 
 export class UserResponseDto {
   @ApiProperty({ example: 1 })
@@ -25,6 +27,31 @@ export class UserResponseDto {
   @ApiProperty({ nullable: true, example: '1.0.0' })
   userVersion: string | null;
 
+  @ApiProperty({
+    nullable: true,
+    type: () => Institute,
+    example: {
+      id: 5,
+      name: 'Instituto de Computação',
+      isVisible: true,
+      campusId: 1,
+      universityId: 3,
+    },
+  })
+  institute: Institute | null;
+
+  @ApiProperty({
+    nullable: true,
+    type: () => University,
+    example: {
+      id: 3,
+      name: 'Universidade Federal de São Carlos',
+      slug: 'ufscar',
+      logo: 'https://example.com/logo.png',
+    },
+  })
+  university: University | null;
+
   constructor(
     id: number,
     email: string,
@@ -34,6 +61,8 @@ export class UserResponseDto {
     isAdmin: boolean,
     universityId: number | null,
     userVersion: string | null,
+    institute: Institute | null,
+    university: University | null,
   ) {
     this.id = id;
     this.email = email;
@@ -43,5 +72,7 @@ export class UserResponseDto {
     this.isAdmin = isAdmin;
     this.universityId = universityId;
     this.userVersion = userVersion;
+    this.institute = institute;
+    this.university = university;
   }
 }

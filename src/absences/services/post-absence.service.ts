@@ -1,5 +1,6 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { AuthUser } from '../../common/guards/auth.guard';
+import { CustomLogger } from '../../common/logger/custom-logger.service';
 import { AbsenceRepository } from '../repositories/absence.repository';
 import { UserAbsence } from '../entities/absence.entity';
 import { InvalidSubjectIdException } from '../../subjects/exceptions/subject-fetch-id.exception';
@@ -8,12 +9,16 @@ import { AbsenceInternalErrorException } from '../exceptions/absence-internal-er
 
 @Injectable()
 export class PostAbsence {
-  private readonly logger = new Logger(PostAbsence.name);
+  private readonly logger: CustomLogger;
 
   constructor(
     private readonly absenceRepository: AbsenceRepository,
     private readonly userSubjectRepository: UserSubjectRepository,
-  ) {}
+    logger: CustomLogger,
+  ) {
+    this.logger = logger;
+    this.logger.setContext(PostAbsence.name);
+  }
 
   async execute(
     user: AuthUser,
@@ -21,8 +26,8 @@ export class PostAbsence {
     date: Date,
   ): Promise<UserAbsence> {
     this.logger.log({ message: 'Executing post absence per subject' });
-    const userSubject = await this.findUserSubject(user.id, subjectId);
-    return this.postAbsence(user.id, userSubject.id, date);
+    const userSubjectId = await this.findUserSubject(user.id, subjectId);
+    return this.postAbsence(user.id, userSubjectId, date);
   }
 
   private async postAbsence(
@@ -56,10 +61,10 @@ export class PostAbsence {
   private async findUserSubject(
     userId: number,
     subjectId: number,
-  ): Promise<{ id: number }> {
+  ): Promise<number> {
     let userSubject: { id: number } | null | undefined;
     try {
-      userSubject = await this.userSubjectRepository.findByUserAndSubjectClass(
+      userSubject = await this.userSubjectRepository.findByUserAndSubject(
         userId,
         subjectId,
       );
@@ -75,6 +80,6 @@ export class PostAbsence {
     if (!userSubject) {
       throw new InvalidSubjectIdException();
     }
-    return userSubject;
+    return userSubject.id;
   }
 }

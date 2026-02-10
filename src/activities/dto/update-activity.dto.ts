@@ -25,6 +25,11 @@ export class UpdateActivityDto {
   @IsOptional()
   value?: number | null;
 
+  @ApiProperty({ example: 1, required: false })
+  @IsNumber()
+  @IsOptional()
+  subjectClassId?: number;
+
   @ApiProperty({
     enum: ActivityType,
     example: ActivityType.HOMEWORK,

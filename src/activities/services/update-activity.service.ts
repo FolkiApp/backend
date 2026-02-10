@@ -1,5 +1,6 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { AuthUser } from '../../common/guards/auth.guard';
+import { CustomLogger } from '../../common/logger/custom-logger.service';
 import { ActivitiesRepository } from '../repositories/activities.repository';
 import { UpdateActivityDto } from '../dto/update-activity.dto';
 import { Activity } from '../entities/activity.entity';
@@ -9,15 +10,20 @@ import { UserBlockedException } from '../exceptions/user-blocked.exception';
 import { ActivityUpdateException } from '../exceptions/activity-update.exception';
 import { SubjectClassRepository } from '../../subjects/repositories/subject-class.repository';
 import { UpdateActivityData } from '../repositories/dto/update-activity-data.dto';
+import { SubjectClass } from 'src/subjects/entities/subject-class.entity';
 
 @Injectable()
 export class UpdateActivityService {
-  private readonly logger = new Logger(UpdateActivityService.name);
+  private readonly logger: CustomLogger;
 
   constructor(
     private readonly activitiesRepository: ActivitiesRepository,
     private readonly subjectClassRepository: SubjectClassRepository,
-  ) {}
+    logger: CustomLogger,
+  ) {
+    this.logger = logger;
+    this.logger.setContext(UpdateActivityService.name);
+  }
 
   async execute(
     user: AuthUser,
@@ -94,7 +100,7 @@ export class UpdateActivityService {
   private async getSubjectClass(
     subjectClassId: number,
     userId: number,
-  ): Promise<{ id: number; subjectId: number } | null> {
+  ): Promise<SubjectClass | null> {
     try {
       return await this.subjectClassRepository.findByIdAndUserId(
         subjectClassId,

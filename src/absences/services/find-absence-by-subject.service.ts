@@ -1,5 +1,6 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { AuthUser } from '../../common/guards/auth.guard';
+import { CustomLogger } from '../../common/logger/custom-logger.service';
 import { AbsenceRepository } from '../repositories/absence.repository';
 import { UserAbsence } from '../entities/absence.entity';
 import { SubjectRepository } from '../../subjects/repositories/subject.repository';
@@ -8,12 +9,16 @@ import { AbsenceBySubjectException } from '../exceptions/absence-by-subject.exce
 
 @Injectable()
 export class AbsenceBySubjectService {
-  private readonly logger = new Logger(AbsenceBySubjectService.name);
+  private readonly logger: CustomLogger;
 
   constructor(
     private readonly absenceRepository: AbsenceRepository,
     private readonly subjectRepository: SubjectRepository,
-  ) {}
+    logger: CustomLogger,
+  ) {
+    this.logger = logger;
+    this.logger.setContext(AbsenceBySubjectService.name);
+  }
 
   async execute(user: AuthUser, subjectId: number): Promise<UserAbsence[]> {
     this.logger.log({ message: 'Executing findAllAbsences per subject' });

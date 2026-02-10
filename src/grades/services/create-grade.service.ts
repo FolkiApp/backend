@@ -1,5 +1,6 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { AuthUser } from '../../common/guards/auth.guard';
+import { CustomLogger } from '../../common/logger/custom-logger.service';
 import { GradesRepository } from '../repositories/grades.repository';
 import { UserSubjectsRepository } from '../../subjects/repositories/user-subjects.repository';
 import { CreateGradeDto } from '../dto/create-grade.dto';
@@ -9,12 +10,16 @@ import { GradeCreateException } from '../exceptions/grade-create.exception';
 
 @Injectable()
 export class CreateGradeService {
-  private readonly logger = new Logger(CreateGradeService.name);
+  private readonly logger: CustomLogger;
 
   constructor(
     private readonly gradesRepository: GradesRepository,
     private readonly userSubjectsRepository: UserSubjectsRepository,
-  ) {}
+    logger: CustomLogger,
+  ) {
+    this.logger = logger;
+    this.logger.setContext(CreateGradeService.name);
+  }
 
   async execute(
     user: AuthUser,

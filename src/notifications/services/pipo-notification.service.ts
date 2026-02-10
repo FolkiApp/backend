@@ -1,13 +1,17 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import * as OneSignal from 'onesignal-node';
+import { CustomLogger } from '../../common/logger/custom-logger.service';
 import { SendNotificationDto } from '../dto/send-notification.dto';
 
 @Injectable()
 export class PipoNotificationService {
-  private readonly logger = new Logger(PipoNotificationService.name);
+  private readonly logger: CustomLogger;
   private readonly client: OneSignal.Client;
 
-  constructor() {
+  constructor(logger: CustomLogger) {
+    this.logger = logger;
+    this.logger.setContext(PipoNotificationService.name);
+
     const appId = process.env.ONESIGNAL_APP_ID;
     const apiKey = process.env.ONESIGNAL_API_KEY;
 
@@ -35,7 +39,9 @@ export class PipoNotificationService {
       }
 
       if (!playerIds || playerIds.length === 0) {
-        this.logger.warn('No player IDs provided, skipping notification');
+        this.logger.warn({
+          message: 'No player IDs provided, skipping notification',
+        });
         return;
       }
 
@@ -45,16 +51,18 @@ export class PipoNotificationService {
         include_player_ids: playerIds,
       };
 
-      this.logger.log(`Sending notification to ${playerIds.length} players`);
+      this.logger.log({
+        message: `Sending notification to ${playerIds.length} players`,
+      });
 
-      const response = await this.client.createNotification(notification);
+      await this.client.createNotification(notification);
 
-      this.logger.log(
-        `Notification sent successfully to ${playerIds.length} players`,
-        response.body,
-      );
+      this.logger.log({
+        message: `Notification sent successfully to ${playerIds.length} players`,
+      });
     } catch (error) {
-      this.logger.error('Failed to send notification', {
+      this.logger.error({
+        message: 'Failed to send notification',
         error: error instanceof Error ? error.message : String(error),
         dto,
       });

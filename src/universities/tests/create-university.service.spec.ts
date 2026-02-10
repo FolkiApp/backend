@@ -3,6 +3,7 @@ import { CreateUniversityService } from '../services/create-university.service';
 import { UniversityRepository } from '../repositories/university.repository';
 import { UniversityAlreadyExistsException } from '../exceptions/university-already-exists.exception';
 import { CreateUniversityDto } from '../dto/create-university.dto';
+import { CustomLogger } from '../../common/logger/custom-logger.service';
 
 describe('CreateUniversityService', () => {
   let service: CreateUniversityService;
@@ -13,6 +14,15 @@ describe('CreateUniversityService', () => {
     create: jest.fn(),
   };
 
+  const mockCustomLogger = {
+    log: jest.fn(),
+    error: jest.fn(),
+    warn: jest.fn(),
+    debug: jest.fn(),
+    verbose: jest.fn(),
+    setContext: jest.fn(),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -20,6 +30,10 @@ describe('CreateUniversityService', () => {
         {
           provide: UniversityRepository,
           useValue: mockUniversityRepository,
+        },
+        {
+          provide: CustomLogger,
+          useValue: mockCustomLogger,
         },
       ],
     }).compile();

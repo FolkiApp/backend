@@ -87,4 +87,8 @@ export class UserRepository {
 
     return new User(updatedUser);
   }
+
+  async count(): Promise<number> {
+    return this.prisma.user.count();
+  }
 }

@@ -44,4 +44,10 @@ export class ImportantDateRepository {
       type: created.type as ImportantDateType,
     };
   }
+
+  async delete(importantDateId: number): Promise<void> {
+    await this.prisma.important_date.delete({
+      where: { id: importantDateId },
+    });
+  }
 }

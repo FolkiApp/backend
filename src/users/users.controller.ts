@@ -7,9 +7,17 @@ import { FindUserByIdService } from './services/find-user-by-id.service';
 import { AuthenticateUserService } from './services/authenticate-user.service';
 import { UpdateMeService } from './services/update-me.service';
 import { UserResponseDto } from './dto/user-response.dto';
+import { MeResponseDto } from './dto/me-response.dto';
 import { AuthDto } from './dto/auth.dto';
 import { AuthResponseDto } from './dto/auth-response.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+
+import { FindUserSubjectsService } from './services/find-user-subjects.service';
+import { UserSubjectDto } from './dto/user-subject.dto';
+import { UserSubjectsResponseDto } from './dto/user-subjects-response.dto';
+import { CoolNumbersDto } from './dto/cool-numbers.dto';
+import { CoolNumbersService } from './services/cool-numbers.service';
+import { SubjectClass } from '../subjects/entities/subject-class.entity';
 
 @ApiTags('users')
 @Controller('users')
@@ -18,6 +26,8 @@ export class UsersController {
     private readonly findUserByIdService: FindUserByIdService,
     private readonly authenticateUserService: AuthenticateUserService,
     private readonly updateMeService: UpdateMeService,
+    private readonly coolNumbersService: CoolNumbersService,
+    private readonly findUserSubjectsService: FindUserSubjectsService,
   ) {}
 
   @Post('auth')
@@ -36,17 +46,21 @@ export class UsersController {
   @ApiOperation({
     summary: 'Retorna dados do usuário autenticado',
   })
-  me(@CurrentUser() authUser: AuthUser): UserResponseDto {
+  me(@CurrentUser() authUser: AuthUser): MeResponseDto {
     const user = this.findUserByIdService.execute(authUser);
-    return new UserResponseDto(
-      user.id,
-      user.email,
-      user.name,
-      user.instituteId,
-      user.courseId,
-      user.isAdmin,
-      user.universityId,
-      user.userVersion,
+    return new MeResponseDto(
+      new UserResponseDto(
+        user.id,
+        user.email,
+        user.name,
+        user.instituteId,
+        user.courseId,
+        user.isAdmin,
+        user.universityId,
+        user.userVersion,
+        authUser.institute,
+        authUser.university,
+      ),
     );
   }
 
@@ -72,6 +86,45 @@ export class UsersController {
       user.isAdmin,
       user.universityId,
       user.userVersion,
+      authUser.institute,
+      authUser.university,
+    );
+  }
+
+  @Get('cool-numbers')
+  @Auth()
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Retorna a quantidade de usuários',
+  })
+  async count(): Promise<CoolNumbersDto> {
+    return await this.coolNumbersService.execute();
+  }
+
+  @Get('me/subjects')
+  @Auth()
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Retorna as disciplinas do usuário autenticado',
+  })
+  async findMySubjects(
+    @CurrentUser() authUser: AuthUser,
+  ): Promise<UserSubjectsResponseDto> {
+    const userSubjects = await this.findUserSubjectsService.execute(
+      authUser.id,
+      authUser.universityId!,
+    );
+
+    return new UserSubjectsResponseDto(
+      userSubjects.map(
+        (us) =>
+          new UserSubjectDto(
+            us.subjectClass as unknown as SubjectClass,
+            us.id,
+            us.absences,
+            us.grading,
+          ),
+      ),
     );
   }
 }
