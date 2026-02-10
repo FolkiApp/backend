@@ -112,7 +112,9 @@ describe('DeletePostService', () => {
         fail('Should have thrown an exception');
       } catch (error) {
         expect(error).toBeInstanceOf(NotFoundPostException);
-        expect(error.code).toBe('NOT_FOUND_POSTS_EXCEPTION');
+        expect((error as NotFoundPostException).code).toBe(
+          'NOT_FOUND_POSTS_EXCEPTION',
+        );
       }
     });
 
@@ -130,7 +132,9 @@ describe('DeletePostService', () => {
         fail('Should have thrown an exception');
       } catch (error) {
         expect(error).toBeInstanceOf(UnauthorizedPostException);
-        expect(error.code).toBe('UNAUTHORIZED_POST_EXCEPTION');
+        expect((error as UnauthorizedPostException).code).toBe(
+          'UNAUTHORIZED_POST_EXCEPTION',
+        );
       }
     });
   });

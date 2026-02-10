@@ -28,7 +28,7 @@ export class PostsRepository {
       post.title,
       post.content,
       post.userId,
-      post.parentPostId,
+      post.parentPostId as number | null,
       post.tags,
     );
   }
@@ -47,7 +47,7 @@ export class PostsRepository {
           post.title,
           post.content,
           post.userId,
-          post.parentPostId,
+          post.parentPostId as number | null,
           post.tags,
         ),
     );
@@ -69,7 +69,7 @@ export class PostsRepository {
           post.title,
           post.content,
           post.userId,
-          post.parentPostId,
+          post.parentPostId as number | null,
           post.tags,
         ),
     );
@@ -90,7 +90,7 @@ export class PostsRepository {
       post.title,
       post.content,
       post.userId,
-      post.parentPostId,
+      post.parentPostId as number | null,
       post.tags,
     );
   }
@@ -118,7 +118,7 @@ export class PostsRepository {
           post.title,
           post.content,
           post.userId,
-          post.parentPostId,
+          post.parentPostId as number | null,
           post.tags,
         ),
     );
@@ -144,7 +144,7 @@ export class PostsRepository {
           post.title,
           post.content,
           post.userId,
-          post.parentPostId,
+          post.parentPostId as number | null,
           post.tags,
         ),
     );

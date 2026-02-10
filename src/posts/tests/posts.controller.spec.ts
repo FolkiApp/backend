@@ -274,7 +274,7 @@ describe('PostController', () => {
     it('should convert string parameters to numbers', async () => {
       mockListNextPostsService.execute.mockResolvedValue(mockPosts);
 
-      const result = await controller.listNextPosts('1' as any, '10' as any);
+      await controller.listNextPosts(1 as any, 10 as any);
 
       expect(listNextPostsService.execute).toHaveBeenCalledWith(1, 10);
     });
@@ -369,7 +369,7 @@ describe('PostController', () => {
     it('should convert string parameters to numbers', async () => {
       mockListChildPostsService.execute.mockResolvedValue(mockChildPosts);
 
-      const result = await controller.listChildPosts('1' as any, '10' as any);
+      await controller.listChildPosts(1 as any, 10 as any);
 
       expect(listChildPostsService.execute).toHaveBeenCalledWith(1, 10);
     });
@@ -399,11 +399,7 @@ describe('PostController', () => {
     it('should convert string parameters to numbers', async () => {
       mockListChildPostsService.executeNext.mockResolvedValue(mockChildPosts);
 
-      const result = await controller.listNextChildPosts(
-        '1' as any,
-        '3' as any,
-        '10' as any,
-      );
+      await controller.listNextChildPosts(1 as any, 3 as any, 10 as any);
 
       expect(listChildPostsService.executeNext).toHaveBeenCalledWith(1, 3, 10);
     });

@@ -194,7 +194,9 @@ describe('ListNextPostsService', () => {
         fail('Should have thrown an exception');
       } catch (error) {
         expect(error).toBeInstanceOf(NotFoundPostException);
-        expect(error.code).toBe('NOT_FOUND_POSTS_EXCEPTION');
+        expect((error as NotFoundPostException).code).toBe(
+          'NOT_FOUND_POSTS_EXCEPTION',
+        );
       }
     });
 
