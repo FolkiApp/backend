@@ -6,7 +6,7 @@ export class EmptyPostException extends BadRequestException {
   constructor(message = 'Bad Request error', error?: unknown) {
     super(
       {
-        title: 'Titulo e/ou conteúdo da postagem não podem ser vazios',
+        title: 'Título e/ou conteúdo da postagem não podem ser vazios',
         message,
         code: 'EMPTY_POST_EXCEPTION',
       },
