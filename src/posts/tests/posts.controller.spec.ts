@@ -205,7 +205,10 @@ describe('PostController', () => {
     it('should convert string parameters to numbers', async () => {
       mockListNextPostsService.execute.mockResolvedValue(mockPosts);
 
-      const result = await controller.listNextPosts('1' as any, '10' as any);
+      await controller.listNextPosts(
+        '1' as unknown as number,
+        '10' as unknown as number,
+      );
 
       expect(listNextPostsService.execute).toHaveBeenCalledWith(1, 10);
     });
@@ -215,16 +218,16 @@ describe('PostController', () => {
     it('should delete a post successfully', async () => {
       mockDeletePostService.execute.mockResolvedValue(undefined);
 
-      const result = await controller.deletePost(1, mockAuthUser);
+      const response = await controller.deletePost(1, mockAuthUser);
 
-      expect(result.message).toBe('Post deleted successfully');
+      expect(response.message).toBe('Post deleted successfully');
       expect(deletePostService.execute).toHaveBeenCalledWith(1, mockAuthUser);
     });
 
     it('should convert string id parameter to number', async () => {
       mockDeletePostService.execute.mockResolvedValue(undefined);
 
-      await controller.deletePost('1' as any, mockAuthUser);
+      await controller.deletePost('1' as unknown as number, mockAuthUser);
 
       expect(deletePostService.execute).toHaveBeenCalledWith(1, mockAuthUser);
     });

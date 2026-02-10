@@ -105,7 +105,6 @@ model user {
   user_activity_ignore   user_activity_ignore[]
   user_notification_id   user_notification_id[]
   posts                  post[]
-  comments               comment[]
 }
 
 model user_subject {
@@ -256,17 +255,6 @@ model post {
   commentsCount Int
   user       user      @relation(fields: [userId], references: [id], onDelete: Cascade)
   tags String[]
-  comments   comment[]
-}
-
-model comment {
-  id      Int      @id @default(autoincrement())
-  postId  Int
-  userId  Int
-  content String
-  date    DateTime @default(now())
-  user    user     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  post    post     @relation(fields: [postId], references: [id], onDelete: Cascade)
 }
 
 

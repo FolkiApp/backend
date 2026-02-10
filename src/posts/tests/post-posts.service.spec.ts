@@ -184,25 +184,30 @@ describe('PostPostsService', () => {
 
     it('should throw EmptyPostException for null title', async () => {
       await expect(
-        service.createPost(null as any, 'Test Content', 1, []),
+        service.createPost(null as unknown as string, 'Test Content', 1, []),
       ).rejects.toThrow(EmptyPostException);
     });
 
     it('should throw EmptyPostException for null content', async () => {
       await expect(
-        service.createPost('Test Post', null as any, 1, []),
+        service.createPost('Test Post', null as unknown as string, 1, []),
       ).rejects.toThrow(EmptyPostException);
     });
 
     it('should throw EmptyPostException for undefined title', async () => {
       await expect(
-        service.createPost(undefined as any, 'Test Content', 1, []),
+        service.createPost(
+          undefined as unknown as string,
+          'Test Content',
+          1,
+          [],
+        ),
       ).rejects.toThrow(EmptyPostException);
     });
 
     it('should throw EmptyPostException for undefined content', async () => {
       await expect(
-        service.createPost('Test Post', undefined as any, 1, []),
+        service.createPost('Test Post', undefined as unknown as string, 1, []),
       ).rejects.toThrow(EmptyPostException);
     });
   });
