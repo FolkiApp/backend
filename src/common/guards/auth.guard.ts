@@ -11,6 +11,7 @@ import { CustomLogger } from '../logger/custom-logger.service';
 import { CorrelationIdService } from '../services/correlation-id.service';
 import { Institute } from '../../institutes/entities/institute.entity';
 import { University } from '../../universities/entities/university.entity';
+import { UserLogoutException } from '../exceptions/user-logout.exception';
 
 export const AUTH_METADATA = 'requireAuth';
 
@@ -109,14 +110,8 @@ export class AuthGuard implements CanActivate {
         throw new UserNotFoundException();
       }
 
-      if (user.securePin !== tokenData.securePin) {
-        this.logger.warn({
-          message: 'Blocked user attempted login',
-          userId: user.id,
-          email: user.email,
-        });
-        throw new UserBlockedException();
-      }
+      if (user.securePin !== tokenData.securePin)
+        throw new UserLogoutException();
 
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { securePin, ...userWithoutPin } = user;
