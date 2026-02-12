@@ -25,6 +25,7 @@ async function bootstrap() {
       'https://folki.com.br',
       'https://www.folki.com.br',
       /^http:\/\/localhost:\d+$/,
+      /^http:\/\/192\.168\.15\.\d+:\d+$/,
     ],
     credentials: true,
   });
