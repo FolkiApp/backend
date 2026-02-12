@@ -133,7 +133,8 @@ export class AuthGuard implements CanActivate {
       if (
         err instanceof InvalidAuthHeaderException ||
         err instanceof UserNotFoundException ||
-        err instanceof UserBlockedException
+        err instanceof UserBlockedException ||
+        err instanceof UserLogoutException
       ) {
         throw err;
       }
