@@ -92,7 +92,9 @@ export class UserRepository {
     return this.prisma.user.count();
   }
 
-  async findAllActive(): Promise<Array<{ id: number; email: string }>> {
+  async findAllActive(): Promise<
+    Array<{ id: number; email: string; universityId: number }>
+  > {
     return this.prisma.user.findMany({
       where: {
         isBlocked: false,
@@ -100,6 +102,7 @@ export class UserRepository {
       select: {
         id: true,
         email: true,
+        universityId: true,
       },
       orderBy: {
         id: 'asc',
