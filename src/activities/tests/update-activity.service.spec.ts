@@ -41,14 +41,13 @@ describe('UpdateActivityService', () => {
     isBlocked: false,
   } as AuthUser;
 
-  // 🔥 CORRIGIDO AQUI
   const mockActivity = {
     id: 10,
     name: 'Prova 1',
     description: 'Prova final',
     value: 10,
     type: ActivityType.EXAM,
-    finishDate: new Date('2025-12-01'), // <-- horário zerado
+    finishDate: new Date('2025-12-01'),
     isPrivate: false,
     subjectClassId: 5,
   };
