@@ -23,5 +23,14 @@ export const sqsConsumers = process.env.AWS_SQS_NOTIFICATION_QUEUE_URL
             },
           ]
         : []),
+      ...(process.env.AWS_SQS_WEEKLY_IMPORTANT_DATE_QUEUE_URL
+        ? [
+            {
+              name: 'weekly-important-date-consumer',
+              queueUrl: process.env.AWS_SQS_WEEKLY_IMPORTANT_DATE_QUEUE_URL,
+              region: process.env.AWS_REGION || 'us-east-1',
+            },
+          ]
+        : []),
     ]
   : [];
