@@ -11,8 +11,8 @@ import { ActivityUpdateException } from '../exceptions/activity-update.exception
 import { SubjectClassRepository } from '../../subjects/repositories/subject-class.repository';
 import { UpdateActivityData } from '../repositories/dto/update-activity-data.dto';
 import { SubjectClass } from 'src/subjects/entities/subject-class.entity';
-import { UserSubjectsRepository } from 'src/subjects/repositories/user-subjects.repository';
-import { NotificationQueueService } from 'src/notifications/services/notification-queue.service';
+import { UserSubjectsRepository } from '../../subjects/repositories/user-subjects.repository';
+import { NotificationQueueService } from '../../notifications/services/notification-queue.service';
 
 @Injectable()
 export class UpdateActivityService {
@@ -211,11 +211,11 @@ export class UpdateActivityService {
         message: `A Atividade "${activity.name}" foi atualizada para ${newDate.toLocaleDateString()}.`,
         userIds: usersToNotify,
       });
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error({
         message: 'Error handling activity update notification',
         activityId: activity.id,
-        error,
+        error: error instanceof Error ? error.message : error,
       });
     }
   }
