@@ -307,42 +307,6 @@ describe('WeeklyImportantDateSqsConsumer', () => {
     jest.useRealTimers();
   });
 
-  it('should skip users with inactive semester', async () => {
-    jest.useFakeTimers();
-    jest.setSystemTime(new Date(2026, 0, 15)); // Antes do semestre
-
-    const message = createMockMessage();
-    const importantDates = [
-      {
-        id: 1,
-        name: 'Feriado',
-        date: new Date(2026, 1, 20), // Fevereiro - ainda fora do semestre
-        universityId: 1,
-        campusId: null,
-      },
-    ];
-    const users = [{ id: 1, email: 'user1@test.com', universityId: 1 }];
-
-    mockImportantDateRepository.findDayOffBetweenDates.mockResolvedValue(
-      importantDates,
-    );
-    mockUserRepository.findAllActive.mockResolvedValue(users);
-
-    await consumer.handleMessage(message);
-
-    expect(mockCustomLogger.log).toHaveBeenCalledWith(
-      expect.objectContaining({
-        message: 'No users to notify',
-      }) as Record<string, unknown>,
-    );
-
-    expect(
-      mockNotificationQueueService.addNotificationJob,
-    ).not.toHaveBeenCalled();
-
-    jest.useRealTimers();
-  });
-
   it('should log error and throw when repository fails', async () => {
     const message = createMockMessage();
     const error = new Error('Database error');

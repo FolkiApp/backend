@@ -85,8 +85,7 @@ export class WeeklyImportantDateSqsConsumer {
     const now = new Date();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
-    // Calcular até a próxima sexta-feira
-    const currentDay = today.getDay(); // 0 = Domingo, 5 = Sexta
+    const currentDay = today.getDay();
     const daysUntilFriday =
       currentDay <= 5 ? 5 - currentDay : 5 + (7 - currentDay);
     const nextFriday = new Date(today);
@@ -170,9 +169,14 @@ export class WeeklyImportantDateSqsConsumer {
         .filter((id): id is number => id !== null),
     );
 
+    const hasGlobalDates = importantDates.some(
+      (d) => d.universityId === null && d.campusId === null,
+    );
+
     const filteredUsers = allUsers
       .filter((user) => user.universityId !== null)
       .filter((user) => {
+        if (hasGlobalDates) return true;
         return relevantUniversityIds.has(user.universityId!);
       }) as Array<{ id: number; email: string; universityId: number }>;
 
@@ -180,6 +184,7 @@ export class WeeklyImportantDateSqsConsumer {
       message: 'Active users filtered',
       totalUsers: allUsers.length,
       relevantUsers: filteredUsers.length,
+      hasGlobalDates,
       relevantUniversityIds: Array.from(relevantUniversityIds),
     });
 
