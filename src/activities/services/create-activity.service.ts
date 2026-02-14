@@ -9,7 +9,7 @@ import { UserBlockedException } from '../exceptions/user-blocked.exception';
 import { ActivityCreateException } from '../exceptions/activity-create.exception';
 import { SubjectClassRepository } from '../../subjects/repositories/subject-class.repository';
 import { UserSubjectsRepository } from '../../subjects/repositories/user-subjects.repository';
-import { PipoNotificationService } from '../../notifications/services/pipo-notification.service';
+import { NotificationQueueService } from '../../notifications/services/notification-queue.service';
 import { getActivityStringDate } from '../../common/utils/date.utils';
 import { CustomLogger } from '../../common/logger/custom-logger.service';
 
@@ -21,7 +21,7 @@ export class CreateActivityService {
     private readonly activitiesRepository: ActivitiesRepository,
     private readonly subjectClassRepository: SubjectClassRepository,
     private readonly userSubjectsRepository: UserSubjectsRepository,
-    private readonly pipoNotificationService: PipoNotificationService,
+    private readonly notificationQueueService: NotificationQueueService,
     logger: CustomLogger,
   ) {
     this.logger = logger;
@@ -171,15 +171,15 @@ export class CreateActivityService {
     activity: Activity,
   ): Promise<void> {
     try {
-      const notificationIds =
-        await this.userSubjectsRepository.getNotificationIdsBySubjectClassId(
+      const userIds =
+        await this.userSubjectsRepository.getUserIdsBySubjectClassId(
           createActivityDto.subjectClassId,
           user.id,
         );
 
-      if (!notificationIds.length) {
+      if (!userIds.length) {
         this.logger.log({
-          message: 'No users with notification IDs found for subject class',
+          message: 'No users found for subject class',
           subjectClassId: createActivityDto.subjectClassId,
         });
         return;
@@ -203,20 +203,20 @@ export class CreateActivityService {
         activity.finishDate.toString(),
       )}.`;
 
-      await this.pipoNotificationService.sendNotification({
+      await this.notificationQueueService.addNotificationJob({
         title,
         message: textBody,
-        playerIds: notificationIds,
+        userIds,
       });
 
       this.logger.log({
-        message: 'Activity notification sent successfully',
+        message: 'Activity notification queued successfully',
         activityId: activity.id,
-        recipientsCount: notificationIds.length,
+        recipientsCount: userIds.length,
       });
     } catch (error: unknown) {
       this.logger.error({
-        message: 'Error sending activity notification',
+        message: 'Error queueing activity notification',
         activityId: activity.id,
         error: error instanceof Error ? error.message : error,
       });

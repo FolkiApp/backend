@@ -9,6 +9,7 @@ import {
 import { ActivityType } from '../dto/create-activity.dto';
 import { UpdateActivityData } from './dto/update-activity-data.dto';
 import { UserActivityCheck } from '../entities/user-activity-check.entity';
+import { WeeklyActivitiesSummary } from './dto/weekly-activities-summary.dto';
 
 @Injectable()
 export class ActivitiesRepository {
@@ -320,5 +321,88 @@ export class ActivitiesRepository {
         activityId,
       },
     });
+  }
+
+  async getWeeklyActivitiesSummary(
+    startDate: Date,
+    endDate: Date,
+  ): Promise<WeeklyActivitiesSummary[]> {
+    const activities = await this.prisma.activity.findMany({
+      where: {
+        finishDate: {
+          gte: startDate,
+          lte: endDate,
+        },
+        deletedAt: null,
+      },
+      include: {
+        subjectClass: {
+          include: {
+            user_subject: {
+              select: {
+                userId: true,
+              },
+            },
+          },
+        },
+        user_activity_check: true,
+      },
+    });
+
+    const userActivitiesMap = new Map<
+      number,
+      { total: number; completed: number }
+    >();
+
+    for (const activity of activities) {
+      if (activity.isPrivate) {
+        const userId = activity.userId;
+        if (!userId) continue;
+
+        const stats = userActivitiesMap.get(userId) || {
+          total: 0,
+          completed: 0,
+        };
+        stats.total++;
+
+        const isChecked = activity.user_activity_check.some(
+          (check) => check.userId === userId,
+        );
+        if (isChecked) {
+          stats.completed++;
+        }
+
+        userActivitiesMap.set(userId, stats);
+      } else {
+        for (const userSubject of activity.subjectClass.user_subject) {
+          const userId = userSubject.userId;
+          const stats = userActivitiesMap.get(userId) || {
+            total: 0,
+            completed: 0,
+          };
+          stats.total++;
+
+          const isChecked = activity.user_activity_check.some(
+            (check) => check.userId === userId,
+          );
+          if (isChecked) {
+            stats.completed++;
+          }
+
+          userActivitiesMap.set(userId, stats);
+        }
+      }
+    }
+
+    const summaries: WeeklyActivitiesSummary[] = [];
+    for (const [userId, stats] of userActivitiesMap.entries()) {
+      summaries.push({
+        userId,
+        totalActivities: stats.total,
+        completedActivities: stats.completed,
+      });
+    }
+
+    return summaries;
   }
 }

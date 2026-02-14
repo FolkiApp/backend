@@ -1,7 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import * as OneSignal from 'onesignal-node';
 import { CustomLogger } from '../../common/logger/custom-logger.service';
-import { SendNotificationDto } from '../dto/send-notification.dto';
+
+interface SendNotificationDto {
+  title: string;
+  message: string;
+  playerIds: string[];
+  idempotencyId?: string;
+}
 
 @Injectable()
 export class PipoNotificationService {
@@ -28,7 +34,7 @@ export class PipoNotificationService {
 
   async sendNotification(dto: SendNotificationDto): Promise<void> {
     try {
-      const { title, message, playerIds } = dto;
+      const { idempotencyId, title, message, playerIds } = dto;
       const isConfigured = this.verifyConfiguration();
 
       if (!isConfigured) {
@@ -49,16 +55,19 @@ export class PipoNotificationService {
         headings: { en: title },
         contents: { en: message },
         include_player_ids: playerIds,
+        external_id: idempotencyId,
       };
 
       this.logger.log({
         message: `Sending notification to ${playerIds.length} players`,
+        idempotencyId,
       });
 
       await this.client.createNotification(notification);
 
       this.logger.log({
         message: `Notification sent successfully to ${playerIds.length} players`,
+        idempotencyId,
       });
     } catch (error) {
       this.logger.error({

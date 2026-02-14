@@ -91,4 +91,19 @@ export class UserRepository {
   async count(): Promise<number> {
     return this.prisma.user.count();
   }
+
+  async findAllActive(): Promise<Array<{ id: number; email: string }>> {
+    return this.prisma.user.findMany({
+      where: {
+        isBlocked: false,
+      },
+      select: {
+        id: true,
+        email: true,
+      },
+      orderBy: {
+        id: 'asc',
+      },
+    });
+  }
 }

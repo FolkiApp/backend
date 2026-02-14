@@ -49,4 +49,43 @@ export class UserSubjectsRepository {
 
     return notificationIds;
   }
+
+  async getNotificationIdsByUserIds(userIds: number[]): Promise<string[]> {
+    const users = await this.prisma.user.findMany({
+      where: {
+        id: { in: userIds },
+      },
+      select: {
+        user_notification_id: {
+          select: {
+            notificationId: true,
+          },
+        },
+      },
+    });
+
+    const notificationIds = users
+      .flatMap((u) => u.user_notification_id)
+      .map((n) => n.notificationId);
+
+    return notificationIds;
+  }
+
+  async getUserIdsBySubjectClassId(
+    subjectClassId: number,
+    excludeUserId?: number,
+  ): Promise<number[]> {
+    const userSubjects = await this.prisma.user_subject.findMany({
+      where: {
+        subjectClassId,
+        userId: excludeUserId ? { not: excludeUserId } : undefined,
+        deletedAt: null,
+      },
+      select: {
+        userId: true,
+      },
+    });
+
+    return userSubjects.map((us) => us.userId);
+  }
 }
