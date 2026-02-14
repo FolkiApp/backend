@@ -4,13 +4,20 @@ import { NotificationQueueService } from './services/notification-queue.service'
 import { NotificationSqsConsumer } from './consumers/notification-sqs.consumer';
 import { WeeklyActivitiesSqsConsumer } from './consumers/weekly-activities-sqs.consumer';
 import { WeeklyAbsencesSqsConsumer } from './consumers/weekly-absences-sqs.consumer';
+import { WeeklyImportantDateSqsConsumer } from './consumers/weekly-important-date-sqs.consumer';
 import { NotificationsController } from './notifications.controller';
 import { SubjectsModule } from '../subjects/subjects.module';
 import { ActivitiesModule } from '../activities/activities.module';
 import { UsersModule } from '../users/users.module';
+import { ImportantDatesModule } from '../important-dates/important-dates.module';
 
 @Module({
-  imports: [SubjectsModule, forwardRef(() => ActivitiesModule), UsersModule],
+  imports: [
+    SubjectsModule,
+    forwardRef(() => ActivitiesModule),
+    UsersModule,
+    ImportantDatesModule,
+  ],
   controllers: [NotificationsController],
   providers: [
     PipoNotificationService,
@@ -18,6 +25,7 @@ import { UsersModule } from '../users/users.module';
     NotificationSqsConsumer,
     WeeklyActivitiesSqsConsumer,
     WeeklyAbsencesSqsConsumer,
+    WeeklyImportantDateSqsConsumer,
   ],
   exports: [PipoNotificationService, NotificationQueueService],
 })

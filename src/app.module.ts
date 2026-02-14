@@ -6,6 +6,7 @@ import { UniversitiesModule } from './universities/universities.module';
 import { UsersModule } from './users/users.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { ImportantDateModule } from './importantdates/important-date.module';
+import { ImportantDatesModule } from './important-dates/important-dates.module';
 import { InstitutesModule } from './institutes/institutes.module';
 import { AbsenceModule } from './absences/absence.module';
 import { ActivitiesModule } from './activities/activities.module';
@@ -31,6 +32,7 @@ import { sqsConsumers } from './config/sqs-consumers.config';
     UniversitiesModule,
     UsersModule,
     ImportantDateModule,
+    ImportantDatesModule,
     InstitutesModule,
     AbsenceModule,
     ActivitiesModule,
