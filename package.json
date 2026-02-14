@@ -26,13 +26,19 @@
     "heroku-postbuild": "bash postbuild.bash"
   },
   "dependencies": {
+    "@aws-sdk/client-sqs": "^3.990.0",
+    "@nestjs/bull": "^11.0.4",
+    "@nestjs/bullmq": "^11.0.4",
     "@nestjs/common": "^11.0.1",
     "@nestjs/core": "^11.0.1",
     "@nestjs/jwt": "^11.0.2",
     "@nestjs/platform-express": "^11.0.1",
     "@nestjs/swagger": "^11.2.3",
     "@prisma/client": "^5.22.0",
+    "@ssut/nestjs-sqs": "^3.0.1",
     "@types/uuid": "^10.0.0",
+    "bull": "^4.16.5",
+    "bullmq": "^5.69.1",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.3",
     "cls-hooked": "^4.2.2",
@@ -84,6 +90,9 @@
     "transform": {
       "^.+\\.(t|j)s$": "ts-jest"
     },
+    "transformIgnorePatterns": [
+      "node_modules/(?!(uuid)/)"
+    ],
     "setupFilesAfterEnv": [
       "<rootDir>/test-setup.ts"
     ],
@@ -99,6 +108,8 @@
       "!**/dtos/**",
       "!**/exceptions/**",
       "!**/scrap-jupiter.service.ts",
+      "!config/**",
+      "!common/**",
       "!prisma/**",
       "!main.ts"
     ],

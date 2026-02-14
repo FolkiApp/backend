@@ -124,6 +124,8 @@ export class ActivitiesController {
         activity.isPrivate,
         activity.userId,
         activity.subjectClassId,
+        activity.type,
+        activity.value ?? null,
         activity.checked || false,
         new SubjectClassDto(
           activity.subjectClass!.id,
@@ -168,6 +170,8 @@ export class ActivitiesController {
       activity.isPrivate,
       activity.userId,
       activity.subjectClassId,
+      activity.type,
+      activity.value ?? null,
       activity.checked || false,
       new SubjectClassDto(
         activity.subjectClass!.id,

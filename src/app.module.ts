@@ -1,4 +1,5 @@
 import { Module, MiddlewareConsumer, NestModule } from '@nestjs/common';
+import { SqsModule } from '@ssut/nestjs-sqs';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UniversitiesModule } from './universities/universities.module';
@@ -14,10 +15,16 @@ import { WinstonModule } from 'nest-winston';
 import { winstonConfig } from './common/logger/winston.config';
 import { CorrelationIdMiddleware } from './common/middleware/correlation-id.middleware';
 import { CommonModule } from './common/common.module';
+import { sqsProducers } from './config/sqs-producers.config';
+import { sqsConsumers } from './config/sqs-consumers.config';
 
 @Module({
   imports: [
     WinstonModule.forRoot(winstonConfig),
+    SqsModule.register({
+      consumers: sqsConsumers,
+      producers: sqsProducers,
+    }),
     CommonModule,
     PrismaModule,
     NotificationsModule,

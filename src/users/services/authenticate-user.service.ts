@@ -56,6 +56,8 @@ export class AuthenticateUserService {
         user.isAdmin,
         user.universityId,
         user.userVersion,
+        null,
+        null,
       );
 
       this.logger.log({

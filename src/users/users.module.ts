@@ -30,5 +30,6 @@ import { FindUserSubjectsService } from './services/find-user-subjects.service';
     CoolNumbersService,
     FindUserSubjectsService,
   ],
+  exports: [UserRepository],
 })
 export class UsersModule {}
