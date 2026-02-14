@@ -93,7 +93,7 @@ export class UserRepository {
   }
 
   async findAllActive(): Promise<
-    Array<{ id: number; email: string; universityId: number }>
+    Array<{ id: number; email: string; universityId: number | null }>
   > {
     return this.prisma.user.findMany({
       where: {

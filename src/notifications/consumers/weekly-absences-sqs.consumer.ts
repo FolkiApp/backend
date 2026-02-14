@@ -74,13 +74,30 @@ export class WeeklyAbsencesSqsConsumer {
 
     const allUsers = await this.userRepository.findAllActive();
 
-    const usersWithActiveSemester = allUsers.filter((user) =>
-      this.isSemesterActive(user.universityId),
+    const usersWithoutUniversity = allUsers.filter(
+      (user) => user.universityId === null,
     );
+
+    const usersWithActiveSemester = allUsers
+      .filter((user) => user.universityId !== null)
+      .filter((user) => this.isSemesterActive(user.universityId!)) as Array<{
+      id: number;
+      email: string;
+      universityId: number;
+    }>;
+
+    if (usersWithoutUniversity.length > 0) {
+      this.logger.warn({
+        message: 'Users without university found, skipping',
+        count: usersWithoutUniversity.length,
+        userIds: usersWithoutUniversity.map((u) => u.id),
+      });
+    }
 
     this.logger.log({
       message: 'Active users fetched and filtered by semester',
       totalUsers: allUsers.length,
+      usersWithoutUniversity: usersWithoutUniversity.length,
       usersWithActiveSemester: usersWithActiveSemester.length,
       filteredOut: allUsers.length - usersWithActiveSemester.length,
     });
