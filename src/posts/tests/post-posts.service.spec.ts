@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { PostPostsService } from '../services/post-posts.service';
 import { PostsRepository } from '../repositories/posts.repository';
-import { PostsEntity } from '../entities/posts.entity';
+import { Posts } from '../entities/posts.entity';
 import { EmptyPostException } from '../exceptions/empty-post.exception';
 import { PostInternalErrorException } from '../exceptions/post-internal-error.exception';
 import { AuthUser } from '../../common/guards/auth.guard';
@@ -28,7 +28,7 @@ describe('PostPostsService', () => {
     userVersion: null,
   };
 
-  const mockPost = new PostsEntity(
+  const mockPost = new Posts(
     1,
     new Date('2025-03-10T12:30:00.000Z'),
     'Test Post',
@@ -133,16 +133,7 @@ describe('PostPostsService', () => {
     it('should handle tags in post creation', async () => {
       const tags = ['tag1', 'tag2', 'tag3'];
       mockPostsRepository.createPost.mockResolvedValue(
-        new PostsEntity(
-          1,
-          new Date(),
-          'Test Post',
-          'Test Content',
-          1,
-          null,
-          0,
-          tags,
-        ),
+        new Posts(1, new Date(), 'Test Post', 'Test Content', 1, null, 0, tags),
       );
 
       const result = await service.execute(

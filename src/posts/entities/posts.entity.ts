@@ -1,4 +1,4 @@
-export class PostsEntity {
+export class Posts {
   constructor(
     public id: number,
     public postDate: Date,

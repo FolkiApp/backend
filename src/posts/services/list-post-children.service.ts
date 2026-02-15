@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PostsRepository } from '../repositories/posts.repository';
-import { PostsEntity } from '../entities/posts.entity';
+import { Posts } from '../entities/posts.entity';
 import { PostInternalErrorException } from '../exceptions/post-internal-error.exception';
 import { NotFoundPostException } from '../exceptions/not-found-posts.exception';
 
@@ -10,12 +10,12 @@ export class ListPostChildrenService {
 
   constructor(private readonly postRepository: PostsRepository) {}
 
-  async execute(parentId: number): Promise<PostsEntity[]> {
+  async execute(parentId: number): Promise<Posts[]> {
     this.logger.log({ message: 'Listing children posts' });
     return this.listChildren(parentId);
   }
 
-  async listChildren(parentId: number): Promise<PostsEntity[]> {
+  async listChildren(parentId: number): Promise<Posts[]> {
     try {
       const parent = await this.postRepository.getPostById(parentId);
       if (!parent) {

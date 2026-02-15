@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ListFirstPostsService } from '../services/list-first-posts.service';
 import { PostsRepository } from '../repositories/posts.repository';
-import { PostsEntity } from '../entities/posts.entity';
+import { Posts } from '../entities/posts.entity';
 import { NotFoundPostException } from '../exceptions/not-found-posts.exception';
 import { PostInternalErrorException } from '../exceptions/post-internal-error.exception';
 
@@ -13,8 +13,8 @@ describe('ListFirstPostsService', () => {
     listPosts: jest.fn(),
   };
 
-  const mockPosts: PostsEntity[] = [
-    new PostsEntity(
+  const mockPosts: Posts[] = [
+    new Posts(
       3,
       new Date('2025-03-12T12:30:00.000Z'),
       'Third Post',
@@ -24,7 +24,7 @@ describe('ListFirstPostsService', () => {
       0,
       ['tag3'],
     ),
-    new PostsEntity(
+    new Posts(
       2,
       new Date('2025-03-11T12:30:00.000Z'),
       'Second Post',
@@ -34,7 +34,7 @@ describe('ListFirstPostsService', () => {
       5,
       ['tag2'],
     ),
-    new PostsEntity(
+    new Posts(
       1,
       new Date('2025-03-10T12:30:00.000Z'),
       'First Post',

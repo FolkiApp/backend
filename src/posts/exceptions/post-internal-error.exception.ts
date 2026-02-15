@@ -3,7 +3,7 @@ import { InternalServerErrorException } from '@nestjs/common';
 export class PostInternalErrorException extends InternalServerErrorException {
   public readonly code = 'POST_INTERNAL_ERROR_EXCEPTION';
 
-  constructor(message = 'Internal error', error?: unknown) {
+  constructor(message = 'Erro interno', error?: unknown) {
     super(
       {
         title: 'Erro interno ao processar postagem',

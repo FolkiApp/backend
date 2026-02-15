@@ -4,7 +4,6 @@ import { Module } from '@nestjs/common';
 import { PostPostsService } from './services/post-posts.service';
 import { PostsRepository } from './repositories/posts.repository';
 import { ListFirstPostsService } from './services/list-first-posts.service';
-import { ListNextPostsService } from './services/list-next-posts.service';
 import { DeletePostService } from './services/delete-post.service';
 import { ListPostChildrenService } from './services/list-post-children.service';
 
@@ -15,7 +14,6 @@ import { ListPostChildrenService } from './services/list-post-children.service';
     PostPostsService,
     PostsRepository,
     ListFirstPostsService,
-    ListNextPostsService,
     DeletePostService,
     ListPostChildrenService,
   ],

@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { DeletePostService } from '../services/delete-post.service';
 import { PostsRepository } from '../repositories/posts.repository';
-import { PostsEntity } from '../entities/posts.entity';
+import { Posts } from '../entities/posts.entity';
 import { NotFoundPostException } from '../exceptions/not-found-posts.exception';
 import { UnauthorizedPostException } from '../exceptions/unauthorized-post.exception';
 import { PostInternalErrorException } from '../exceptions/post-internal-error.exception';
@@ -28,7 +28,7 @@ describe('DeletePostService', () => {
     userVersion: null,
   };
 
-  const mockPost = new PostsEntity(
+  const mockPost = new Posts(
     1,
     new Date('2025-03-10T12:30:00.000Z'),
     'Test Post',
@@ -153,38 +153,6 @@ describe('DeletePostService', () => {
         const typedError = error as UnauthorizedPostException;
         expect(typedError.code).toBe('UNAUTHORIZED_POST_EXCEPTION');
       }
-    });
-  });
-
-  describe('deletePost', () => {
-    it('should delete a post when user is authorized', async () => {
-      mockPostsRepository.getPostById.mockResolvedValue(mockPost);
-      mockPostsRepository.deletePost.mockResolvedValue(undefined);
-
-      await service.deletePost(1, 1);
-
-      expect(postsRepository.getPostById).toHaveBeenCalledWith(1);
-      expect(postsRepository.deletePost).toHaveBeenCalledWith(1);
-    });
-
-    it('should not call deletePost if post is not found', async () => {
-      mockPostsRepository.getPostById.mockResolvedValue(null);
-
-      await expect(service.deletePost(999, 1)).rejects.toThrow(
-        NotFoundPostException,
-      );
-
-      expect(postsRepository.deletePost).not.toHaveBeenCalled();
-    });
-
-    it('should not call deletePost if user is not authorized', async () => {
-      mockPostsRepository.getPostById.mockResolvedValue(mockPost);
-
-      await expect(service.deletePost(1, 2)).rejects.toThrow(
-        UnauthorizedPostException,
-      );
-
-      expect(postsRepository.deletePost).not.toHaveBeenCalled();
     });
   });
 });

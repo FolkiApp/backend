@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
-import { PostsEntity } from '../entities/posts.entity';
+import { Posts } from '../entities/posts.entity';
 
 @Injectable()
 export class PostsRepository {
@@ -12,7 +12,7 @@ export class PostsRepository {
     userId: number,
     tags: string[],
     parentId?: number | null,
-  ): Promise<PostsEntity> {
+  ): Promise<Posts> {
     const post = await this.prisma.$transaction(async (tx) => {
       const created = await tx.post.create({
         data: {
@@ -34,7 +34,7 @@ export class PostsRepository {
 
       return created;
     });
-    return new PostsEntity(
+    return new Posts(
       post.id,
       post.postDate,
       post.title,
@@ -46,7 +46,7 @@ export class PostsRepository {
     );
   }
 
-  async listPosts(quantity = 10): Promise<PostsEntity[]> {
+  async listPosts(quantity = 10): Promise<Posts[]> {
     const posts = await this.prisma.post.findMany({
       take: quantity,
       where: { parentId: null },
@@ -54,7 +54,7 @@ export class PostsRepository {
     });
     return posts.map(
       (post) =>
-        new PostsEntity(
+        new Posts(
           post.id,
           post.postDate,
           post.title,
@@ -67,7 +67,7 @@ export class PostsRepository {
     );
   }
 
-  async listNextPosts(lastId: number, quantity = 10): Promise<PostsEntity[]> {
+  async listNextPosts(lastId: number, quantity = 10): Promise<Posts[]> {
     const posts = await this.prisma.post.findMany({
       take: quantity,
       skip: 1,
@@ -77,7 +77,7 @@ export class PostsRepository {
     });
     return posts.map(
       (post) =>
-        new PostsEntity(
+        new Posts(
           post.id,
           post.postDate,
           post.title,
@@ -90,14 +90,14 @@ export class PostsRepository {
     );
   }
 
-  async listChildrenByParentId(parentId: number): Promise<PostsEntity[]> {
+  async listChildrenByParentId(parentId: number): Promise<Posts[]> {
     const posts = await this.prisma.post.findMany({
       where: { parentId },
       orderBy: { id: 'asc' },
     });
     return posts.map(
       (post) =>
-        new PostsEntity(
+        new Posts(
           post.id,
           post.postDate,
           post.title,
@@ -110,7 +110,7 @@ export class PostsRepository {
     );
   }
 
-  async getPostById(id: number): Promise<PostsEntity | null> {
+  async getPostById(id: number): Promise<Posts | null> {
     const post = await this.prisma.post.findUnique({
       where: { id },
     });
@@ -119,7 +119,7 @@ export class PostsRepository {
       return null;
     }
 
-    return new PostsEntity(
+    return new Posts(
       post.id,
       post.postDate,
       post.title,
@@ -132,8 +132,21 @@ export class PostsRepository {
   }
 
   async deletePost(id: number): Promise<void> {
-    await this.prisma.post.delete({
-      where: { id },
+    await this.prisma.$transaction(async (tx) => {
+      const post = await tx.post.findUnique({
+        where: { id },
+      });
+
+      if (post && post.parentId) {
+        await tx.post.update({
+          where: { id: post.parentId },
+          data: { commentsCount: { decrement: 1 } },
+        });
+      }
+
+      await tx.post.delete({
+        where: { id },
+      });
     });
   }
 }

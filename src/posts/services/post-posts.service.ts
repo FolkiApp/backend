@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { AuthUser } from '../../common/guards/auth.guard';
 import { PostsRepository } from '../repositories/posts.repository';
-import { PostsEntity } from '../entities/posts.entity';
+import { Posts } from '../entities/posts.entity';
 import { PostInternalErrorException } from '../exceptions/post-internal-error.exception';
 import { EmptyPostException } from '../exceptions/empty-post.exception';
 import { NotFoundPostException } from '../exceptions/not-found-posts.exception';
@@ -18,7 +18,7 @@ export class PostPostsService {
     user: AuthUser,
     tags: string[],
     parentId?: number,
-  ): Promise<PostsEntity> {
+  ): Promise<Posts> {
     this.logger.log({ message: 'Creating Post' });
     return this.createPost(title, content, user.id, tags, parentId);
   }
@@ -28,15 +28,15 @@ export class PostPostsService {
     userId: number,
     tags: string[],
     parentId?: number,
-  ): Promise<PostsEntity> {
+  ): Promise<Posts> {
+    if (!title?.trim() || !content?.trim()) {
+      throw new EmptyPostException();
+    }
     try {
-      if (!title?.trim() || !content?.trim()) {
-        throw new EmptyPostException();
-      }
       if (parentId) {
         const parent = await this.postRepository.getPostById(parentId);
         if (!parent) {
-          throw new NotFoundPostException('Parent post not found');
+          throw new NotFoundPostException();
         }
       }
       const post = await this.postRepository.createPost(
@@ -52,9 +52,6 @@ export class PostPostsService {
         message: 'Error creating post',
         error: error instanceof Error ? error.message : error,
       });
-      if (error instanceof EmptyPostException) {
-        throw new EmptyPostException();
-      }
       if (error instanceof NotFoundPostException) {
         throw error;
       }

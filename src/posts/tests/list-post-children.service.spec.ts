@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ListPostChildrenService } from '../services/list-post-children.service';
 import { PostsRepository } from '../repositories/posts.repository';
-import { PostsEntity } from '../entities/posts.entity';
+import { Posts } from '../entities/posts.entity';
 import { NotFoundPostException } from '../exceptions/not-found-posts.exception';
 import { PostInternalErrorException } from '../exceptions/post-internal-error.exception';
 
@@ -14,7 +14,7 @@ describe('ListPostChildrenService', () => {
     listChildrenByParentId: jest.fn(),
   };
 
-  const mockParent = new PostsEntity(
+  const mockParent = new Posts(
     1,
     new Date('2025-03-10T12:30:00.000Z'),
     'Parent Post',
@@ -25,8 +25,8 @@ describe('ListPostChildrenService', () => {
     ['tag1'],
   );
 
-  const mockChildren: PostsEntity[] = [
-    new PostsEntity(
+  const mockChildren: Posts[] = [
+    new Posts(
       2,
       new Date('2025-03-10T12:31:00.000Z'),
       'Child Post 1',
@@ -36,7 +36,7 @@ describe('ListPostChildrenService', () => {
       0,
       ['tag2'],
     ),
-    new PostsEntity(
+    new Posts(
       3,
       new Date('2025-03-10T12:32:00.000Z'),
       'Child Post 2',

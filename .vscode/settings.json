@@ -16,5 +16,4 @@
     "editor.formatOnSave": true,
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
-  "cmake.sourceDirectory": "/home/felipe-skubs-oliveira/Documents/backend/node_modules/bare-fs"
 }

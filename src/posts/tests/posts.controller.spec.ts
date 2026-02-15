@@ -2,10 +2,9 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { PostController } from '../posts.controller';
 import { PostPostsService } from '../services/post-posts.service';
 import { ListFirstPostsService } from '../services/list-first-posts.service';
-import { ListNextPostsService } from '../services/list-next-posts.service';
 import { DeletePostService } from '../services/delete-post.service';
 import { ListPostChildrenService } from '../services/list-post-children.service';
-import { PostsEntity } from '../entities/posts.entity';
+import { Posts } from '../entities/posts.entity';
 import { PostDto } from '../dto/post.dto';
 import { CreatePostDto } from '../dto/create-post.dto';
 import { AuthUser } from '../../common/guards/auth.guard';
@@ -16,7 +15,6 @@ describe('PostController', () => {
   let controller: PostController;
   let createPostService: PostPostsService;
   let listFirstPostsService: ListFirstPostsService;
-  let listNextPostsService: ListNextPostsService;
   let deletePostService: DeletePostService;
   let listPostChildrenService: ListPostChildrenService;
 
@@ -25,10 +23,6 @@ describe('PostController', () => {
   };
 
   const mockListFirstPostsService = {
-    execute: jest.fn(),
-  };
-
-  const mockListNextPostsService = {
     execute: jest.fn(),
   };
 
@@ -52,7 +46,7 @@ describe('PostController', () => {
     userVersion: null,
   };
 
-  const mockPost = new PostsEntity(
+  const mockPost = new Posts(
     1,
     new Date('2025-03-10T12:30:00.000Z'),
     'Test Post',
@@ -65,7 +59,7 @@ describe('PostController', () => {
 
   const mockPosts = [
     mockPost,
-    new PostsEntity(
+    new Posts(
       2,
       new Date('2025-03-11T12:30:00.000Z'),
       'Test Post 2',
@@ -90,10 +84,6 @@ describe('PostController', () => {
           useValue: mockListFirstPostsService,
         },
         {
-          provide: ListNextPostsService,
-          useValue: mockListNextPostsService,
-        },
-        {
           provide: DeletePostService,
           useValue: mockDeletePostService,
         },
@@ -109,8 +99,6 @@ describe('PostController', () => {
     listFirstPostsService = module.get<ListFirstPostsService>(
       ListFirstPostsService,
     );
-    listNextPostsService =
-      module.get<ListNextPostsService>(ListNextPostsService);
     deletePostService = module.get<DeletePostService>(DeletePostService);
     listPostChildrenService = module.get<ListPostChildrenService>(
       ListPostChildrenService,
@@ -172,7 +160,7 @@ describe('PostController', () => {
   });
 
   describe('listFirstPosts', () => {
-    it('should list first batch of posts', async () => {
+    it('should list first batch of posts when lastId is not provided', async () => {
       mockListFirstPostsService.execute.mockResolvedValue(mockPosts);
 
       const result = await controller.listFirstPosts(10);
@@ -180,7 +168,18 @@ describe('PostController', () => {
       expect(result.posts).toHaveLength(2);
       expect(result.posts[0]).toBeInstanceOf(PostDto);
       expect(result.nextId).toBe(2);
-      expect(listFirstPostsService.execute).toHaveBeenCalledWith(10);
+      expect(listFirstPostsService.execute).toHaveBeenCalledWith(10, undefined);
+    });
+
+    it('should list next batch of posts when lastId is provided', async () => {
+      mockListFirstPostsService.execute.mockResolvedValue(mockPosts);
+
+      const result = await controller.listFirstPosts(10, 1);
+
+      expect(result.posts).toHaveLength(2);
+      expect(result.posts[0]).toBeInstanceOf(PostDto);
+      expect(result.nextId).toBe(2);
+      expect(listFirstPostsService.execute).toHaveBeenCalledWith(10, 1);
     });
 
     it('should return null nextId when no posts are available', async () => {
@@ -201,39 +200,6 @@ describe('PostController', () => {
       expect(result.posts[0].title).toBe(mockPosts[0].title);
       expect(result.posts[1].id).toBe(mockPosts[1].id);
       expect(result.posts[1].title).toBe(mockPosts[1].title);
-    });
-  });
-
-  describe('listNextPosts', () => {
-    it('should list next batch of posts', async () => {
-      mockListNextPostsService.execute.mockResolvedValue(mockPosts);
-
-      const result = await controller.listNextPosts(1, 10);
-
-      expect(result.posts).toHaveLength(2);
-      expect(result.posts[0]).toBeInstanceOf(PostDto);
-      expect(result.nextId).toBe(2);
-      expect(listNextPostsService.execute).toHaveBeenCalledWith(1, 10);
-    });
-
-    it('should return null nextId when no more posts are available', async () => {
-      mockListNextPostsService.execute.mockResolvedValue([]);
-
-      const result = await controller.listNextPosts(1, 10);
-
-      expect(result.posts).toHaveLength(0);
-      expect(result.nextId).toBeNull();
-    });
-
-    it('should convert string parameters to numbers', async () => {
-      mockListNextPostsService.execute.mockResolvedValue(mockPosts);
-
-      await controller.listNextPosts(
-        '1' as unknown as number,
-        '10' as unknown as number,
-      );
-
-      expect(listNextPostsService.execute).toHaveBeenCalledWith(1, 10);
     });
   });
 
