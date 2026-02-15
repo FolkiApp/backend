@@ -58,7 +58,7 @@ export class PostController {
     );
   }
 
-  @Get('posts/listFirst')
+  @Get('posts')
   @Auth()
   @ApiBearerAuth()
   @ApiOperation({
