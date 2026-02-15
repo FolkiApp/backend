@@ -1,0 +1,285 @@
+import { Test, TestingModule } from '@nestjs/testing';
+import { PostController } from '../posts.controller';
+import { PostPostsService } from '../services/post-posts.service';
+import { ListFirstPostsService } from '../services/list-first-posts.service';
+import { DeletePostService } from '../services/delete-post.service';
+import { ListPostChildrenService } from '../services/list-post-children.service';
+import { Posts } from '../entities/posts.entity';
+import { PostDto } from '../dto/post.dto';
+import { CreatePostDto } from '../dto/create-post.dto';
+import { AuthUser } from '../../common/guards/auth.guard';
+import { NotFoundPostException } from '../exceptions/not-found-posts.exception';
+import { UnauthorizedPostException } from '../exceptions/unauthorized-post.exception';
+
+describe('PostController', () => {
+  let controller: PostController;
+  let createPostService: PostPostsService;
+  let listFirstPostsService: ListFirstPostsService;
+  let deletePostService: DeletePostService;
+  let listPostChildrenService: ListPostChildrenService;
+
+  const mockCreatePostService = {
+    execute: jest.fn(),
+  };
+
+  const mockListFirstPostsService = {
+    execute: jest.fn(),
+  };
+
+  const mockDeletePostService = {
+    execute: jest.fn(),
+  };
+
+  const mockListPostChildrenService = {
+    execute: jest.fn(),
+  };
+
+  const mockAuthUser: AuthUser = {
+    id: 1,
+    email: 'test@example.com',
+    name: 'Test User',
+    isAdmin: false,
+    instituteId: null,
+    courseId: null,
+    universityId: null,
+    isBlocked: false,
+    userVersion: null,
+  };
+
+  const mockPost = new Posts(
+    1,
+    new Date('2025-03-10T12:30:00.000Z'),
+    'Test Post',
+    'Test Content',
+    1,
+    null,
+    0,
+    ['tag1', 'tag2'],
+  );
+
+  const mockPosts = [
+    mockPost,
+    new Posts(
+      2,
+      new Date('2025-03-11T12:30:00.000Z'),
+      'Test Post 2',
+      'Test Content 2',
+      2,
+      null,
+      5,
+      ['tag3'],
+    ),
+  ];
+
+  beforeEach(async () => {
+    const module: TestingModule = await Test.createTestingModule({
+      controllers: [PostController],
+      providers: [
+        {
+          provide: PostPostsService,
+          useValue: mockCreatePostService,
+        },
+        {
+          provide: ListFirstPostsService,
+          useValue: mockListFirstPostsService,
+        },
+        {
+          provide: DeletePostService,
+          useValue: mockDeletePostService,
+        },
+        {
+          provide: ListPostChildrenService,
+          useValue: mockListPostChildrenService,
+        },
+      ],
+    }).compile();
+
+    controller = module.get<PostController>(PostController);
+    createPostService = module.get<PostPostsService>(PostPostsService);
+    listFirstPostsService = module.get<ListFirstPostsService>(
+      ListFirstPostsService,
+    );
+    deletePostService = module.get<DeletePostService>(DeletePostService);
+    listPostChildrenService = module.get<ListPostChildrenService>(
+      ListPostChildrenService,
+    );
+
+    jest.clearAllMocks();
+  });
+
+  it('should be defined', () => {
+    expect(controller).toBeDefined();
+  });
+
+  describe('postPost', () => {
+    it('should create a post successfully', async () => {
+      const createPostDto: CreatePostDto = {
+        title: 'Test Post',
+        content: 'Test Content',
+        tags: ['tag1', 'tag2'],
+        parentId: undefined,
+      };
+
+      mockCreatePostService.execute.mockResolvedValue(mockPost);
+
+      const result = await controller.postPost(createPostDto, mockAuthUser);
+
+      expect(result).toBeInstanceOf(PostDto);
+      expect(result.id).toBe(1);
+      expect(result.title).toBe('Test Post');
+      expect(result.content).toBe('Test Content');
+      expect(createPostService.execute).toHaveBeenCalledWith(
+        'Test Post',
+        'Test Content',
+        mockAuthUser,
+        ['tag1', 'tag2'],
+        undefined,
+      );
+    });
+
+    it('should return PostDto with all properties', async () => {
+      const createPostDto: CreatePostDto = {
+        title: 'Test Post',
+        content: 'Test Content',
+        tags: ['tag1'],
+        parentId: undefined,
+      };
+
+      mockCreatePostService.execute.mockResolvedValue(mockPost);
+
+      const result = await controller.postPost(createPostDto, mockAuthUser);
+
+      expect(result.id).toBe(mockPost.id);
+      expect(result.title).toBe(mockPost.title);
+      expect(result.content).toBe(mockPost.content);
+      expect(result.userId).toBe(mockPost.userId);
+      expect(result.parentId).toBeNull();
+      expect(result.commentsCount).toBe(mockPost.commentsCount);
+      expect(result.tags).toEqual(mockPost.tags);
+    });
+  });
+
+  describe('listFirstPosts', () => {
+    it('should list first batch of posts when lastId is not provided', async () => {
+      mockListFirstPostsService.execute.mockResolvedValue(mockPosts);
+
+      const result = await controller.listFirstPosts(10);
+
+      expect(result.posts).toHaveLength(2);
+      expect(result.posts[0]).toBeInstanceOf(PostDto);
+      expect(result.nextId).toBe(2);
+      expect(listFirstPostsService.execute).toHaveBeenCalledWith(10, undefined);
+    });
+
+    it('should list next batch of posts when lastId is provided', async () => {
+      mockListFirstPostsService.execute.mockResolvedValue(mockPosts);
+
+      const result = await controller.listFirstPosts(10, 1);
+
+      expect(result.posts).toHaveLength(2);
+      expect(result.posts[0]).toBeInstanceOf(PostDto);
+      expect(result.nextId).toBe(2);
+      expect(listFirstPostsService.execute).toHaveBeenCalledWith(10, 1);
+    });
+
+    it('should return null nextId when no posts are available', async () => {
+      mockListFirstPostsService.execute.mockResolvedValue([]);
+
+      const result = await controller.listFirstPosts(10);
+
+      expect(result.posts).toHaveLength(0);
+      expect(result.nextId).toBeNull();
+    });
+
+    it('should map posts to PostDto correctly', async () => {
+      mockListFirstPostsService.execute.mockResolvedValue(mockPosts);
+
+      const result = await controller.listFirstPosts(10);
+
+      expect(result.posts[0].id).toBe(mockPosts[0].id);
+      expect(result.posts[0].title).toBe(mockPosts[0].title);
+      expect(result.posts[1].id).toBe(mockPosts[1].id);
+      expect(result.posts[1].title).toBe(mockPosts[1].title);
+    });
+  });
+
+  describe('deletePost', () => {
+    it('should delete a post successfully', async () => {
+      mockDeletePostService.execute.mockResolvedValue(undefined);
+
+      const response = await controller.deletePost(1, mockAuthUser);
+
+      expect(response.message).toBe('Post deleted successfully');
+      expect(deletePostService.execute).toHaveBeenCalledWith(1, mockAuthUser);
+    });
+
+    it('should convert string id parameter to number', async () => {
+      mockDeletePostService.execute.mockResolvedValue(undefined);
+
+      await controller.deletePost('1' as unknown as number, mockAuthUser);
+
+      expect(deletePostService.execute).toHaveBeenCalledWith(1, mockAuthUser);
+    });
+
+    it('should throw NotFoundPostException when post does not exist', async () => {
+      mockDeletePostService.execute.mockRejectedValue(
+        new NotFoundPostException(),
+      );
+
+      await expect(controller.deletePost(999, mockAuthUser)).rejects.toThrow(
+        NotFoundPostException,
+      );
+    });
+
+    it('should throw UnauthorizedPostException when user is not the author', async () => {
+      mockDeletePostService.execute.mockRejectedValue(
+        new UnauthorizedPostException(),
+      );
+
+      const differentUser: AuthUser = {
+        id: 2,
+        email: 'other@example.com',
+        name: 'Other User',
+        isAdmin: false,
+        instituteId: null,
+        courseId: null,
+        universityId: null,
+        isBlocked: false,
+        userVersion: null,
+      };
+
+      await expect(controller.deletePost(1, differentUser)).rejects.toThrow(
+        UnauthorizedPostException,
+      );
+    });
+
+    it('should call deletePostService with correct parameters', async () => {
+      mockDeletePostService.execute.mockResolvedValue(undefined);
+
+      await controller.deletePost(5, mockAuthUser);
+
+      expect(deletePostService.execute).toHaveBeenCalledWith(5, mockAuthUser);
+      expect(deletePostService.execute).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('listPostChildren', () => {
+    it('should list child posts for a parent', async () => {
+      mockListPostChildrenService.execute.mockResolvedValue(mockPosts);
+
+      const result = await controller.listPostChildren(1);
+
+      expect(result).toHaveLength(2);
+      expect(result[0]).toBeInstanceOf(PostDto);
+      expect(listPostChildrenService.execute).toHaveBeenCalledWith(1);
+    });
+
+    it('should convert string id parameter to number', async () => {
+      mockListPostChildrenService.execute.mockResolvedValue([]);
+
+      await controller.listPostChildren('1' as unknown as number);
+
+      expect(listPostChildrenService.execute).toHaveBeenCalledWith(1);
+    });
+  });
+});
