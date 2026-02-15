@@ -1,13 +1,23 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import * as OneSignal from 'onesignal-node';
-import { SendNotificationDto } from '../dto/send-notification.dto';
+import { CustomLogger } from '../../common/logger/custom-logger.service';
+
+interface SendNotificationDto {
+  title: string;
+  message: string;
+  playerIds: string[];
+  idempotencyId?: string;
+}
 
 @Injectable()
 export class PipoNotificationService {
-  private readonly logger = new Logger(PipoNotificationService.name);
+  private readonly logger: CustomLogger;
   private readonly client: OneSignal.Client;
 
-  constructor() {
+  constructor(logger: CustomLogger) {
+    this.logger = logger;
+    this.logger.setContext(PipoNotificationService.name);
+
     const appId = process.env.ONESIGNAL_APP_ID;
     const apiKey = process.env.ONESIGNAL_API_KEY;
 
@@ -24,7 +34,7 @@ export class PipoNotificationService {
 
   async sendNotification(dto: SendNotificationDto): Promise<void> {
     try {
-      const { title, message, playerIds } = dto;
+      const { idempotencyId, title, message, playerIds } = dto;
       const isConfigured = this.verifyConfiguration();
 
       if (!isConfigured) {
@@ -35,7 +45,9 @@ export class PipoNotificationService {
       }
 
       if (!playerIds || playerIds.length === 0) {
-        this.logger.warn('No player IDs provided, skipping notification');
+        this.logger.warn({
+          message: 'No player IDs provided, skipping notification',
+        });
         return;
       }
 
@@ -43,18 +55,23 @@ export class PipoNotificationService {
         headings: { en: title },
         contents: { en: message },
         include_player_ids: playerIds,
+        external_id: idempotencyId,
       };
 
-      this.logger.log(`Sending notification to ${playerIds.length} players`);
+      this.logger.log({
+        message: `Sending notification to ${playerIds.length} players`,
+        idempotencyId,
+      });
 
-      const response = await this.client.createNotification(notification);
+      await this.client.createNotification(notification);
 
-      this.logger.log(
-        `Notification sent successfully to ${playerIds.length} players`,
-        response.body,
-      );
+      this.logger.log({
+        message: `Notification sent successfully to ${playerIds.length} players`,
+        idempotencyId,
+      });
     } catch (error) {
-      this.logger.error('Failed to send notification', {
+      this.logger.error({
+        message: 'Failed to send notification',
         error: error instanceof Error ? error.message : String(error),
         dto,
       });

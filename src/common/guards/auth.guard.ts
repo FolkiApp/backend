@@ -1,9 +1,4 @@
-import {
-  CanActivate,
-  ExecutionContext,
-  Injectable,
-  Logger,
-} from '@nestjs/common';
+import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { Request } from 'express';
 import * as jwt from 'jsonwebtoken';
@@ -12,6 +7,11 @@ import { InvalidAuthHeaderException } from '../exceptions/invalid-auth-header.ex
 import { UserNotFoundException } from '../exceptions/user-not-found.exception';
 import { UserBlockedException } from '../exceptions/user-blocked.exception';
 import { InvalidTokenException } from '../exceptions/invalid-token.exception';
+import { CustomLogger } from '../logger/custom-logger.service';
+import { CorrelationIdService } from '../services/correlation-id.service';
+import { Institute } from '../../institutes/entities/institute.entity';
+import { University } from '../../universities/entities/university.entity';
+import { UserLogoutException } from '../exceptions/user-logout.exception';
 
 export const AUTH_METADATA = 'requireAuth';
 
@@ -25,16 +25,20 @@ export interface AuthUser {
   universityId: number | null;
   isBlocked: boolean;
   userVersion: string | null;
+  institute: Institute | null;
+  university: University | null;
 }
 
 @Injectable()
 export class AuthGuard implements CanActivate {
-  private readonly logger = new Logger(AuthGuard.name);
-
   constructor(
     private reflector: Reflector,
     private prisma: PrismaService,
-  ) {}
+    private readonly logger: CustomLogger,
+    private readonly correlationIdService: CorrelationIdService,
+  ) {
+    this.logger.setContext('AuthGuard');
+  }
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const requireAuth = this.reflector.getAllAndOverride<boolean>(
@@ -93,6 +97,8 @@ export class AuthGuard implements CanActivate {
           userVersion: true,
           isBlocked: true,
           universityId: true,
+          institute: true,
+          university: true,
         },
       });
 
@@ -104,18 +110,16 @@ export class AuthGuard implements CanActivate {
         throw new UserNotFoundException();
       }
 
-      if (user.securePin !== tokenData.securePin) {
-        this.logger.warn({
-          message: 'Blocked user attempted login',
-          userId: user.id,
-          email: user.email,
-        });
-        throw new UserBlockedException();
-      }
+      if (user.securePin !== tokenData.securePin)
+        throw new UserLogoutException();
 
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { securePin, ...userWithoutPin } = user;
       (request as Request & { user: AuthUser }).user = userWithoutPin;
+
+      // Set user context for subsequent logs
+      this.correlationIdService.setUserId(user.id);
+      this.correlationIdService.setUserEmail(user.email);
 
       this.logger.log({
         message: 'User authenticated via guard',
@@ -129,7 +133,8 @@ export class AuthGuard implements CanActivate {
       if (
         err instanceof InvalidAuthHeaderException ||
         err instanceof UserNotFoundException ||
-        err instanceof UserBlockedException
+        err instanceof UserBlockedException ||
+        err instanceof UserLogoutException
       ) {
         throw err;
       }

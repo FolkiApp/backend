@@ -6,6 +6,7 @@ import { UserBlockedException } from '../exceptions/user-blocked.exception';
 import { ActivityCheckException } from '../exceptions/activity-check.exception';
 import { Activity } from '../entities/activity.entity';
 import { UserActivityCheck } from '../entities/user-activity-check.entity';
+import { CustomLogger } from '../../common/logger/custom-logger.service';
 
 describe('CheckActivityService', () => {
   let service: CheckActivityService;
@@ -55,6 +56,15 @@ describe('CheckActivityService', () => {
     createCheck: jest.fn(),
   };
 
+  const mockCustomLogger = {
+    log: jest.fn(),
+    error: jest.fn(),
+    warn: jest.fn(),
+    debug: jest.fn(),
+    verbose: jest.fn(),
+    setContext: jest.fn(),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -62,6 +72,10 @@ describe('CheckActivityService', () => {
         {
           provide: ActivitiesRepository,
           useValue: mockActivitiesRepository,
+        },
+        {
+          provide: CustomLogger,
+          useValue: mockCustomLogger,
         },
       ],
     }).compile();

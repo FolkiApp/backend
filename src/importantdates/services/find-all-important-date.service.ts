@@ -1,5 +1,6 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InstituteRepository } from '../../institutes/repositories/institute.repository';
+import { CustomLogger } from '../../common/logger/custom-logger.service';
 import { ImportantDateRepository } from '../repositories/important-date.repository';
 import { InvalidUniversityException } from '../../common/exceptions/invalid-university.exception';
 import { AuthUser } from '../../common/guards/auth.guard';
@@ -8,12 +9,16 @@ import { ImportantDateFetchException } from '../exceptions/important-date-fetch.
 
 @Injectable()
 export class FindAllImportantDateService {
-  private readonly logger = new Logger(FindAllImportantDateService.name);
+  private readonly logger: CustomLogger;
 
   constructor(
     private readonly instituteRepository: InstituteRepository,
     private readonly importantDatesRepository: ImportantDateRepository,
-  ) {}
+    logger: CustomLogger,
+  ) {
+    this.logger = logger;
+    this.logger.setContext(FindAllImportantDateService.name);
+  }
 
   async execute(user: AuthUser): Promise<ImportantDate[]> {
     this.logger.log({ message: 'Executing findAll important dates' });

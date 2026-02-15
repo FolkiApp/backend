@@ -87,4 +87,26 @@ export class UserRepository {
 
     return new User(updatedUser);
   }
+
+  async count(): Promise<number> {
+    return this.prisma.user.count();
+  }
+
+  async findAllActive(): Promise<
+    Array<{ id: number; email: string; universityId: number | null }>
+  > {
+    return this.prisma.user.findMany({
+      where: {
+        isBlocked: false,
+      },
+      select: {
+        id: true,
+        email: true,
+        universityId: true,
+      },
+      orderBy: {
+        id: 'asc',
+      },
+    });
+  }
 }

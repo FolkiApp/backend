@@ -1,5 +1,6 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { user } from '@prisma/client';
+import { CustomLogger } from '../../common/logger/custom-logger.service';
 import { UserRepository } from '../repositories/user.repository';
 import { CourseRepository } from '../../courses/repositories/course.repository';
 import { InstituteRepository } from '../../institutes/repositories/institute.repository';
@@ -12,7 +13,7 @@ const sigaaUrl = `https://www.sistemas.ufscar.br/sagui-api`;
 
 @Injectable()
 export class AccessUFSCarSigaaService {
-  private readonly logger = new Logger(AccessUFSCarSigaaService.name);
+  private readonly logger: CustomLogger;
 
   constructor(
     private readonly userRepository: UserRepository,
@@ -21,7 +22,11 @@ export class AccessUFSCarSigaaService {
     private readonly subjectRepository: SubjectRepository,
     private readonly subjectClassRepository: SubjectClassRepository,
     private readonly userSubjectRepository: UserSubjectRepository,
-  ) {}
+    logger: CustomLogger,
+  ) {
+    this.logger = logger;
+    this.logger.setContext(AccessUFSCarSigaaService.name);
+  }
 
   async execute(ra: string, password: string): Promise<user> {
     const credentials = Buffer.from(`${ra}:${password}`).toString('base64');

@@ -7,6 +7,7 @@ import { PostAbsence } from '../services/post-absence.service';
 import { DeleteAbsence } from '../services/delete-absence.service';
 import { CreateAbsenceDto } from '../dto/create-absence.dto';
 import type { AuthUser } from '../../common/guards/auth.guard';
+import { CustomLogger } from '../../common/logger/custom-logger.service';
 
 describe('AbsenceController', () => {
   let controller: AbsenceController;
@@ -37,6 +38,15 @@ describe('AbsenceController', () => {
     execute: jest.fn(),
   };
 
+  const mockCustomLogger = {
+    log: jest.fn(),
+    error: jest.fn(),
+    warn: jest.fn(),
+    debug: jest.fn(),
+    verbose: jest.fn(),
+    setContext: jest.fn(),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [AbsenceController],
@@ -52,6 +62,10 @@ describe('AbsenceController', () => {
         {
           provide: DeleteAbsence,
           useValue: mockDeleteService,
+        },
+        {
+          provide: CustomLogger,
+          useValue: mockCustomLogger,
         },
       ],
     }).compile();
@@ -90,12 +104,12 @@ describe('AbsenceController', () => {
 
       const result = await controller.findAllBySubject(7, mockAuthUser);
 
-      expect(result).toHaveLength(2);
-      expect(result[0]).toBeInstanceOf(AbsenceDto);
-      expect(result[0].id).toBe(1);
-      expect(result[0].userId).toBe(3);
-      expect(result[0].userSubjectId).toBe(7);
-      expect(result[1].id).toBe(2);
+      expect(result.absences).toHaveLength(2);
+      expect(result.absences[0]).toBeInstanceOf(AbsenceDto);
+      expect(result.absences[0].id).toBe(1);
+      expect(result.absences[0].userId).toBe(3);
+      expect(result.absences[0].userSubjectId).toBe(7);
+      expect(result.absences[1].id).toBe(2);
       expect(absenceService.execute).toHaveBeenCalledWith(mockAuthUser, 7);
     });
 
@@ -132,12 +146,14 @@ describe('AbsenceController', () => {
         userVersion: '1.0',
       });
 
-      expect(result).toHaveLength(1);
-      expect(result[0].id).toBe(5);
-      expect(result[0].date).toEqual(new Date('2025-03-20'));
-      expect(result[0].createdAt).toEqual(new Date('2025-03-20T14:00:00'));
-      expect(result[0].userId).toBe(10);
-      expect(result[0].userSubjectId).toBe(15);
+      expect(result.absences).toHaveLength(1);
+      expect(result.absences[0].id).toBe(5);
+      expect(result.absences[0].date).toEqual(new Date('2025-03-20'));
+      expect(result.absences[0].createdAt).toEqual(
+        new Date('2025-03-20T14:00:00'),
+      );
+      expect(result.absences[0].userId).toBe(10);
+      expect(result.absences[0].userSubjectId).toBe(15);
     });
   });
 

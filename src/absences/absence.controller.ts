@@ -5,6 +5,7 @@ import { CurrentUser } from '../common/decorators/current-user.decorator';
 import type { AuthUser } from '../common/guards/auth.guard';
 import { AbsenceBySubjectService } from './services/find-absence-by-subject.service';
 import { AbsenceDto } from './dto/absence.dto';
+import { AbsencesResponseDto } from './dto/absences-response.dto';
 import { PostAbsence } from './services/post-absence.service';
 import { CreateAbsenceDto } from './dto/create-absence.dto';
 import { DeleteAbsence } from './services/delete-absence.service';
@@ -27,18 +28,20 @@ export class AbsenceController {
   async findAllBySubject(
     @Param('subjectId') subjectId: number,
     @CurrentUser() authUser: AuthUser,
-  ): Promise<AbsenceDto[]> {
+  ): Promise<AbsencesResponseDto> {
     const absences = await this.absenceService.execute(authUser, subjectId);
 
-    return absences.map(
-      (absence) =>
-        new AbsenceDto(
-          absence.id,
-          absence.date,
-          absence.createdAt,
-          absence.userId,
-          absence.userSubjectId,
-        ),
+    return new AbsencesResponseDto(
+      absences.map(
+        (absence) =>
+          new AbsenceDto(
+            absence.id,
+            absence.date,
+            absence.createdAt,
+            absence.userId,
+            absence.userSubjectId,
+          ),
+      ),
     );
   }
 

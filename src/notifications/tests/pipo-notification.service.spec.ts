@@ -1,5 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { PipoNotificationService } from '../services/pipo-notification.service';
+import { CustomLogger } from '../../common/logger/custom-logger.service';
 
 // Mock do OneSignal
 jest.mock('onesignal-node', () => {
@@ -14,13 +15,28 @@ describe('PipoNotificationService', () => {
   let service: PipoNotificationService;
   let mockCreateNotification: jest.Mock;
 
+  const mockCustomLogger = {
+    log: jest.fn(),
+    error: jest.fn(),
+    warn: jest.fn(),
+    debug: jest.fn(),
+    verbose: jest.fn(),
+    setContext: jest.fn(),
+  };
+
   beforeEach(async () => {
     // Limpa as variáveis de ambiente
     process.env.ONESIGNAL_APP_ID = 'test-app-id';
     process.env.ONESIGNAL_API_KEY = 'test-api-key';
 
     const module: TestingModule = await Test.createTestingModule({
-      providers: [PipoNotificationService],
+      providers: [
+        PipoNotificationService,
+        {
+          provide: CustomLogger,
+          useValue: mockCustomLogger,
+        },
+      ],
     }).compile();
 
     service = module.get<PipoNotificationService>(PipoNotificationService);

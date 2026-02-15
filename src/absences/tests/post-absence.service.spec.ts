@@ -6,6 +6,7 @@ import { UserSubjectRepository } from '../../users/repositories/user-subject.rep
 import { UserAbsence } from '../entities/absence.entity';
 import { InvalidSubjectIdException } from '../../subjects/exceptions/subject-fetch-id.exception';
 import { AbsenceInternalErrorException } from '../exceptions/absence-internal-error.exception';
+import { CustomLogger } from '../../common/logger/custom-logger.service';
 
 describe('PostAbsence', () => {
   let service: PostAbsence;
@@ -17,7 +18,16 @@ describe('PostAbsence', () => {
   };
 
   const mockUserSubjectRepository = {
-    findByUserAndSubjectClass: jest.fn(),
+    findByUserAndSubject: jest.fn(),
+  };
+
+  const mockCustomLogger = {
+    log: jest.fn(),
+    error: jest.fn(),
+    warn: jest.fn(),
+    debug: jest.fn(),
+    verbose: jest.fn(),
+    setContext: jest.fn(),
   };
 
   const mockAuthUser: AuthUser = {
@@ -38,6 +48,10 @@ describe('PostAbsence', () => {
         PostAbsence,
         { provide: AbsenceRepository, useValue: mockAbsenceRepository },
         { provide: UserSubjectRepository, useValue: mockUserSubjectRepository },
+        {
+          provide: CustomLogger,
+          useValue: mockCustomLogger,
+        },
       ],
     }).compile();
 
@@ -63,7 +77,7 @@ describe('PostAbsence', () => {
         7,
       );
 
-      mockUserSubjectRepository.findByUserAndSubjectClass.mockResolvedValue(
+      mockUserSubjectRepository.findByUserAndSubject.mockResolvedValue(
         userSubject,
       );
       mockAbsenceRepository.postAbsence.mockResolvedValue(created);
@@ -75,9 +89,10 @@ describe('PostAbsence', () => {
       );
 
       expect(result).toEqual(created);
-      expect(
-        userSubjectRepository.findByUserAndSubjectClass,
-      ).toHaveBeenCalledWith(3, 7);
+      expect(userSubjectRepository.findByUserAndSubject).toHaveBeenCalledWith(
+        3,
+        7,
+      );
       expect(absenceRepository.postAbsence).toHaveBeenCalledWith(
         3,
         7,
@@ -86,9 +101,7 @@ describe('PostAbsence', () => {
     });
 
     it('deve lançar InvalidSubjectIdException quando userSubject não existe', async () => {
-      mockUserSubjectRepository.findByUserAndSubjectClass.mockResolvedValue(
-        null,
-      );
+      mockUserSubjectRepository.findByUserAndSubject.mockResolvedValue(null);
 
       await expect(
         service.execute(mockAuthUser, 999, new Date()),
@@ -96,7 +109,7 @@ describe('PostAbsence', () => {
     });
 
     it('deve lançar AbsenceInternalErrorException quando erro ao buscar userSubject', async () => {
-      mockUserSubjectRepository.findByUserAndSubjectClass.mockRejectedValue(
+      mockUserSubjectRepository.findByUserAndSubject.mockRejectedValue(
         new Error('DB fail'),
       );
 
@@ -107,7 +120,7 @@ describe('PostAbsence', () => {
 
     it('deve lançar AbsenceInternalErrorException quando o repositório falha', async () => {
       const userSubject = { id: 7 };
-      mockUserSubjectRepository.findByUserAndSubjectClass.mockResolvedValue(
+      mockUserSubjectRepository.findByUserAndSubject.mockResolvedValue(
         userSubject,
       );
       mockAbsenceRepository.postAbsence.mockRejectedValue(new Error('DB fail'));

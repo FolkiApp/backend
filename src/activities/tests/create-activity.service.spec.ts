@@ -10,6 +10,8 @@ import { Activity } from '../entities/activity.entity';
 import { SubjectClassRepository } from '../../subjects/repositories/subject-class.repository';
 import { UserSubjectsRepository } from '../../subjects/repositories/user-subjects.repository';
 import { PipoNotificationService } from '../../notifications/services/pipo-notification.service';
+import { NotificationQueueService } from '../../notifications/services/notification-queue.service';
+import { CustomLogger } from '../../common/logger/custom-logger.service';
 
 describe('CreateActivityService', () => {
   let service: CreateActivityService;
@@ -49,10 +51,24 @@ describe('CreateActivityService', () => {
 
   const mockUserSubjectsRepository = {
     getNotificationIdsBySubjectClassId: jest.fn(),
+    getUserIdsBySubjectClassId: jest.fn(),
+  };
+
+  const mockNotificationQueueService = {
+    addNotificationJob: jest.fn(),
   };
 
   const mockPipoNotificationService = {
     sendNotification: jest.fn(),
+  };
+
+  const mockCustomLogger = {
+    setContext: jest.fn(),
+    log: jest.fn(),
+    error: jest.fn(),
+    warn: jest.fn(),
+    debug: jest.fn(),
+    verbose: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -72,8 +88,16 @@ describe('CreateActivityService', () => {
           useValue: mockUserSubjectsRepository,
         },
         {
+          provide: NotificationQueueService,
+          useValue: mockNotificationQueueService,
+        },
+        {
           provide: PipoNotificationService,
           useValue: mockPipoNotificationService,
+        },
+        {
+          provide: CustomLogger,
+          useValue: mockCustomLogger,
         },
       ],
     }).compile();

@@ -1,5 +1,6 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import puppeteer from 'puppeteer-extra';
+import { CustomLogger } from '../../common/logger/custom-logger.service';
 import type { Browser, Page } from 'puppeteer';
 import { user } from '@prisma/client';
 import { UserRepository } from '../repositories/user.repository';
@@ -16,7 +17,7 @@ const USP_UNIVERSITY_ID = 1;
 
 @Injectable()
 export class ScrapJupiterService {
-  private readonly logger = new Logger(ScrapJupiterService.name);
+  private readonly logger: CustomLogger;
 
   constructor(
     private readonly userRepository: UserRepository,
@@ -25,7 +26,11 @@ export class ScrapJupiterService {
     private readonly subjectRepository: SubjectRepository,
     private readonly subjectClassRepository: SubjectClassRepository,
     private readonly userSubjectRepository: UserSubjectRepository,
-  ) {}
+    logger: CustomLogger,
+  ) {
+    this.logger = logger;
+    this.logger.setContext(ScrapJupiterService.name);
+  }
 
   async execute(nUsp: string, password: string, retry = 0): Promise<user> {
     let browser: Browser | undefined;
@@ -67,6 +72,9 @@ export class ScrapJupiterService {
         message: 'Login successful, accessing class schedule',
         nUsp,
       });
+      await page.waitForSelector("a[href='gradeHoraria?codmnu=4759']", {
+        timeout: 5000,
+      });
       await page.click("a[href='gradeHoraria?codmnu=4759']");
 
       await page.waitForSelector('select');
@@ -81,6 +89,9 @@ export class ScrapJupiterService {
       options.sort();
       await page.select(`select`, options[options.length - 1]);
 
+      await page.waitForSelector('input[type="button"][value="Buscar"]', {
+        timeout: 5000,
+      });
       await page.click('input[type="button"][value="Buscar"]');
       await page.waitForSelector("tr[id='1']");
 
@@ -88,6 +99,8 @@ export class ScrapJupiterService {
         message: 'Extracting course and institute information',
         nUsp,
       });
+      await page.waitForSelector('#curso', { timeout: 5000 });
+      await page.waitForSelector('#unidade', { timeout: 5000 });
       const courseElement = await page.$('#curso');
       const brokeCourseText = (
         await page.evaluate((el) => el?.textContent, courseElement)
@@ -147,6 +160,9 @@ export class ScrapJupiterService {
           if (subject) {
             subject = subject.split('-')[0];
 
+            await page.waitForSelector(`span[class="${subject}"]`, {
+              timeout: 5000,
+            });
             const spanElement = await page.$(`span[class="${subject}"]`);
             await spanElement?.click();
             await page.waitForSelector('.blockOverlay', { hidden: true });
@@ -157,9 +173,16 @@ export class ScrapJupiterService {
               firstTime = false;
             }
 
+            await page.waitForSelector('a[href="#div_oferecimento"]', {
+              timeout: 5000,
+            });
             await page.click('a[href="#div_oferecimento"]');
             await page.waitForSelector('.blockOverlay', { hidden: true });
 
+            await page.waitForSelector(
+              'div[class="adicionado"] > table > tbody > tr > td[class="obstur"]',
+              { timeout: 5000 },
+            );
             const observationsElement = await page.$(
               'div[class="adicionado"] > table > tbody > tr > td[class="obstur"]',
             );
@@ -212,16 +235,35 @@ export class ScrapJupiterService {
       );
 
       for (const subjectCode of notRegisteredSubjectCodes) {
-        void page.$eval(`span[class="${subjectCode}"]`, (element) =>
-          (element as HTMLElement).click(),
-        );
-        await page.waitForSelector(
-          `xpath///*[@class="coddis" and text()="${subjectCode}"]`,
-        );
-        const subjectName = await page.evaluate(
-          () => document.querySelector('.nomdis')?.textContent,
-        );
-        newSubjectsInfo.push({ subjectCode, subjectName: subjectName || '' });
+        try {
+          await page.waitForSelector(`span[class="${subjectCode}"]`, {
+            timeout: 5000,
+          });
+          await page.$eval(`span[class="${subjectCode}"]`, (element) =>
+            (element as HTMLElement).click(),
+          );
+          await page.waitForSelector(
+            `xpath///*[@class="coddis" and text()="${subjectCode}"]`,
+            { timeout: 5000 },
+          );
+          await page.waitForSelector('.nomdis', { timeout: 5000 });
+          const subjectName = await page.evaluate(
+            () => document.querySelector('.nomdis')?.textContent,
+          );
+          newSubjectsInfo.push({
+            subjectCode,
+            subjectName: subjectName || '',
+          });
+        } catch (error: unknown) {
+          this.logger.warn({
+            message: 'Failed to extract subject info, skipping',
+            subjectCode,
+            nUsp,
+            error: error instanceof Error ? error.message : String(error),
+          });
+          // Continua para próxima matéria se falhar
+          continue;
+        }
       }
 
       for (const newSubjectInfo of newSubjectsInfo) {
@@ -233,16 +275,33 @@ export class ScrapJupiterService {
         subjectsAlreadyRegistered.push(newSubject);
       }
 
-      const subjectClasses = Object.keys(hash).map((subjectCode: string) => {
-        const subject = subjectsAlreadyRegistered.find(
-          (subject) => subject.code === subjectCode,
-        );
-        return {
-          subjectId: subject!.id,
-          availableDays: hash[subjectCode].days,
-          observations: hash[subjectCode].observations,
-        };
-      });
+      const subjectClasses = Object.keys(hash)
+        .map((subjectCode: string) => {
+          const subject = subjectsAlreadyRegistered.find(
+            (subject) => subject.code === subjectCode,
+          );
+
+          if (!subject) {
+            this.logger.warn({
+              message: 'Subject not found in registered subjects, skipping',
+              subjectCode,
+              nUsp,
+              registeredCodes: subjectsAlreadyRegistered.map((s) => s.code),
+            });
+            return null;
+          }
+
+          return {
+            subjectId: subject.id,
+            availableDays: hash[subjectCode].days,
+            observations: hash[subjectCode].observations,
+          };
+        })
+        .filter((subjectClass) => subjectClass !== null) as Array<{
+        subjectId: number;
+        availableDays: Array<{ day: string; start: string; end: string }>;
+        observations: string;
+      }>;
 
       const subjectClassesIds: number[] = [];
       const currentYear = new Date().getFullYear();
@@ -288,6 +347,9 @@ export class ScrapJupiterService {
         subjectClassesCount: subjectClassesIds.length,
       });
       await page.goto(userInfoJupiterLink, { waitUntil: 'load' });
+
+      await page.waitForSelector('font', { timeout: 5000 });
+      await page.waitForSelector("td[width='77%'] font", { timeout: 5000 });
 
       const allFontsTexts = await page.evaluate(() =>
         Array.from(document.querySelectorAll('font')).map(
@@ -368,9 +430,31 @@ export class ScrapJupiterService {
         instituteId: user.instituteId,
         subjectClassesCount: subjectClassesIds.length,
       });
+
+      await browser.close();
       return user;
     } catch (error: unknown) {
-      if (browser) await browser.close();
+      this.logger.error({
+        message: 'Error during scraping process',
+        nUsp,
+        retry,
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+      });
+
+      if (browser) {
+        try {
+          await browser.close();
+        } catch (closeError) {
+          this.logger.error({
+            message: 'Error closing browser',
+            error:
+              closeError instanceof Error
+                ? closeError.message
+                : String(closeError),
+          });
+        }
+      }
 
       if (
         error instanceof Error &&

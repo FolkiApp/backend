@@ -5,6 +5,7 @@ import { ActivityNotFoundException } from '../exceptions/activity-not-found.exce
 import { UserBlockedException } from '../exceptions/user-blocked.exception';
 import { ActivityUnignoreException } from '../exceptions/activity-unignore.exception';
 import { Activity } from '../entities/activity.entity';
+import { CustomLogger } from '../../common/logger/custom-logger.service';
 
 describe('UnignoreActivityService', () => {
   let service: UnignoreActivityService;
@@ -48,6 +49,15 @@ describe('UnignoreActivityService', () => {
     deleteIgnore: jest.fn(),
   };
 
+  const mockCustomLogger = {
+    log: jest.fn(),
+    error: jest.fn(),
+    warn: jest.fn(),
+    debug: jest.fn(),
+    verbose: jest.fn(),
+    setContext: jest.fn(),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -55,6 +65,10 @@ describe('UnignoreActivityService', () => {
         {
           provide: ActivitiesRepository,
           useValue: mockActivitiesRepository,
+        },
+        {
+          provide: CustomLogger,
+          useValue: mockCustomLogger,
         },
       ],
     }).compile();

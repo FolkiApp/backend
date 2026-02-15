@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { FindAllUniversitiesService } from '../services/find-all-universities.service';
 import { UniversityRepository } from '../repositories/university.repository';
 import { UniversityFetchException } from '../exceptions/university-fetch.exception';
+import { CustomLogger } from '../../common/logger/custom-logger.service';
 
 interface University {
   id: number;
@@ -17,11 +18,24 @@ describe('FindAllUniversitiesService', () => {
     findAll: jest.fn<Promise<University[]>, []>(),
   };
 
+  const mockCustomLogger = {
+    log: jest.fn(),
+    error: jest.fn(),
+    warn: jest.fn(),
+    debug: jest.fn(),
+    verbose: jest.fn(),
+    setContext: jest.fn(),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         FindAllUniversitiesService,
         { provide: UniversityRepository, useValue: mockUniversityRepository },
+        {
+          provide: CustomLogger,
+          useValue: mockCustomLogger,
+        },
       ],
     }).compile();
 

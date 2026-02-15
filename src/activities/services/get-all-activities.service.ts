@@ -1,14 +1,21 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { AuthUser } from '../../common/guards/auth.guard';
+import { CustomLogger } from '../../common/logger/custom-logger.service';
 import { ActivitiesRepository } from '../repositories/activities.repository';
 import { Activity } from '../entities/activity.entity';
 import { ActivitiesFetchException } from '../exceptions/activities-fetch.exception';
 
 @Injectable()
 export class GetAllActivitiesService {
-  private readonly logger = new Logger(GetAllActivitiesService.name);
+  private readonly logger: CustomLogger;
 
-  constructor(private readonly activitiesRepository: ActivitiesRepository) {}
+  constructor(
+    private readonly activitiesRepository: ActivitiesRepository,
+    logger: CustomLogger,
+  ) {
+    this.logger = logger;
+    this.logger.setContext(GetAllActivitiesService.name);
+  }
 
   async execute(user: AuthUser): Promise<Activity[]> {
     this.logger.log({

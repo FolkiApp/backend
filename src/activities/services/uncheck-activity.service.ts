@@ -1,5 +1,6 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { AuthUser } from '../../common/guards/auth.guard';
+import { CustomLogger } from '../../common/logger/custom-logger.service';
 import { ActivitiesRepository } from '../repositories/activities.repository';
 import { Activity } from '../entities/activity.entity';
 import { ActivityNotFoundException } from '../exceptions/activity-not-found.exception';
@@ -8,9 +9,15 @@ import { ActivityUncheckException } from '../exceptions/activity-uncheck.excepti
 
 @Injectable()
 export class UncheckActivityService {
-  private readonly logger = new Logger(UncheckActivityService.name);
+  private readonly logger: CustomLogger;
 
-  constructor(private readonly activitiesRepository: ActivitiesRepository) {}
+  constructor(
+    private readonly activitiesRepository: ActivitiesRepository,
+    logger: CustomLogger,
+  ) {
+    this.logger = logger;
+    this.logger.setContext(UncheckActivityService.name);
+  }
 
   async execute(user: AuthUser, activityId: number): Promise<void> {
     this.logger.log({

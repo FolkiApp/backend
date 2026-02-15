@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { UniversitiesController } from '../universities.controller';
 import { FindAllUniversitiesService } from '../services/find-all-universities.service';
 import { CreateUniversityService } from '../services/create-university.service';
+import { CustomLogger } from '../../common/logger/custom-logger.service';
 
 describe('UniversitiesController', () => {
   let controller: UniversitiesController;
@@ -16,6 +17,15 @@ describe('UniversitiesController', () => {
     execute: jest.fn(),
   };
 
+  const mockCustomLogger = {
+    log: jest.fn(),
+    error: jest.fn(),
+    warn: jest.fn(),
+    debug: jest.fn(),
+    verbose: jest.fn(),
+    setContext: jest.fn(),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [UniversitiesController],
@@ -27,6 +37,10 @@ describe('UniversitiesController', () => {
         {
           provide: CreateUniversityService,
           useValue: mockCreateUniversityService,
+        },
+        {
+          provide: CustomLogger,
+          useValue: mockCustomLogger,
         },
       ],
     }).compile();

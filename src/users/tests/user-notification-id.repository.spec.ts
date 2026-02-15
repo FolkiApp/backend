@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { PrismaService } from '../../prisma/prisma.service';
 import { UserNotificationIdRepository } from '../repositories/user-notification-id.repository';
 import { UserNotificationId } from '../entities/user-notification-id.entity';
+import { CustomLogger } from '../../common/logger/custom-logger.service';
 
 describe('UserNotificationIdRepository', () => {
   let repository: UserNotificationIdRepository;
@@ -15,6 +16,15 @@ describe('UserNotificationIdRepository', () => {
     },
   };
 
+  const mockCustomLogger = {
+    log: jest.fn(),
+    error: jest.fn(),
+    warn: jest.fn(),
+    debug: jest.fn(),
+    verbose: jest.fn(),
+    setContext: jest.fn(),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -22,6 +32,10 @@ describe('UserNotificationIdRepository', () => {
         {
           provide: PrismaService,
           useValue: mockPrismaService,
+        },
+        {
+          provide: CustomLogger,
+          useValue: mockCustomLogger,
         },
       ],
     }).compile();

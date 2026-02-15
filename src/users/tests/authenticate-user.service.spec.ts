@@ -6,6 +6,7 @@ import { InvalidUniversityException } from '../../common/exceptions/invalid-univ
 import { InvalidCredentialsException } from '../../common/exceptions/invalid-credentials.exception';
 import { UniversitySystemTimeoutException } from '../../common/exceptions/university-system-timeout.exception';
 import { AuthDto } from '../dto/auth.dto';
+import { CustomLogger } from '../../common/logger/custom-logger.service';
 
 describe('AuthenticateUserService', () => {
   let service: AuthenticateUserService;
@@ -18,6 +19,15 @@ describe('AuthenticateUserService', () => {
 
   const mockAccessUFSCarSigaaService = {
     execute: jest.fn(),
+  };
+
+  const mockCustomLogger = {
+    log: jest.fn(),
+    error: jest.fn(),
+    warn: jest.fn(),
+    debug: jest.fn(),
+    verbose: jest.fn(),
+    setContext: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -34,6 +44,10 @@ describe('AuthenticateUserService', () => {
         {
           provide: AccessUFSCarSigaaService,
           useValue: mockAccessUFSCarSigaaService,
+        },
+        {
+          provide: CustomLogger,
+          useValue: mockCustomLogger,
         },
       ],
     }).compile();

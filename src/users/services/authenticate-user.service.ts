@@ -1,5 +1,6 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InvalidUniversityException } from '../../common/exceptions/invalid-university.exception';
+import { CustomLogger } from '../../common/logger/custom-logger.service';
 import { InvalidCredentialsException } from '../../common/exceptions/invalid-credentials.exception';
 import { UniversitySystemTimeoutException } from '../../common/exceptions/university-system-timeout.exception';
 import { AuthenticationException } from '../../common/exceptions/authentication.exception';
@@ -14,12 +15,16 @@ const VALID_UNIVERSITY_IDS = [1, 2];
 
 @Injectable()
 export class AuthenticateUserService {
-  private readonly logger = new Logger(AuthenticateUserService.name);
+  private readonly logger: CustomLogger;
 
   constructor(
     private readonly scrapJupiterService: ScrapJupiterService,
     private readonly accessUFSCarSigaaService: AccessUFSCarSigaaService,
-  ) {}
+    logger: CustomLogger,
+  ) {
+    this.logger = logger;
+    this.logger.setContext(AuthenticateUserService.name);
+  }
 
   async execute(authDto: AuthDto): Promise<AuthResponseDto> {
     const { uspCode, password, universityId = 1 } = authDto;
@@ -51,6 +56,8 @@ export class AuthenticateUserService {
         user.isAdmin,
         user.universityId,
         user.userVersion,
+        null,
+        null,
       );
 
       this.logger.log({

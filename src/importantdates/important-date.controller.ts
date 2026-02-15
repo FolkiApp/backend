@@ -1,19 +1,22 @@
-import { Get, Controller, Post, Body } from '@nestjs/common';
+import { Get, Controller, Post, Body, Delete, Param } from '@nestjs/common';
 import { Auth } from '../common/decorators/auth.decorator';
 import { ApiBearerAuth, ApiOperation, ApiSecurity } from '@nestjs/swagger';
 import { FindAllImportantDateService } from './services/find-all-important-date.service';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import type { AuthUser } from '../common/guards/auth.guard';
 import { ImportantDateResponseDto } from './dtos/important-date.dto';
+import { ImportantDatesResponseDto } from './dtos/important-dates-response.dto';
 import { CreateImportantDateService } from './services/create-important-date.service';
 import { CreateImportantDateDto } from './dtos/create-important-date.dto';
 import { ApiKey } from '../common/decorators/api-key.decorator';
+import { DeleteImportantDateService } from './services/delete-important-date.service';
 
 @Controller('important-dates')
 export class ImportantDateController {
   constructor(
     private findAllImportantDateService: FindAllImportantDateService,
     private createImportantDateService: CreateImportantDateService,
+    private deleteImportantDateService: DeleteImportantDateService,
   ) {}
 
   @Get()
@@ -27,11 +30,12 @@ export class ImportantDateController {
   })
   async findAll(
     @CurrentUser() authUser: AuthUser,
-  ): Promise<ImportantDateResponseDto[]> {
-    {
-      const importantDates =
-        await this.findAllImportantDateService.execute(authUser);
-      return importantDates.map(
+  ): Promise<ImportantDatesResponseDto> {
+    const importantDates =
+      await this.findAllImportantDateService.execute(authUser);
+
+    return new ImportantDatesResponseDto(
+      importantDates.map(
         (date) =>
           new ImportantDateResponseDto(
             date.id,
@@ -42,8 +46,8 @@ export class ImportantDateController {
             date.campusId,
             date.universityId,
           ),
-      );
-    }
+      ),
+    );
   }
 
   @Post()
@@ -68,5 +72,16 @@ export class ImportantDateController {
         importantDate.universityId,
       );
     }
+  }
+
+  @Delete('/:id')
+  @ApiKey()
+  @ApiSecurity('api-key')
+  @ApiOperation({
+    summary: 'Deleta uma data importante',
+    description: 'Deleta uma data importante pelo seu ID',
+  })
+  async delete(@Param('id') id: number): Promise<void> {
+    await this.deleteImportantDateService.execute(id);
   }
 }

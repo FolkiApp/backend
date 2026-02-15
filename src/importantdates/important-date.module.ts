@@ -5,6 +5,7 @@ import { Module } from '@nestjs/common';
 import { InstituteRepository } from '../institutes/repositories/institute.repository';
 import { ImportantDateRepository } from './repositories/important-date.repository';
 import { CreateImportantDateService } from './services/create-important-date.service';
+import { DeleteImportantDateService } from './services/delete-important-date.service';
 
 @Module({
   imports: [PrismaModule],
@@ -12,6 +13,7 @@ import { CreateImportantDateService } from './services/create-important-date.ser
   providers: [
     FindAllImportantDateService,
     CreateImportantDateService,
+    DeleteImportantDateService,
     ImportantDateRepository,
     InstituteRepository,
   ],

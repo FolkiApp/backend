@@ -27,6 +27,7 @@ import { UncheckActivityService } from './services/uncheck-activity.service';
 import { IgnoreActivityService } from './services/ignore-activity.service';
 import { UnignoreActivityService } from './services/unignore-activity.service';
 import { ActivitiesResponseDto } from './dto/activities-response.dto';
+import { CreateActivityResponseDto } from './dto/create-activity-response.dto';
 import {
   ActivityResponseDto,
   SubjectClassDto,
@@ -76,6 +77,8 @@ export class ActivitiesController {
           activity.isPrivate,
           activity.userId,
           activity.subjectClassId,
+          activity.type,
+          activity.value ?? null,
           activity.checked || false,
           new SubjectClassDto(
             activity.subjectClass!.id,
@@ -103,33 +106,37 @@ export class ActivitiesController {
   async create(
     @CurrentUser() authUser: AuthUser,
     @Body() createActivityDto: CreateActivityDto,
-  ): Promise<ActivityResponseDto> {
+  ): Promise<CreateActivityResponseDto> {
     const activity = await this.createActivityService.execute(
       authUser,
       createActivityDto,
     );
 
-    return new ActivityResponseDto(
-      activity.id,
-      activity.name,
-      activity.description,
-      activity.finishDate,
-      activity.createdAt,
-      activity.updatedAt,
-      activity.deletedAt,
-      activity.isPrivate,
-      activity.userId,
-      activity.subjectClassId,
-      activity.checked || false,
-      new SubjectClassDto(
-        activity.subjectClass!.id,
-        activity.subjectClass!.year,
-        new SubjectInfoDto(
-          activity.subjectClass!.subject!.id,
-          activity.subjectClass!.subject!.name,
+    return new CreateActivityResponseDto(
+      new ActivityResponseDto(
+        activity.id,
+        activity.name,
+        activity.description,
+        activity.finishDate,
+        activity.createdAt,
+        activity.updatedAt,
+        activity.deletedAt,
+        activity.isPrivate,
+        activity.userId,
+        activity.subjectClassId,
+        activity.type,
+        activity.value ?? null,
+        activity.checked || false,
+        new SubjectClassDto(
+          activity.subjectClass!.id,
+          activity.subjectClass!.year,
+          new SubjectInfoDto(
+            activity.subjectClass!.subject!.id,
+            activity.subjectClass!.subject!.name,
+          ),
         ),
+        new ActivityUserDto(activity.user!.name),
       ),
-      new ActivityUserDto(activity.user!.name),
     );
   }
 
@@ -163,6 +170,8 @@ export class ActivitiesController {
       activity.isPrivate,
       activity.userId,
       activity.subjectClassId,
+      activity.type,
+      activity.value ?? null,
       activity.checked || false,
       new SubjectClassDto(
         activity.subjectClass!.id,

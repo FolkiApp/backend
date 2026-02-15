@@ -1,5 +1,6 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { AuthUser } from '../../common/guards/auth.guard';
+import { CustomLogger } from '../../common/logger/custom-logger.service';
 import { ActivitiesRepository } from '../repositories/activities.repository';
 import { UpdateActivityDto } from '../dto/update-activity.dto';
 import { Activity } from '../entities/activity.entity';
@@ -9,15 +10,24 @@ import { UserBlockedException } from '../exceptions/user-blocked.exception';
 import { ActivityUpdateException } from '../exceptions/activity-update.exception';
 import { SubjectClassRepository } from '../../subjects/repositories/subject-class.repository';
 import { UpdateActivityData } from '../repositories/dto/update-activity-data.dto';
+import { SubjectClass } from 'src/subjects/entities/subject-class.entity';
+import { UserSubjectsRepository } from '../../subjects/repositories/user-subjects.repository';
+import { NotificationQueueService } from '../../notifications/services/notification-queue.service';
 
 @Injectable()
 export class UpdateActivityService {
-  private readonly logger = new Logger(UpdateActivityService.name);
+  private readonly logger: CustomLogger;
 
   constructor(
+    private readonly notificationQueueService: NotificationQueueService,
+    private readonly userSubjectsRepository: UserSubjectsRepository,
     private readonly activitiesRepository: ActivitiesRepository,
     private readonly subjectClassRepository: SubjectClassRepository,
-  ) {}
+    logger: CustomLogger,
+  ) {
+    this.logger = logger;
+    this.logger.setContext(UpdateActivityService.name);
+  }
 
   async execute(
     user: AuthUser,
@@ -41,7 +51,7 @@ export class UpdateActivityService {
       updateActivityDto,
     );
 
-    this.handleDateChangeNotification(
+    await this.handleDateChangeNotification(
       activity,
       previousFinishDate,
       updateActivityDto,
@@ -94,7 +104,7 @@ export class UpdateActivityService {
   private async getSubjectClass(
     subjectClassId: number,
     userId: number,
-  ): Promise<{ id: number; subjectId: number } | null> {
+  ): Promise<SubjectClass | null> {
     try {
       return await this.subjectClassRepository.findByIdAndUserId(
         subjectClassId,
@@ -153,22 +163,59 @@ export class UpdateActivityService {
     return date;
   }
 
-  private handleDateChangeNotification(
+  private hasDateChanged(
+    previousDate: Date,
+    newDateString: string | undefined,
+  ): boolean {
+    if (!newDateString) return false;
+    const newDate = this.createDateWithDefaultTime(newDateString);
+    return previousDate.getTime() !== newDate.getTime();
+  }
+
+  private async handleDateChangeNotification(
     activity: Activity,
     previousFinishDate: Date,
     updateActivityDto: UpdateActivityDto,
-  ) {
-    const dateChanged =
-      updateActivityDto.finishDate &&
-      new Date(previousFinishDate).toDateString() !==
-        new Date(updateActivityDto.finishDate).toDateString();
+  ): Promise<void> {
+    if (!this.hasDateChanged(previousFinishDate, updateActivityDto.finishDate))
+      return;
 
-    if (dateChanged && !activity.isPrivate) {
-      // TODO: Implementar sendUpdateActivityNotification
-      this.logger.log({
-        message: 'Activity date changed, notification should be sent',
+    if (activity.isPrivate) return;
+
+    try {
+      const [usersToNotify, subjectClass] = await Promise.all([
+        this.userSubjectsRepository.getUserIdsBySubjectClassId(
+          activity.subjectClassId,
+        ),
+        this.subjectClassRepository.findByIdWithSubject(
+          activity.subjectClassId,
+        ),
+      ]);
+
+      if (!subjectClass?.subject) {
+        this.logger.error({
+          message: 'Subject class or subject not found',
+          activityId: activity.id,
+        });
+        return;
+      }
+
+      if (!usersToNotify.length) return;
+
+      const newDate = this.createDateWithDefaultTime(
+        updateActivityDto.finishDate!,
+      );
+
+      await this.notificationQueueService.addNotificationJob({
+        title: `Data da Atividade de ${subjectClass.subject.name} Atualizada`,
+        message: `A Atividade "${activity.name}" foi atualizada para ${newDate.toLocaleDateString()}.`,
+        userIds: usersToNotify,
+      });
+    } catch (error: unknown) {
+      this.logger.error({
+        message: 'Error handling activity update notification',
         activityId: activity.id,
-        subjectClassId: activity.subjectClassId,
+        error: error instanceof Error ? error.message : error,
       });
     }
   }

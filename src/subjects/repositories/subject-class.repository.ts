@@ -2,10 +2,29 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { Prisma } from '@prisma/client';
 import { SubjectClass } from '../entities/subject-class.entity';
+import { AvailableDay } from '../entities/available-days.entity';
+import { Subject } from '../entities/subject.entity';
 
 @Injectable()
 export class SubjectClassRepository {
   constructor(private prisma: PrismaService) {}
+
+  private parseAvailableDays(json: Prisma.JsonValue): AvailableDay[] {
+    return json as unknown as AvailableDay[];
+  }
+
+  async findLatest(
+    universityId: number,
+  ): Promise<{ year: number; semester: number } | null> {
+    return this.prisma.subject_class.findFirst({
+      where: { universityId },
+      orderBy: [{ year: 'desc' }, { semester: 'desc' }],
+      select: {
+        year: true,
+        semester: true,
+      },
+    });
+  }
 
   async findBySubjectAndSchedule(
     subjectId: number,
@@ -14,7 +33,7 @@ export class SubjectClassRepository {
     semester: number,
     universityId: number,
   ): Promise<SubjectClass | null> {
-    return this.prisma.subject_class.findFirst({
+    const data = await this.prisma.subject_class.findFirst({
       where: {
         subjectId,
         availableDays: {
@@ -24,7 +43,19 @@ export class SubjectClassRepository {
         semester,
         universityId,
       },
+      include: {
+        subject: true,
+      },
     });
+
+    if (!data) return null;
+
+    return new SubjectClass(
+      data.id,
+      this.parseAvailableDays(data.availableDays),
+      data.subject as Subject,
+      data.observations ?? undefined,
+    );
   }
 
   async create(
@@ -35,7 +66,7 @@ export class SubjectClassRepository {
     universityId: number,
     observations: string,
   ): Promise<SubjectClass> {
-    return this.prisma.subject_class.create({
+    const data = await this.prisma.subject_class.create({
       data: {
         subjectId,
         availableDays,
@@ -44,40 +75,62 @@ export class SubjectClassRepository {
         universityId,
         observations,
       },
+      include: {
+        subject: true,
+      },
     });
+
+    return new SubjectClass(
+      data.id,
+      this.parseAvailableDays(data.availableDays),
+      data.subject as Subject,
+      data.observations ?? undefined,
+    );
   }
 
   async updateObservations(
     id: number,
     observations: string,
   ): Promise<SubjectClass> {
-    return this.prisma.subject_class.update({
+    const data = await this.prisma.subject_class.update({
       where: { id },
       data: { observations },
+      include: {
+        subject: true,
+      },
     });
+
+    return new SubjectClass(
+      data.id,
+      this.parseAvailableDays(data.availableDays),
+      data.subject as Subject,
+      data.observations ?? undefined,
+    );
   }
 
   async findByIdAndUserId(
     subjectClassId: number,
     userId: number,
   ): Promise<SubjectClass | null> {
-    const subjectClass = await this.prisma.subject_class.findFirst({
+    const data = await this.prisma.subject_class.findFirst({
       where: {
         id: subjectClassId,
-        user_subject: { some: { userId } },
+        user_subject: {
+          some: { userId },
+        },
+      },
+      include: {
+        subject: true,
       },
     });
 
-    if (!subjectClass) return null;
+    if (!data) return null;
 
     return new SubjectClass(
-      subjectClass.id,
-      subjectClass.subjectId,
-      subjectClass.availableDays,
-      subjectClass.year,
-      subjectClass.semester,
-      subjectClass.universityId,
-      subjectClass.observations,
+      data.id,
+      this.parseAvailableDays(data.availableDays),
+      data.subject as Subject,
+      data.observations ?? undefined,
     );
   }
 

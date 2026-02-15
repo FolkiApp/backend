@@ -6,6 +6,7 @@ import { CreateGradeDto } from '../dto/create-grade.dto';
 import { UserSubjectNotFoundException } from '../exceptions/user-subject-not-found.exception';
 import { GradeCreateException } from '../exceptions/grade-create.exception';
 import { Grade } from '../entities/grade.entity';
+import { CustomLogger } from '../../common/logger/custom-logger.service';
 
 describe('CreateGradeService', () => {
   let service: CreateGradeService;
@@ -39,6 +40,15 @@ describe('CreateGradeService', () => {
     findByIdAndUserId: jest.fn(),
   };
 
+  const mockCustomLogger = {
+    log: jest.fn(),
+    error: jest.fn(),
+    warn: jest.fn(),
+    debug: jest.fn(),
+    verbose: jest.fn(),
+    setContext: jest.fn(),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -50,6 +60,10 @@ describe('CreateGradeService', () => {
         {
           provide: UserSubjectsRepository,
           useValue: mockUserSubjectsRepository,
+        },
+        {
+          provide: CustomLogger,
+          useValue: mockCustomLogger,
         },
       ],
     }).compile();
