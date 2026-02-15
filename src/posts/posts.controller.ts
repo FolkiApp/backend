@@ -6,7 +6,6 @@ import {
   Query,
   Delete,
   Param,
-  ParseIntPipe,
 } from '@nestjs/common';
 import { Auth } from '../common/decorators/auth.decorator';
 import { ApiBearerAuth, ApiOperation, ApiQuery } from '@nestjs/swagger';
