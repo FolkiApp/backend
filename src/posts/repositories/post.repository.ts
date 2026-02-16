@@ -248,4 +248,18 @@ export class PostRepository {
       });
     });
   }
+
+  async getUserIdsWhoCommented(postId: number): Promise<number[]> {
+    const comments = await this.prisma.post.findMany({
+      where: {
+        parentId: postId,
+      },
+      select: {
+        userId: true,
+      },
+      distinct: ['userId'],
+    });
+
+    return comments.map((comment) => comment.userId);
+  }
 }
