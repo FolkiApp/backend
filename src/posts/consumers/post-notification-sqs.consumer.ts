@@ -109,6 +109,7 @@ export class PostNotificationSqsConsumer {
         postId: parentId.toString(),
         type: 'comment',
       },
+      url: `https://web.folki.com.br/#/Board?postId=${parentId}`,
     });
 
     this.logger.log({

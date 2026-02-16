@@ -56,4 +56,13 @@ export class SendNotificationDto {
   })
   @IsOptional()
   data?: Record<string, any>;
+
+  @ApiPropertyOptional({
+    description:
+      'URL para onde o usuário será redirecionado ao clicar na notificação',
+    example: 'https://web.folki.com.br/#/Board?postId=123',
+  })
+  @IsString()
+  @IsOptional()
+  url?: string;
 }
