@@ -1,16 +1,16 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { PostsRepository } from '../repositories/posts.repository';
-import { Posts } from '../entities/posts.entity';
+import { PostRepository } from '../repositories/post.repository';
+import { Post } from '../entities/post.entity';
 import { PostInternalErrorException } from '../exceptions/post-internal-error.exception';
-import { NotFoundPostException } from '../exceptions/not-found-posts.exception';
+import { NotFoundPostException } from '../exceptions/not-found-post.exception';
 
 @Injectable()
-export class ListFirstPostsService {
-  private readonly logger = new Logger(ListFirstPostsService.name);
+export class ListFirstPostService {
+  private readonly logger = new Logger(ListFirstPostService.name);
 
-  constructor(private readonly postRepository: PostsRepository) {}
+  constructor(private readonly postRepository: PostRepository) {}
 
-  async execute(quantity: number, lastId?: number): Promise<Posts[]> {
+  async execute(quantity: number, lastId?: number): Promise<Post[]> {
     this.logger.log({ message: 'Listing batch of Posts' });
     if (!lastId) {
       return this.listFirstPosts(quantity);
@@ -18,7 +18,7 @@ export class ListFirstPostsService {
       return this.listNextPosts(lastId, quantity);
     }
   }
-  async listFirstPosts(quantity: number): Promise<Posts[]> {
+  async listFirstPosts(quantity: number): Promise<Post[]> {
     try {
       const posts = await this.postRepository.listPosts(quantity);
       if (!posts) {
@@ -37,7 +37,7 @@ export class ListFirstPostsService {
     }
   }
 
-  async listNextPosts(lastId: number, quantity: number): Promise<Posts[]> {
+  async listNextPosts(lastId: number, quantity: number): Promise<Post[]> {
     try {
       const posts = await this.postRepository.listNextPosts(lastId, quantity);
       if (!posts) {

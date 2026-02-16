@@ -1,36 +1,41 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { PostController } from '../posts.controller';
-import { PostPostsService } from '../services/post-posts.service';
-import { ListFirstPostsService } from '../services/list-first-posts.service';
+import { PostsController } from '../posts.controller';
+import { PostPostService } from '../services/post-post.service';
+import { ListFirstPostService } from '../services/list-first-post.service';
 import { DeletePostService } from '../services/delete-post.service';
 import { ListPostChildrenService } from '../services/list-post-children.service';
-import { Posts } from '../entities/posts.entity';
+import { Post } from '../entities/post.entity';
 import { PostDto } from '../dto/post.dto';
 import { CreatePostDto } from '../dto/create-post.dto';
 import { AuthUser } from '../../common/guards/auth.guard';
-import { NotFoundPostException } from '../exceptions/not-found-posts.exception';
+import { NotFoundPostException } from '../exceptions/not-found-post.exception';
 import { UnauthorizedPostException } from '../exceptions/unauthorized-post.exception';
 
-describe('PostController', () => {
-  let controller: PostController;
-  let createPostService: PostPostsService;
-  let listFirstPostsService: ListFirstPostsService;
+describe('PostsController', () => {
+  let controller: PostsController;
+  let createPostService: PostPostService;
+  let listFirstPostsService: ListFirstPostService;
   let deletePostService: DeletePostService;
   let listPostChildrenService: ListPostChildrenService;
 
-  const mockCreatePostService = {
+  const mockCreatePostService: jest.Mocked<Pick<PostPostService, 'execute'>> = {
     execute: jest.fn(),
   };
 
-  const mockListFirstPostsService = {
+  const mockListFirstPostsService: jest.Mocked<
+    Pick<ListFirstPostService, 'execute'>
+  > = {
     execute: jest.fn(),
   };
 
-  const mockDeletePostService = {
-    execute: jest.fn(),
-  };
+  const mockDeletePostService: jest.Mocked<Pick<DeletePostService, 'execute'>> =
+    {
+      execute: jest.fn(),
+    };
 
-  const mockListPostChildrenService = {
+  const mockListPostChildrenService: jest.Mocked<
+    Pick<ListPostChildrenService, 'execute'>
+  > = {
     execute: jest.fn(),
   };
 
@@ -46,7 +51,7 @@ describe('PostController', () => {
     userVersion: null,
   };
 
-  const mockPost = new Posts(
+  const mockPost = new Post(
     1,
     new Date('2025-03-10T12:30:00.000Z'),
     'Test Post',
@@ -59,7 +64,7 @@ describe('PostController', () => {
 
   const mockPosts = [
     mockPost,
-    new Posts(
+    new Post(
       2,
       new Date('2025-03-11T12:30:00.000Z'),
       'Test Post 2',
@@ -73,14 +78,14 @@ describe('PostController', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      controllers: [PostController],
+      controllers: [PostsController],
       providers: [
         {
-          provide: PostPostsService,
+          provide: PostPostService,
           useValue: mockCreatePostService,
         },
         {
-          provide: ListFirstPostsService,
+          provide: ListFirstPostService,
           useValue: mockListFirstPostsService,
         },
         {
@@ -94,11 +99,10 @@ describe('PostController', () => {
       ],
     }).compile();
 
-    controller = module.get<PostController>(PostController);
-    createPostService = module.get<PostPostsService>(PostPostsService);
-    listFirstPostsService = module.get<ListFirstPostsService>(
-      ListFirstPostsService,
-    );
+    controller = module.get<PostsController>(PostsController);
+    createPostService = module.get<PostPostService>(PostPostService);
+    listFirstPostsService =
+      module.get<ListFirstPostService>(ListFirstPostService);
     deletePostService = module.get<DeletePostService>(DeletePostService);
     listPostChildrenService = module.get<ListPostChildrenService>(
       ListPostChildrenService,

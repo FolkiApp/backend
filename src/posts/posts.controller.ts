@@ -8,21 +8,27 @@ import {
   Param,
 } from '@nestjs/common';
 import { Auth } from '../common/decorators/auth.decorator';
-import { ApiBearerAuth, ApiOperation, ApiQuery } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiQuery,
+  ApiResponse,
+} from '@nestjs/swagger';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import type { AuthUser } from '../common/guards/auth.guard';
-import { PostPostsService } from './services/post-posts.service';
+import { PostPostService } from './services/post-post.service';
 import { PostDto } from './dto/post.dto';
 import { CreatePostDto } from './dto/create-post.dto';
-import { ListFirstPostsService } from './services/list-first-posts.service';
+import { ListFirstPostService } from './services/list-first-post.service';
 import { DeletePostService } from './services/delete-post.service';
 import { ListPostChildrenService } from './services/list-post-children.service';
+import { ListPostResponseDto } from './dto/list-post-response.dto';
 
 @Controller()
-export class PostController {
+export class PostsController {
   constructor(
-    private readonly createPostService: PostPostsService,
-    private readonly listFirstPostsService: ListFirstPostsService,
+    private readonly createPostService: PostPostService,
+    private readonly listFirstPostService: ListFirstPostService,
     private readonly deletePostService: DeletePostService,
     private readonly listPostChildrenService: ListPostChildrenService,
   ) {}
@@ -65,13 +71,18 @@ export class PostController {
     summary: 'Listar o primeiro batch de posts',
     description: 'Lista os primeiros N posts',
   })
+  @ApiResponse({
+    status: 200,
+    description: 'Lista de posts retornada com sucesso',
+    type: ListPostResponseDto,
+  })
   @ApiQuery({ name: 'lastId', required: false, type: Number })
   @ApiQuery({ name: 'quantity', required: true, type: Number })
   async listFirstPosts(
     @Query('quantity') quantity: number,
     @Query('lastId') lastId?: number,
   ): Promise<{ posts: PostDto[]; nextId: number | null }> {
-    const posts = await this.listFirstPostsService.execute(
+    const posts = await this.listFirstPostService.execute(
       Number(quantity),
       lastId ? Number(lastId) : undefined,
     );

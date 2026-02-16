@@ -1,17 +1,19 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { DeletePostService } from '../services/delete-post.service';
-import { PostsRepository } from '../repositories/posts.repository';
-import { Posts } from '../entities/posts.entity';
-import { NotFoundPostException } from '../exceptions/not-found-posts.exception';
+import { PostRepository } from '../repositories/post.repository';
+import { Post } from '../entities/post.entity';
+import { NotFoundPostException } from '../exceptions/not-found-post.exception';
 import { UnauthorizedPostException } from '../exceptions/unauthorized-post.exception';
 import { PostInternalErrorException } from '../exceptions/post-internal-error.exception';
 import { AuthUser } from '../../common/guards/auth.guard';
 
 describe('DeletePostService', () => {
   let service: DeletePostService;
-  let postsRepository: PostsRepository;
+  let postsRepository: PostRepository;
 
-  const mockPostsRepository = {
+  const mockPostsRepository: jest.Mocked<
+    Pick<PostRepository, 'getPostById' | 'deletePost'>
+  > = {
     getPostById: jest.fn(),
     deletePost: jest.fn(),
   };
@@ -28,7 +30,7 @@ describe('DeletePostService', () => {
     userVersion: null,
   };
 
-  const mockPost = new Posts(
+  const mockPost = new Post(
     1,
     new Date('2025-03-10T12:30:00.000Z'),
     'Test Post',
@@ -44,14 +46,14 @@ describe('DeletePostService', () => {
       providers: [
         DeletePostService,
         {
-          provide: PostsRepository,
+          provide: PostRepository,
           useValue: mockPostsRepository,
         },
       ],
     }).compile();
 
     service = module.get<DeletePostService>(DeletePostService);
-    postsRepository = module.get<PostsRepository>(PostsRepository);
+    postsRepository = module.get<PostRepository>(PostRepository);
 
     jest.clearAllMocks();
   });
@@ -125,8 +127,9 @@ describe('DeletePostService', () => {
         fail('Should have thrown an exception');
       } catch (error) {
         expect(error).toBeInstanceOf(NotFoundPostException);
-        const typedError = error as NotFoundPostException;
-        expect(typedError.code).toBe('NOT_FOUND_POSTS_EXCEPTION');
+        if (error instanceof NotFoundPostException) {
+          expect(error.code).toBe('NOT_FOUND_POSTS_EXCEPTION');
+        }
       }
     });
 

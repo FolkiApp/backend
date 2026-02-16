@@ -1,19 +1,19 @@
 import { PrismaModule } from 'src/prisma/prisma.module';
-import { PostController } from './posts.controller';
+import { PostsController } from './posts.controller';
 import { Module } from '@nestjs/common';
-import { PostPostsService } from './services/post-posts.service';
-import { PostsRepository } from './repositories/posts.repository';
-import { ListFirstPostsService } from './services/list-first-posts.service';
+import { PostPostService } from './services/post-post.service';
+import { PostRepository } from './repositories/post.repository';
+import { ListFirstPostService } from './services/list-first-post.service';
 import { DeletePostService } from './services/delete-post.service';
 import { ListPostChildrenService } from './services/list-post-children.service';
 
 @Module({
   imports: [PrismaModule],
-  controllers: [PostController],
+  controllers: [PostsController],
   providers: [
-    PostPostsService,
-    PostsRepository,
-    ListFirstPostsService,
+    PostPostService,
+    PostRepository,
+    ListFirstPostService,
     DeletePostService,
     ListPostChildrenService,
   ],

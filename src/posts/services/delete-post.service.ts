@@ -1,16 +1,16 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { AuthUser } from '../../common/guards/auth.guard';
-import { PostsRepository } from '../repositories/posts.repository';
+import { PostRepository } from '../repositories/post.repository';
 import { PostInternalErrorException } from '../exceptions/post-internal-error.exception';
-import { NotFoundPostException } from '../exceptions/not-found-posts.exception';
+import { NotFoundPostException } from '../exceptions/not-found-post.exception';
 import { UnauthorizedPostException } from '../exceptions/unauthorized-post.exception';
-import { Posts } from '../entities/posts.entity';
+import { Post } from '../entities/post.entity';
 
 @Injectable()
 export class DeletePostService {
   private readonly logger = new Logger(DeletePostService.name);
 
-  constructor(private readonly postsRepository: PostsRepository) {}
+  constructor(private readonly postsRepository: PostRepository) {}
 
   async execute(postId: number, user: AuthUser): Promise<void> {
     this.logger.log({ message: 'Deleting Post', postId, userId: user.id });
@@ -42,7 +42,7 @@ export class DeletePostService {
     }
   }
 
-  private verifyUserAuthorship(post: Posts, userId: number): void {
+  private verifyUserAuthorship(post: Post, userId: number): void {
     try {
       if (post.userId !== userId) {
         throw new UnauthorizedPostException();

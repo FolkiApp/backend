@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import type { Message } from '@aws-sdk/client-sqs';
 import { WeeklyImportantDateSqsConsumer } from '../consumers/weekly-important-date-sqs.consumer';
 import { UserRepository } from '../../users/repositories/user.repository';
-import { ImportantDateRepository } from '../../important-dates/repositories/important-date.repository';
+import { ImportantDateRepository } from '../../importantdates/repositories/important-date.repository';
 import { NotificationQueueService } from '../services/notification-queue.service';
 import { CustomLogger } from '../../common/logger/custom-logger.service';
 

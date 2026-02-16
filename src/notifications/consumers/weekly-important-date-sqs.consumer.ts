@@ -4,8 +4,8 @@ import type { Message } from '@aws-sdk/client-sqs';
 import { CustomLogger } from '../../common/logger/custom-logger.service';
 import { UserRepository } from '../../users/repositories/user.repository';
 import { NotificationQueueService } from '../services/notification-queue.service';
-import { ImportantDateRepository } from '../../important-dates/repositories/important-date.repository';
-import type { WeeklyImportantDate } from '../../important-dates/repositories/important-date.repository';
+import { ImportantDateRepository } from '../../importantdates/repositories/important-date.repository';
+import type { WeeklyImportantDate } from '../../importantdates/repositories/important-date.repository';
 
 @Injectable()
 export class WeeklyImportantDateSqsConsumer {

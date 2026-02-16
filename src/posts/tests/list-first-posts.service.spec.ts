@@ -1,20 +1,20 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { ListFirstPostsService } from '../services/list-first-posts.service';
-import { PostsRepository } from '../repositories/posts.repository';
-import { Posts } from '../entities/posts.entity';
-import { NotFoundPostException } from '../exceptions/not-found-posts.exception';
+import { ListFirstPostService } from '../services/list-first-post.service';
+import { PostRepository } from '../repositories/post.repository';
+import { Post } from '../entities/post.entity';
+import { NotFoundPostException } from '../exceptions/not-found-post.exception';
 import { PostInternalErrorException } from '../exceptions/post-internal-error.exception';
 
-describe('ListFirstPostsService', () => {
-  let service: ListFirstPostsService;
-  let postsRepository: PostsRepository;
+describe('ListFirstPostService', () => {
+  let service: ListFirstPostService;
+  let postsRepository: PostRepository;
 
-  const mockPostsRepository = {
+  const mockPostsRepository: jest.Mocked<Pick<PostRepository, 'listPosts'>> = {
     listPosts: jest.fn(),
   };
 
-  const mockPosts: Posts[] = [
-    new Posts(
+  const mockPosts: Post[] = [
+    new Post(
       3,
       new Date('2025-03-12T12:30:00.000Z'),
       'Third Post',
@@ -24,7 +24,7 @@ describe('ListFirstPostsService', () => {
       0,
       ['tag3'],
     ),
-    new Posts(
+    new Post(
       2,
       new Date('2025-03-11T12:30:00.000Z'),
       'Second Post',
@@ -34,7 +34,7 @@ describe('ListFirstPostsService', () => {
       5,
       ['tag2'],
     ),
-    new Posts(
+    new Post(
       1,
       new Date('2025-03-10T12:30:00.000Z'),
       'First Post',
@@ -49,16 +49,16 @@ describe('ListFirstPostsService', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
-        ListFirstPostsService,
+        ListFirstPostService,
         {
-          provide: PostsRepository,
+          provide: PostRepository,
           useValue: mockPostsRepository,
         },
       ],
     }).compile();
 
-    service = module.get<ListFirstPostsService>(ListFirstPostsService);
-    postsRepository = module.get<PostsRepository>(PostsRepository);
+    service = module.get<ListFirstPostService>(ListFirstPostService);
+    postsRepository = module.get<PostRepository>(PostRepository);
 
     jest.clearAllMocks();
   });
@@ -97,9 +97,12 @@ describe('ListFirstPostsService', () => {
         new Error('Database error'),
       );
 
-      await expect(service.execute(10)).rejects.toThrow(
-        PostInternalErrorException,
-      );
+      try {
+        await service.execute(10);
+        fail('Should have thrown an error');
+      } catch (error) {
+        expect(error).toBeInstanceOf(PostInternalErrorException);
+      }
     });
 
     it('should use default quantity when not specified', async () => {
@@ -186,8 +189,9 @@ describe('ListFirstPostsService', () => {
         fail('Should have thrown an exception');
       } catch (error) {
         expect(error).toBeInstanceOf(NotFoundPostException);
-        const typedError = error as NotFoundPostException;
-        expect(typedError.code).toBe('NOT_FOUND_POSTS_EXCEPTION');
+        if (error instanceof NotFoundPostException) {
+          expect(error.code).toBe('NOT_FOUND_POSTS_EXCEPTION');
+        }
       }
     });
   });

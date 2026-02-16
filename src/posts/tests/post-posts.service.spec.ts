@@ -1,17 +1,19 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { PostPostsService } from '../services/post-posts.service';
-import { PostsRepository } from '../repositories/posts.repository';
-import { Posts } from '../entities/posts.entity';
+import { PostPostService } from '../services/post-post.service';
+import { PostRepository } from '../repositories/post.repository';
+import { Post } from '../entities/post.entity';
 import { EmptyPostException } from '../exceptions/empty-post.exception';
 import { PostInternalErrorException } from '../exceptions/post-internal-error.exception';
 import { AuthUser } from '../../common/guards/auth.guard';
-import { NotFoundPostException } from '../exceptions/not-found-posts.exception';
+import { NotFoundPostException } from '../exceptions/not-found-post.exception';
 
-describe('PostPostsService', () => {
-  let service: PostPostsService;
-  let postsRepository: PostsRepository;
+describe('PostPostService', () => {
+  let service: PostPostService;
+  let postsRepository: PostRepository;
 
-  const mockPostsRepository = {
+  const mockPostsRepository: jest.Mocked<
+    Pick<PostRepository, 'createPost' | 'getPostById'>
+  > = {
     createPost: jest.fn(),
     getPostById: jest.fn(),
   };
@@ -28,7 +30,7 @@ describe('PostPostsService', () => {
     userVersion: null,
   };
 
-  const mockPost = new Posts(
+  const mockPost = new Post(
     1,
     new Date('2025-03-10T12:30:00.000Z'),
     'Test Post',
@@ -42,16 +44,16 @@ describe('PostPostsService', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
-        PostPostsService,
+        PostPostService,
         {
-          provide: PostsRepository,
+          provide: PostRepository,
           useValue: mockPostsRepository,
         },
       ],
     }).compile();
 
-    service = module.get<PostPostsService>(PostPostsService);
-    postsRepository = module.get<PostsRepository>(PostsRepository);
+    service = module.get<PostPostService>(PostPostService);
+    postsRepository = module.get<PostRepository>(PostRepository);
 
     jest.clearAllMocks();
   });
@@ -133,7 +135,7 @@ describe('PostPostsService', () => {
     it('should handle tags in post creation', async () => {
       const tags = ['tag1', 'tag2', 'tag3'];
       mockPostsRepository.createPost.mockResolvedValue(
-        new Posts(1, new Date(), 'Test Post', 'Test Content', 1, null, 0, tags),
+        new Post(1, new Date(), 'Test Post', 'Test Content', 1, null, 0, tags),
       );
 
       const result = await service.execute(

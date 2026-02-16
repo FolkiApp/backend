@@ -1,20 +1,22 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ListPostChildrenService } from '../services/list-post-children.service';
-import { PostsRepository } from '../repositories/posts.repository';
-import { Posts } from '../entities/posts.entity';
-import { NotFoundPostException } from '../exceptions/not-found-posts.exception';
+import { PostRepository } from '../repositories/post.repository';
+import { Post } from '../entities/post.entity';
+import { NotFoundPostException } from '../exceptions/not-found-post.exception';
 import { PostInternalErrorException } from '../exceptions/post-internal-error.exception';
 
 describe('ListPostChildrenService', () => {
   let service: ListPostChildrenService;
-  let postsRepository: PostsRepository;
+  let postsRepository: PostRepository;
 
-  const mockPostsRepository = {
+  const mockPostsRepository: jest.Mocked<
+    Pick<PostRepository, 'getPostById' | 'listChildrenByParentId'>
+  > = {
     getPostById: jest.fn(),
     listChildrenByParentId: jest.fn(),
   };
 
-  const mockParent = new Posts(
+  const mockParent: Post = new Post(
     1,
     new Date('2025-03-10T12:30:00.000Z'),
     'Parent Post',
@@ -26,17 +28,17 @@ describe('ListPostChildrenService', () => {
   );
 
   const mockChildren: Posts[] = [
-    new Posts(
+    new Post(
       2,
-      new Date('2025-03-10T12:31:00.000Z'),
-      'Child Post 1',
+      new Date('2025-03-11T12:30:00.000Z'),
+      'Child 1',
       'Child Content 1',
-      2,
+      1,
       1,
       0,
       ['tag2'],
     ),
-    new Posts(
+    new Post(
       3,
       new Date('2025-03-10T12:32:00.000Z'),
       'Child Post 2',
@@ -53,14 +55,14 @@ describe('ListPostChildrenService', () => {
       providers: [
         ListPostChildrenService,
         {
-          provide: PostsRepository,
+          provide: PostRepository,
           useValue: mockPostsRepository,
         },
       ],
     }).compile();
 
     service = module.get<ListPostChildrenService>(ListPostChildrenService);
-    postsRepository = module.get<PostsRepository>(PostsRepository);
+    postsRepository = module.get<PostRepository>(PostRepository);
 
     jest.clearAllMocks();
   });

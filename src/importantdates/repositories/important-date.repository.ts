@@ -4,6 +4,14 @@ import { ImportantDate } from '../entities/important-date.entity';
 import { ImportantDateType } from '../entities/important-date-type.entity';
 import { CreateImportantDateDataDto } from '../dtos/create-important-date-data.dto';
 
+export type WeeklyImportantDate = {
+  id: number;
+  name: string;
+  date: Date;
+  universityId: number | null;
+  campusId: number | null;
+};
+
 @Injectable()
 export class ImportantDateRepository {
   constructor(private readonly prisma: PrismaService) {}
@@ -49,5 +57,30 @@ export class ImportantDateRepository {
     await this.prisma.important_date.delete({
       where: { id: importantDateId },
     });
+  }
+
+  async findDayOffBetweenDates(
+    startDate: Date,
+    endDate: Date,
+  ): Promise<WeeklyImportantDate[]> {
+    const dates = await this.prisma.important_date.findMany({
+      where: {
+        type: 'DAY_OFF',
+        date: {
+          gte: startDate,
+          lte: endDate,
+        },
+      },
+      select: {
+        id: true,
+        name: true,
+        date: true,
+        universityId: true,
+        campusId: true,
+      },
+      orderBy: { date: 'asc' },
+    });
+
+    return dates;
   }
 }

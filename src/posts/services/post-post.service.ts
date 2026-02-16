@@ -1,16 +1,16 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { AuthUser } from '../../common/guards/auth.guard';
-import { PostsRepository } from '../repositories/posts.repository';
-import { Posts } from '../entities/posts.entity';
+import { PostRepository } from '../repositories/post.repository';
+import { Post } from '../entities/post.entity';
 import { PostInternalErrorException } from '../exceptions/post-internal-error.exception';
 import { EmptyPostException } from '../exceptions/empty-post.exception';
-import { NotFoundPostException } from '../exceptions/not-found-posts.exception';
+import { NotFoundPostException } from '../exceptions/not-found-post.exception';
 
 @Injectable()
-export class PostPostsService {
-  private readonly logger = new Logger(PostPostsService.name);
+export class PostPostService {
+  private readonly logger = new Logger(PostPostService.name);
 
-  constructor(private readonly postRepository: PostsRepository) {}
+  constructor(private readonly postRepository: PostRepository) {}
 
   async execute(
     title: string,
@@ -18,7 +18,7 @@ export class PostPostsService {
     user: AuthUser,
     tags: string[],
     parentId?: number,
-  ): Promise<Posts> {
+  ): Promise<Post> {
     this.logger.log({ message: 'Creating Post' });
     return this.createPost(title, content, user.id, tags, parentId);
   }
@@ -28,7 +28,7 @@ export class PostPostsService {
     userId: number,
     tags: string[],
     parentId?: number,
-  ): Promise<Posts> {
+  ): Promise<Post> {
     if (!title?.trim() || !content?.trim()) {
       throw new EmptyPostException();
     }
