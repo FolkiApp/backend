@@ -17,5 +17,6 @@ import { DeleteImportantDateService } from './services/delete-important-date.ser
     ImportantDateRepository,
     InstituteRepository,
   ],
+  exports: [ImportantDateRepository],
 })
 export class ImportantDateModule {}

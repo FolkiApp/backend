@@ -9,14 +9,14 @@ import { NotificationsController } from './notifications.controller';
 import { SubjectsModule } from '../subjects/subjects.module';
 import { ActivitiesModule } from '../activities/activities.module';
 import { UsersModule } from '../users/users.module';
-import { ImportantDatesModule } from '../important-dates/important-dates.module';
+import { ImportantDateModule } from '../importantdates/important-date.module';
 
 @Module({
   imports: [
     SubjectsModule,
     forwardRef(() => ActivitiesModule),
     UsersModule,
-    ImportantDatesModule,
+    ImportantDateModule,
   ],
   controllers: [NotificationsController],
   providers: [
