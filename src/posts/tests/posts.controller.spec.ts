@@ -4,6 +4,7 @@ import { PostPostService } from '../services/post-post.service';
 import { ListFirstPostService } from '../services/list-first-post.service';
 import { DeletePostService } from '../services/delete-post.service';
 import { ListPostChildrenService } from '../services/list-post-children.service';
+import { GetPostByIdService } from '../services/get-post-by-id.service';
 import { Post } from '../entities/post.entity';
 import { PostDto } from '../dto/post.dto';
 import { CreatePostDto } from '../dto/create-post.dto';
@@ -35,6 +36,12 @@ describe('PostsController', () => {
 
   const mockListPostChildrenService: jest.Mocked<
     Pick<ListPostChildrenService, 'execute'>
+  > = {
+    execute: jest.fn(),
+  };
+
+  const mockGetPostByIdService: jest.Mocked<
+    Pick<GetPostByIdService, 'execute'>
   > = {
     execute: jest.fn(),
   };
@@ -97,6 +104,10 @@ describe('PostsController', () => {
         {
           provide: ListPostChildrenService,
           useValue: mockListPostChildrenService,
+        },
+        {
+          provide: GetPostByIdService,
+          useValue: mockGetPostByIdService,
         },
       ],
     }).compile();

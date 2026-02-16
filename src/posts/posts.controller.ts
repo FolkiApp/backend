@@ -22,6 +22,7 @@ import { CreatePostDto } from './dto/create-post.dto';
 import { ListFirstPostService } from './services/list-first-post.service';
 import { DeletePostService } from './services/delete-post.service';
 import { ListPostChildrenService } from './services/list-post-children.service';
+import { GetPostByIdService } from './services/get-post-by-id.service';
 import { ListPostResponseDto } from './dto/list-post-response.dto';
 
 @Controller()
@@ -31,6 +32,7 @@ export class PostsController {
     private readonly listFirstPostService: ListFirstPostService,
     private readonly deletePostService: DeletePostService,
     private readonly listPostChildrenService: ListPostChildrenService,
+    private readonly getPostByIdService: GetPostByIdService,
   ) {}
 
   @Post('posts')
@@ -149,5 +151,32 @@ export class PostsController {
   ): Promise<{ message: string }> {
     await this.deletePostService.execute(Number(id), authUser);
     return { message: 'Post deleted successfully' };
+  }
+
+  @Get('posts/:id')
+  @Auth()
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Buscar post por ID',
+    description: 'Retorna um post específico pelo ID',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Post retornado com sucesso',
+    type: PostDto,
+  })
+  async getPost(@Param('id') id: number): Promise<PostDto> {
+    const post = await this.getPostByIdService.execute(Number(id));
+
+    return new PostDto(
+      post.id,
+      post.postDate,
+      post.content,
+      post.userId,
+      post.userName,
+      post.parentId ?? null,
+      post.commentsCount,
+      post.tags,
+    );
   }
 }

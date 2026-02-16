@@ -48,4 +48,12 @@ export class SendNotificationDto {
   @IsNumber({}, { each: true })
   @IsNotEmpty()
   userIds: number[];
+
+  @ApiPropertyOptional({
+    description:
+      'Dados adicionais para navegação (ex: postId para abrir um post específico)',
+    example: { postId: '123', type: 'comment' },
+  })
+  @IsOptional()
+  data?: Record<string, any>;
 }

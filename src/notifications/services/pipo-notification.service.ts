@@ -7,6 +7,7 @@ interface SendNotificationDto {
   message: string;
   playerIds: string[];
   idempotencyId?: string;
+  data?: Record<string, any>;
 }
 
 @Injectable()
@@ -34,7 +35,7 @@ export class PipoNotificationService {
 
   async sendNotification(dto: SendNotificationDto): Promise<void> {
     try {
-      const { idempotencyId, title, message, playerIds } = dto;
+      const { idempotencyId, title, message, playerIds, data } = dto;
       const isConfigured = this.verifyConfiguration();
 
       if (!isConfigured) {
@@ -56,6 +57,7 @@ export class PipoNotificationService {
         contents: { en: message },
         include_player_ids: playerIds,
         external_id: idempotencyId,
+        ...(data ? { data } : {}),
       };
 
       this.logger.log({
