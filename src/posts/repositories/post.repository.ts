@@ -7,7 +7,6 @@ export class PostRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   async createPost(
-    title: string,
     content: string,
     userId: number,
     universityId: number | null,
@@ -17,7 +16,6 @@ export class PostRepository {
     const post = await this.prisma.$transaction(async (tx) => {
       const created = await tx.post.create({
         data: {
-          title,
           content,
           userId,
           universityId,
@@ -54,7 +52,6 @@ export class PostRepository {
     return new Post(
       post.id,
       post.postDate,
-      post.title,
       post.content,
       post.userId,
       userName,
@@ -102,7 +99,6 @@ export class PostRepository {
       return new Post(
         post.id,
         post.postDate,
-        post.title,
         post.content,
         post.userId,
         userName,
@@ -154,7 +150,6 @@ export class PostRepository {
       return new Post(
         post.id,
         post.postDate,
-        post.title,
         post.content,
         post.userId,
         userName,
@@ -188,7 +183,6 @@ export class PostRepository {
       return new Post(
         post.id,
         post.postDate,
-        post.title,
         post.content,
         post.userId,
         userName,
@@ -226,7 +220,6 @@ export class PostRepository {
     return new Post(
       post.id,
       post.postDate,
-      post.title,
       post.content,
       post.userId,
       userName,

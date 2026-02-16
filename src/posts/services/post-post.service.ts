@@ -13,31 +13,22 @@ export class PostPostService {
   constructor(private readonly postRepository: PostRepository) {}
 
   async execute(
-    title: string,
     content: string,
     user: AuthUser,
     tags: string[],
     parentId?: number,
   ): Promise<Post> {
     this.logger.log({ message: 'Creating Post' });
-    return this.createPost(
-      title,
-      content,
-      user.id,
-      user.universityId,
-      tags,
-      parentId,
-    );
+    return this.createPost(content, user.id, user.universityId, tags, parentId);
   }
   async createPost(
-    title: string,
     content: string,
     userId: number,
     universityId: number | null,
     tags: string[],
     parentId?: number,
   ): Promise<Post> {
-    if (!title?.trim() || !content?.trim()) {
+    if (!content?.trim()) {
       throw new EmptyPostException();
     }
     try {
@@ -48,7 +39,6 @@ export class PostPostService {
         }
       }
       const post = await this.postRepository.createPost(
-        title,
         content,
         userId,
         universityId,

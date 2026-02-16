@@ -19,34 +19,37 @@ describe('ListPostChildrenService', () => {
   const mockParent: Post = new Post(
     1,
     new Date('2025-03-10T12:30:00.000Z'),
-    'Parent Post',
     'Parent Content',
     1,
+    'Test User',
     null,
     2,
     ['tag1'],
+    null,
   );
 
-  const mockChildren: Posts[] = [
+  const mockChildren: Post[] = [
     new Post(
       2,
       new Date('2025-03-11T12:30:00.000Z'),
-      'Child 1',
       'Child Content 1',
       1,
+      'Test User',
       1,
       0,
       ['tag2'],
+      null,
     ),
     new Post(
       3,
       new Date('2025-03-10T12:32:00.000Z'),
-      'Child Post 2',
       'Child Content 2',
       3,
+      'Another User',
       1,
       0,
       ['tag3'],
+      null,
     ),
   ];
 

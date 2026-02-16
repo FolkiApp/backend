@@ -54,7 +54,6 @@ describe('PostsController', () => {
   const mockPost = new Post(
     1,
     new Date('2025-03-10T12:30:00.000Z'),
-    'Test Post',
     'Test Content',
     1,
     'Test User',
@@ -69,7 +68,6 @@ describe('PostsController', () => {
     new Post(
       2,
       new Date('2025-03-11T12:30:00.000Z'),
-      'Test Post 2',
       'Test Content 2',
       2,
       'Another User',
@@ -122,7 +120,6 @@ describe('PostsController', () => {
   describe('postPost', () => {
     it('should create a post successfully', async () => {
       const createPostDto: CreatePostDto = {
-        title: 'Test Post',
         content: 'Test Content',
         tags: ['tag1', 'tag2'],
         parentId: undefined,
@@ -134,10 +131,8 @@ describe('PostsController', () => {
 
       expect(result).toBeInstanceOf(PostDto);
       expect(result.id).toBe(1);
-      expect(result.title).toBe('Test Post');
       expect(result.content).toBe('Test Content');
       expect(createPostService.execute).toHaveBeenCalledWith(
-        'Test Post',
         'Test Content',
         mockAuthUser,
         ['tag1', 'tag2'],
@@ -147,7 +142,6 @@ describe('PostsController', () => {
 
     it('should return PostDto with all properties', async () => {
       const createPostDto: CreatePostDto = {
-        title: 'Test Post',
         content: 'Test Content',
         tags: ['tag1'],
         parentId: undefined,

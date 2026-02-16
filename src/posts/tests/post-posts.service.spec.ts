@@ -65,11 +65,11 @@ describe('PostPostService', () => {
   });
 
   describe('execute', () => {
-    it('should create a post successfully with valid title and content', async () => {
+    it('should create a post successfully with valid content', async () => {
       mockPostsRepository.createPost.mockResolvedValue(mockPost);
+      mockPostsRepository.getPostById.mockResolvedValue(null);
 
       const result = await service.execute(
-        'Test Post',
         'Test Content',
         mockAuthUser,
         ['tag1', 'tag2'],
@@ -78,7 +78,6 @@ describe('PostPostService', () => {
 
       expect(result).toEqual(mockPost);
       expect(postsRepository.createPost).toHaveBeenCalledWith(
-        'Test Post',
         'Test Content',
         1,
         null,
@@ -87,25 +86,9 @@ describe('PostPostService', () => {
       );
     });
 
-    it('should throw EmptyPostException when title is empty', async () => {
-      await expect(
-        service.execute('', 'Test Content', mockAuthUser, [], undefined),
-      ).rejects.toThrow(EmptyPostException);
-
-      expect(postsRepository.createPost).not.toHaveBeenCalled();
-    });
-
     it('should throw EmptyPostException when content is empty', async () => {
       await expect(
-        service.execute('Test Post', '', mockAuthUser, [], undefined),
-      ).rejects.toThrow(EmptyPostException);
-
-      expect(postsRepository.createPost).not.toHaveBeenCalled();
-    });
-
-    it('should throw EmptyPostException when title is only whitespace', async () => {
-      await expect(
-        service.execute('   ', 'Test Content', mockAuthUser, [], undefined),
+        service.execute('', mockAuthUser, [], undefined),
       ).rejects.toThrow(EmptyPostException);
 
       expect(postsRepository.createPost).not.toHaveBeenCalled();
@@ -113,7 +96,7 @@ describe('PostPostService', () => {
 
     it('should throw EmptyPostException when content is only whitespace', async () => {
       await expect(
-        service.execute('Test Post', '   ', mockAuthUser, [], undefined),
+        service.execute('   ', mockAuthUser, [], undefined),
       ).rejects.toThrow(EmptyPostException);
 
       expect(postsRepository.createPost).not.toHaveBeenCalled();
@@ -123,15 +106,10 @@ describe('PostPostService', () => {
       mockPostsRepository.createPost.mockRejectedValue(
         new Error('Database error'),
       );
+      mockPostsRepository.getPostById.mockResolvedValue(null);
 
       await expect(
-        service.execute(
-          'Test Post',
-          'Test Content',
-          mockAuthUser,
-          [],
-          undefined,
-        ),
+        service.execute('Test Content', mockAuthUser, [], undefined),
       ).rejects.toThrow(PostInternalErrorException);
     });
 
@@ -141,7 +119,6 @@ describe('PostPostService', () => {
         new Post(
           1,
           new Date(),
-          'Test Post',
           'Test Content',
           1,
           'Test User',
@@ -151,9 +128,9 @@ describe('PostPostService', () => {
           null,
         ),
       );
+      mockPostsRepository.getPostById.mockResolvedValue(null);
 
       const result = await service.execute(
-        'Test Post',
         'Test Content',
         mockAuthUser,
         tags,
@@ -162,7 +139,6 @@ describe('PostPostService', () => {
 
       expect(result.tags).toEqual(tags);
       expect(postsRepository.createPost).toHaveBeenCalledWith(
-        'Test Post',
         'Test Content',
         1,
         null,
@@ -173,17 +149,11 @@ describe('PostPostService', () => {
 
     it('should create post with empty tags array', async () => {
       mockPostsRepository.createPost.mockResolvedValue(mockPost);
+      mockPostsRepository.getPostById.mockResolvedValue(null);
 
-      await service.execute(
-        'Test Post',
-        'Test Content',
-        mockAuthUser,
-        [],
-        undefined,
-      );
+      await service.execute('Test Content', mockAuthUser, [], undefined);
 
       expect(postsRepository.createPost).toHaveBeenCalledWith(
-        'Test Post',
         'Test Content',
         1,
         null,
@@ -196,17 +166,10 @@ describe('PostPostService', () => {
       mockPostsRepository.getPostById.mockResolvedValue(mockPost);
       mockPostsRepository.createPost.mockResolvedValue(mockPost);
 
-      await service.execute(
-        'Child Post',
-        'Child Content',
-        mockAuthUser,
-        [],
-        10,
-      );
+      await service.execute('Child Content', mockAuthUser, [], 10);
 
       expect(postsRepository.getPostById).toHaveBeenCalledWith(10);
       expect(postsRepository.createPost).toHaveBeenCalledWith(
-        'Child Post',
         'Child Content',
         1,
         null,
@@ -219,7 +182,7 @@ describe('PostPostService', () => {
       mockPostsRepository.getPostById.mockResolvedValue(null);
 
       await expect(
-        service.execute('Child Post', 'Child Content', mockAuthUser, [], 999),
+        service.execute('Child Content', mockAuthUser, [], 999),
       ).rejects.toThrow(NotFoundPostException);
 
       expect(postsRepository.createPost).not.toHaveBeenCalled();
@@ -229,11 +192,12 @@ describe('PostPostService', () => {
   describe('createPost', () => {
     it('should create post with valid parameters', async () => {
       mockPostsRepository.createPost.mockResolvedValue(mockPost);
+      mockPostsRepository.getPostById.mockResolvedValue(null);
 
       const result = await service.createPost(
-        'Test Post',
         'Test Content',
         1,
+        null,
         ['tag1'],
         undefined,
       );
@@ -241,60 +205,24 @@ describe('PostPostService', () => {
       expect(result).toEqual(mockPost);
     });
 
-    it('should throw EmptyPostException for empty title', async () => {
-      await expect(
-        service.createPost('', 'Test Content', 1, [], undefined),
-      ).rejects.toThrow(EmptyPostException);
-    });
-
     it('should throw EmptyPostException for empty content', async () => {
       await expect(
-        service.createPost('Test Post', '', 1, [], undefined),
-      ).rejects.toThrow(EmptyPostException);
-    });
-
-    it('should throw EmptyPostException for null title', async () => {
-      await expect(
-        service.createPost(
-          null as unknown as string,
-          'Test Content',
-          1,
-          [],
-          undefined,
-        ),
+        service.createPost('', 1, null, [], undefined),
       ).rejects.toThrow(EmptyPostException);
     });
 
     it('should throw EmptyPostException for null content', async () => {
       await expect(
-        service.createPost(
-          'Test Post',
-          null as unknown as string,
-          1,
-          [],
-          undefined,
-        ),
-      ).rejects.toThrow(EmptyPostException);
-    });
-
-    it('should throw EmptyPostException for undefined title', async () => {
-      await expect(
-        service.createPost(
-          undefined as unknown as string,
-          'Test Content',
-          1,
-          [],
-          undefined,
-        ),
+        service.createPost(null as unknown as string, 1, null, [], undefined),
       ).rejects.toThrow(EmptyPostException);
     });
 
     it('should throw EmptyPostException for undefined content', async () => {
       await expect(
         service.createPost(
-          'Test Post',
           undefined as unknown as string,
           1,
+          null,
           [],
           undefined,
         ),

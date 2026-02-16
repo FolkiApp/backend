@@ -11,12 +11,6 @@ export class PostDto {
   postDate: Date;
 
   @ApiProperty({
-    example: 'Meu Primeiro Post',
-    description: 'Título da postagem',
-  })
-  title: string;
-
-  @ApiProperty({
     example: 'Minha primeira postagem no Mural do Folki!',
     description: 'Conteúdo da postagem',
   })
@@ -43,7 +37,6 @@ export class PostDto {
   constructor(
     id: number,
     postDate: Date,
-    title: string,
     content: string,
     userId: number,
     userName: string,
@@ -53,7 +46,6 @@ export class PostDto {
   ) {
     this.id = id;
     this.postDate = postDate;
-    this.title = title;
     this.content = content;
     this.userId = userId;
     this.userName = userName;

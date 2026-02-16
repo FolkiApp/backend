@@ -3,7 +3,6 @@ import {
   IsString,
   IsNotEmpty,
   IsArray,
-  ArrayNotEmpty,
   IsInt,
   IsOptional,
   Min,
@@ -11,26 +10,19 @@ import {
 
 export class CreatePostDto {
   @ApiProperty({
-    example: 'Meu Primeiro Post',
-  })
-  @IsString()
-  @IsNotEmpty()
-  title: string;
-
-  @ApiProperty({
     example: 'Minha primeira postagem no Mural do Folki!',
   })
   @IsString()
   @IsNotEmpty()
   content: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     example: ['Value', 'Value2'],
   })
+  @IsOptional()
   @IsArray()
-  @ArrayNotEmpty()
   @IsString({ each: true })
-  tags: string[];
+  tags?: string[];
 
   @ApiPropertyOptional({
     example: 10,

@@ -17,7 +17,6 @@ describe('ListFirstPostService', () => {
     new Post(
       3,
       new Date('2025-03-12T12:30:00.000Z'),
-      'Third Post',
       'Content 3',
       1,
       'Test User',
@@ -29,7 +28,6 @@ describe('ListFirstPostService', () => {
     new Post(
       2,
       new Date('2025-03-11T12:30:00.000Z'),
-      'Second Post',
       'Content 2',
       1,
       'Test User',
@@ -41,7 +39,6 @@ describe('ListFirstPostService', () => {
     new Post(
       1,
       new Date('2025-03-10T12:30:00.000Z'),
-      'First Post',
       'Content 1',
       2,
       'Another User',
@@ -199,7 +196,6 @@ describe('ListFirstPostService', () => {
 
       const result = await service.listFirstPosts(10);
 
-      expect(result[0].title).toBe('Third Post');
       expect(result[0].content).toBe('Content 3');
       expect(result[0].userId).toBe(1);
       expect(result[0].tags).toEqual(['tag3']);

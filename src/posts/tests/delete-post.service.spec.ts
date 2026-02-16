@@ -33,12 +33,13 @@ describe('DeletePostService', () => {
   const mockPost = new Post(
     1,
     new Date('2025-03-10T12:30:00.000Z'),
-    'Test Post',
     'Test Content',
     1,
+    'Test User',
     null,
     0,
     ['tag1', 'tag2'],
+    null,
   );
 
   beforeEach(async () => {

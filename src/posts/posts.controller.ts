@@ -45,17 +45,15 @@ export class PostsController {
     @CurrentUser() authUser: AuthUser,
   ): Promise<PostDto> {
     const post = await this.createPostService.execute(
-      body.title,
       body.content,
       authUser,
-      body.tags,
+      body.tags || [],
       body.parentId,
     );
 
     return new PostDto(
       post.id,
       post.postDate,
-      post.title,
       post.content,
       post.userId,
       post.userName,
@@ -101,7 +99,6 @@ export class PostsController {
           new PostDto(
             post.id,
             post.postDate,
-            post.title,
             post.content,
             post.userId,
             post.userName,
@@ -129,7 +126,6 @@ export class PostsController {
         new PostDto(
           post.id,
           post.postDate,
-          post.title,
           post.content,
           post.userId,
           post.userName,
