@@ -58,6 +58,7 @@ export class PostsController {
       post.title,
       post.content,
       post.userId,
+      post.userName,
       post.parentId ?? null,
       post.commentsCount,
       post.tags,
@@ -78,13 +79,19 @@ export class PostsController {
   })
   @ApiQuery({ name: 'lastId', required: false, type: Number })
   @ApiQuery({ name: 'quantity', required: true, type: Number })
+  @ApiQuery({ name: 'tags', required: false, type: [String] })
   async listFirstPosts(
     @Query('quantity') quantity: number,
+    @CurrentUser() authUser: AuthUser,
     @Query('lastId') lastId?: number,
+    @Query('tags') tags?: string | string[],
   ): Promise<{ posts: PostDto[]; nextId: number | null }> {
+    const tagsArray = tags ? (Array.isArray(tags) ? tags : [tags]) : undefined;
     const posts = await this.listFirstPostService.execute(
       Number(quantity),
+      authUser.universityId,
       lastId ? Number(lastId) : undefined,
+      tagsArray,
     );
     const nextId = posts.length ? posts[posts.length - 1].id : null;
 
@@ -97,6 +104,7 @@ export class PostsController {
             post.title,
             post.content,
             post.userId,
+            post.userName,
             post.parentId ?? null,
             post.commentsCount,
             post.tags,
@@ -124,6 +132,7 @@ export class PostsController {
           post.title,
           post.content,
           post.userId,
+          post.userName,
           post.parentId ?? null,
           post.commentsCount,
           post.tags,

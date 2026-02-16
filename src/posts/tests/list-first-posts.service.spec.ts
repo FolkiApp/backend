@@ -20,9 +20,11 @@ describe('ListFirstPostService', () => {
       'Third Post',
       'Content 3',
       1,
+      'Test User',
       null,
       0,
       ['tag3'],
+      null,
     ),
     new Post(
       2,
@@ -30,9 +32,11 @@ describe('ListFirstPostService', () => {
       'Second Post',
       'Content 2',
       1,
+      'Test User',
       null,
       5,
       ['tag2'],
+      null,
     ),
     new Post(
       1,
@@ -40,9 +44,11 @@ describe('ListFirstPostService', () => {
       'First Post',
       'Content 1',
       2,
+      'Another User',
       null,
       10,
       ['tag1'],
+      null,
     ),
   ];
 
@@ -71,25 +77,35 @@ describe('ListFirstPostService', () => {
     it('should list first batch of posts with specified quantity', async () => {
       mockPostsRepository.listPosts.mockResolvedValue(mockPosts);
 
-      const result = await service.execute(10);
+      const result = await service.execute(10, null);
 
       expect(result).toEqual(mockPosts);
-      expect(postsRepository.listPosts).toHaveBeenCalledWith(10);
+      expect(postsRepository.listPosts).toHaveBeenCalledWith(
+        10,
+        null,
+        undefined,
+      );
     });
 
     it('should return empty array when no posts exist', async () => {
       mockPostsRepository.listPosts.mockResolvedValue([]);
 
-      const result = await service.execute(10);
+      const result = await service.execute(10, null);
 
       expect(result).toEqual([]);
-      expect(postsRepository.listPosts).toHaveBeenCalledWith(10);
+      expect(postsRepository.listPosts).toHaveBeenCalledWith(
+        10,
+        null,
+        undefined,
+      );
     });
 
     it('should throw NotFoundPostException when repository returns null', async () => {
       mockPostsRepository.listPosts.mockResolvedValue(null);
 
-      await expect(service.execute(10)).rejects.toThrow(NotFoundPostException);
+      await expect(service.execute(10, null)).rejects.toThrow(
+        NotFoundPostException,
+      );
     });
 
     it('should throw PostInternalErrorException on database error', async () => {
@@ -98,7 +114,7 @@ describe('ListFirstPostService', () => {
       );
 
       try {
-        await service.execute(10);
+        await service.execute(10, null);
         fail('Should have thrown an error');
       } catch (error) {
         expect(error).toBeInstanceOf(PostInternalErrorException);
@@ -108,24 +124,32 @@ describe('ListFirstPostService', () => {
     it('should use default quantity when not specified', async () => {
       mockPostsRepository.listPosts.mockResolvedValue(mockPosts);
 
-      await service.execute(10);
+      await service.execute(10, null);
 
-      expect(postsRepository.listPosts).toHaveBeenCalledWith(10);
+      expect(postsRepository.listPosts).toHaveBeenCalledWith(
+        10,
+        null,
+        undefined,
+      );
     });
 
     it('should handle large quantity values', async () => {
       mockPostsRepository.listPosts.mockResolvedValue(mockPosts);
 
-      await service.execute(1000);
+      await service.execute(1000, null);
 
-      expect(postsRepository.listPosts).toHaveBeenCalledWith(1000);
+      expect(postsRepository.listPosts).toHaveBeenCalledWith(
+        1000,
+        null,
+        undefined,
+      );
     });
 
     it('should handle single post result', async () => {
       const singlePost = [mockPosts[0]];
       mockPostsRepository.listPosts.mockResolvedValue(singlePost);
 
-      const result = await service.execute(1);
+      const result = await service.execute(1, null);
 
       expect(result).toEqual(singlePost);
       expect(result.length).toBe(1);

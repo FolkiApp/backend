@@ -57,9 +57,11 @@ describe('PostsController', () => {
     'Test Post',
     'Test Content',
     1,
+    'Test User',
     null,
     0,
     ['tag1', 'tag2'],
+    null,
   );
 
   const mockPosts = [
@@ -70,9 +72,11 @@ describe('PostsController', () => {
       'Test Post 2',
       'Test Content 2',
       2,
+      'Another User',
       null,
       5,
       ['tag3'],
+      null,
     ),
   ];
 
@@ -167,29 +171,39 @@ describe('PostsController', () => {
     it('should list first batch of posts when lastId is not provided', async () => {
       mockListFirstPostsService.execute.mockResolvedValue(mockPosts);
 
-      const result = await controller.listFirstPosts(10);
+      const result = await controller.listFirstPosts(10, mockAuthUser);
 
       expect(result.posts).toHaveLength(2);
       expect(result.posts[0]).toBeInstanceOf(PostDto);
       expect(result.nextId).toBe(2);
-      expect(listFirstPostsService.execute).toHaveBeenCalledWith(10, undefined);
+      expect(listFirstPostsService.execute).toHaveBeenCalledWith(
+        10,
+        null,
+        undefined,
+        undefined,
+      );
     });
 
     it('should list next batch of posts when lastId is provided', async () => {
       mockListFirstPostsService.execute.mockResolvedValue(mockPosts);
 
-      const result = await controller.listFirstPosts(10, 1);
+      const result = await controller.listFirstPosts(10, mockAuthUser, 1);
 
       expect(result.posts).toHaveLength(2);
       expect(result.posts[0]).toBeInstanceOf(PostDto);
       expect(result.nextId).toBe(2);
-      expect(listFirstPostsService.execute).toHaveBeenCalledWith(10, 1);
+      expect(listFirstPostsService.execute).toHaveBeenCalledWith(
+        10,
+        null,
+        1,
+        undefined,
+      );
     });
 
     it('should return null nextId when no posts are available', async () => {
       mockListFirstPostsService.execute.mockResolvedValue([]);
 
-      const result = await controller.listFirstPosts(10);
+      const result = await controller.listFirstPosts(10, mockAuthUser);
 
       expect(result.posts).toHaveLength(0);
       expect(result.nextId).toBeNull();
@@ -198,7 +212,7 @@ describe('PostsController', () => {
     it('should map posts to PostDto correctly', async () => {
       mockListFirstPostsService.execute.mockResolvedValue(mockPosts);
 
-      const result = await controller.listFirstPosts(10);
+      const result = await controller.listFirstPosts(10, mockAuthUser);
 
       expect(result.posts[0].id).toBe(mockPosts[0].id);
       expect(result.posts[0].title).toBe(mockPosts[0].title);
