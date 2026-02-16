@@ -36,9 +36,11 @@ describe('PostPostService', () => {
     'Test Post',
     'Test Content',
     1,
+    'Test User',
     null,
     0,
     ['tag1', 'tag2'],
+    null,
   );
 
   beforeEach(async () => {
@@ -79,6 +81,7 @@ describe('PostPostService', () => {
         'Test Post',
         'Test Content',
         1,
+        null,
         ['tag1', 'tag2'],
         undefined,
       );
@@ -135,7 +138,18 @@ describe('PostPostService', () => {
     it('should handle tags in post creation', async () => {
       const tags = ['tag1', 'tag2', 'tag3'];
       mockPostsRepository.createPost.mockResolvedValue(
-        new Post(1, new Date(), 'Test Post', 'Test Content', 1, null, 0, tags),
+        new Post(
+          1,
+          new Date(),
+          'Test Post',
+          'Test Content',
+          1,
+          'Test User',
+          null,
+          0,
+          tags,
+          null,
+        ),
       );
 
       const result = await service.execute(
@@ -151,6 +165,7 @@ describe('PostPostService', () => {
         'Test Post',
         'Test Content',
         1,
+        null,
         tags,
         undefined,
       );
@@ -171,6 +186,7 @@ describe('PostPostService', () => {
         'Test Post',
         'Test Content',
         1,
+        null,
         [],
         undefined,
       );
@@ -193,6 +209,7 @@ describe('PostPostService', () => {
         'Child Post',
         'Child Content',
         1,
+        null,
         [],
         10,
       );

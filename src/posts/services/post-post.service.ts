@@ -20,12 +20,20 @@ export class PostPostService {
     parentId?: number,
   ): Promise<Post> {
     this.logger.log({ message: 'Creating Post' });
-    return this.createPost(title, content, user.id, tags, parentId);
+    return this.createPost(
+      title,
+      content,
+      user.id,
+      user.universityId,
+      tags,
+      parentId,
+    );
   }
   async createPost(
     title: string,
     content: string,
     userId: number,
+    universityId: number | null,
     tags: string[],
     parentId?: number,
   ): Promise<Post> {
@@ -43,6 +51,7 @@ export class PostPostService {
         title,
         content,
         userId,
+        universityId,
         tags,
         parentId,
       );

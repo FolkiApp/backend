@@ -29,6 +29,7 @@ model university {
   institute      institute[]
   campus         campus[]
   user           user[]
+  post           post[]
   important_date important_date[]
   course         course[]
   subject        subject[]
@@ -247,17 +248,21 @@ model user_notification_id {
 }
 
 model post {
-  id         Int       @id @default(autoincrement())
-  postDate   DateTime  @default(now())
-  title      String
-  content    String
-  userId     Int
-  parentId   Int?
-  commentsCount Int     @default(0)
-  user       user      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  parent     post?     @relation("post_children", fields: [parentId], references: [id], onDelete: Cascade)
-  children   post[]    @relation("post_children")
-  tags String[]
+  id            Int       @id @default(autoincrement())
+  postDate      DateTime  @default(now())
+  title         String
+  content       String
+  userId        Int
+  universityId  Int?
+  parentId      Int?
+  commentsCount Int       @default(0)
+  user          user      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  university    university? @relation(fields: [universityId], references: [id])
+  parent        post?     @relation("post_children", fields: [parentId], references: [id], onDelete: Cascade)
+  children      post[]    @relation("post_children")
+  tags          String[]
+
+  @@index([universityId])
 }
 
 

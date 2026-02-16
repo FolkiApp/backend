@@ -10,6 +10,7 @@ export class PostRepository {
     title: string,
     content: string,
     userId: number,
+    universityId: number | null,
     tags: string[],
     parentId?: number | null,
   ): Promise<Post> {
@@ -19,9 +20,17 @@ export class PostRepository {
           title,
           content,
           userId,
+          universityId,
           commentsCount: 0,
           tags: tags,
           parentId: parentId ?? null,
+        },
+        include: {
+          user: {
+            select: {
+              name: true,
+            },
+          },
         },
       });
 
@@ -34,100 +43,197 @@ export class PostRepository {
 
       return created;
     });
+
+    // eslint-disable-next-line
+    const nameParts: string[] = post.user.name.trim().split(/\s+/);
+    const userName: string =
+      nameParts.length > 1
+        ? `${nameParts[0]} ${nameParts[nameParts.length - 1]}`
+        : nameParts[0];
+
     return new Post(
       post.id,
       post.postDate,
       post.title,
       post.content,
       post.userId,
+      userName,
       post.parentId,
       post.commentsCount,
       post.tags,
+      post.universityId,
     );
   }
 
-  async listPosts(quantity = 10): Promise<Post[]> {
+  async listPosts(
+    quantity = 10,
+    universityId: number | null,
+    tags?: string[],
+  ): Promise<Post[]> {
     const posts = await this.prisma.post.findMany({
       take: quantity,
-      where: { parentId: null },
+      where: {
+        parentId: null,
+        ...(universityId ? { universityId } : {}),
+        ...(tags && tags.length > 0
+          ? {
+              tags: {
+                hasEvery: tags,
+              },
+            }
+          : {}),
+      },
+      include: {
+        user: {
+          select: {
+            name: true,
+          },
+        },
+      },
       orderBy: { id: 'desc' },
     });
-    return posts.map(
-      (post) =>
-        new Post(
-          post.id,
-          post.postDate,
-          post.title,
-          post.content,
-          post.userId,
-          post.parentId,
-          post.commentsCount,
-          post.tags,
-        ),
-    );
+    return posts.map((post) => {
+      const nameParts: string[] = post.user.name.trim().split(/\s+/);
+      const userName: string =
+        nameParts.length > 1
+          ? `${nameParts[0]} ${nameParts[nameParts.length - 1]}`
+          : nameParts[0];
+
+      return new Post(
+        post.id,
+        post.postDate,
+        post.title,
+        post.content,
+        post.userId,
+        userName,
+        post.parentId,
+        post.commentsCount,
+        post.tags,
+        post.universityId,
+      );
+    });
   }
 
-  async listNextPosts(lastId: number, quantity = 10): Promise<Post[]> {
+  async listNextPosts(
+    lastId: number,
+    quantity = 10,
+    universityId: number | null,
+    tags?: string[],
+  ): Promise<Post[]> {
     const posts = await this.prisma.post.findMany({
       take: quantity,
       skip: 1,
       cursor: { id: lastId },
-      where: { parentId: null },
+      where: {
+        parentId: null,
+        ...(universityId ? { universityId } : {}),
+        ...(tags && tags.length > 0
+          ? {
+              tags: {
+                hasEvery: tags,
+              },
+            }
+          : {}),
+      },
+      include: {
+        user: {
+          select: {
+            name: true,
+          },
+        },
+      },
       orderBy: { id: 'desc' },
     });
-    return posts.map(
-      (post) =>
-        new Post(
-          post.id,
-          post.postDate,
-          post.title,
-          post.content,
-          post.userId,
-          post.parentId,
-          post.commentsCount,
-          post.tags,
-        ),
-    );
+    return posts.map((post) => {
+      const nameParts: string[] = post.user.name.trim().split(/\s+/);
+      const userName: string =
+        nameParts.length > 1
+          ? `${nameParts[0]} ${nameParts[nameParts.length - 1]}`
+          : nameParts[0];
+
+      return new Post(
+        post.id,
+        post.postDate,
+        post.title,
+        post.content,
+        post.userId,
+        userName,
+        post.parentId,
+        post.commentsCount,
+        post.tags,
+        post.universityId,
+      );
+    });
   }
 
   async listChildrenByParentId(parentId: number): Promise<Post[]> {
     const posts = await this.prisma.post.findMany({
       where: { parentId },
+      include: {
+        user: {
+          select: {
+            name: true,
+          },
+        },
+      },
       orderBy: { id: 'asc' },
     });
-    return posts.map(
-      (post) =>
-        new Post(
-          post.id,
-          post.postDate,
-          post.title,
-          post.content,
-          post.userId,
-          post.parentId,
-          post.commentsCount,
-          post.tags,
-        ),
-    );
+    return posts.map((post) => {
+      const nameParts: string[] = post.user.name.trim().split(/\s+/);
+      const userName: string =
+        nameParts.length > 1
+          ? `${nameParts[0]} ${nameParts[nameParts.length - 1]}`
+          : nameParts[0];
+
+      return new Post(
+        post.id,
+        post.postDate,
+        post.title,
+        post.content,
+        post.userId,
+        userName,
+        post.parentId,
+        post.commentsCount,
+        post.tags,
+        post.universityId,
+      );
+    });
   }
 
   async getPostById(id: number): Promise<Post | null> {
     const post = await this.prisma.post.findUnique({
       where: { id },
+      include: {
+        user: {
+          select: {
+            name: true,
+          },
+        },
+      },
     });
 
     if (!post) {
       return null;
     }
 
+    const nameParts: string[] = post.user.name.trim().split(/\s+/);
+
+    const userName: string =
+      nameParts.length > 1
+        ? `${nameParts[0]} ${nameParts[nameParts.length - 1]}`
+        : nameParts[0];
+
     return new Post(
       post.id,
       post.postDate,
       post.title,
       post.content,
       post.userId,
+      userName,
       post.parentId,
       post.commentsCount,
       post.tags,
+      post.universityId,
     );
   }
 

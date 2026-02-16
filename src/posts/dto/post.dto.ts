@@ -25,6 +25,9 @@ export class PostDto {
   @ApiProperty({ example: 3 })
   userId: number;
 
+  @ApiProperty({ example: 'João Silva' })
+  userName: string;
+
   @ApiProperty({ example: 10, nullable: true })
   parentId?: number | null;
 
@@ -43,6 +46,7 @@ export class PostDto {
     title: string,
     content: string,
     userId: number,
+    userName: string,
     parentId: number | null,
     commentsCount: number,
     tags?: string[],
@@ -52,6 +56,7 @@ export class PostDto {
     this.title = title;
     this.content = content;
     this.userId = userId;
+    this.userName = userName;
     this.parentId = parentId;
     this.commentsCount = commentsCount;
     this.tags = tags ?? [];

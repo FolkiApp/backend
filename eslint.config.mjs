@@ -23,6 +23,9 @@ export default tseslint.config(
         tsconfigRootDir: import.meta.dirname,
       },
     },
+    linterOptions: {
+      reportUnusedDisableDirectives: false,
+    },
   },
   {
     rules: {

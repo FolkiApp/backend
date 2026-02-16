@@ -10,17 +10,30 @@ export class ListFirstPostService {
 
   constructor(private readonly postRepository: PostRepository) {}
 
-  async execute(quantity: number, lastId?: number): Promise<Post[]> {
+  async execute(
+    quantity: number,
+    universityId: number | null,
+    lastId?: number,
+    tags?: string[],
+  ): Promise<Post[]> {
     this.logger.log({ message: 'Listing batch of Posts' });
     if (!lastId) {
-      return this.listFirstPosts(quantity);
+      return this.listFirstPosts(quantity, universityId, tags);
     } else {
-      return this.listNextPosts(lastId, quantity);
+      return this.listNextPosts(lastId, quantity, universityId, tags);
     }
   }
-  async listFirstPosts(quantity: number): Promise<Post[]> {
+  async listFirstPosts(
+    quantity: number,
+    universityId: number | null,
+    tags?: string[],
+  ): Promise<Post[]> {
     try {
-      const posts = await this.postRepository.listPosts(quantity);
+      const posts = await this.postRepository.listPosts(
+        quantity,
+        universityId,
+        tags,
+      );
       if (!posts) {
         throw new NotFoundPostException();
       }
@@ -37,9 +50,19 @@ export class ListFirstPostService {
     }
   }
 
-  async listNextPosts(lastId: number, quantity: number): Promise<Post[]> {
+  async listNextPosts(
+    lastId: number,
+    quantity: number,
+    universityId: number | null,
+    tags?: string[],
+  ): Promise<Post[]> {
     try {
-      const posts = await this.postRepository.listNextPosts(lastId, quantity);
+      const posts = await this.postRepository.listNextPosts(
+        lastId,
+        quantity,
+        universityId,
+        tags,
+      );
       if (!posts) {
         throw new NotFoundPostException();
       }
