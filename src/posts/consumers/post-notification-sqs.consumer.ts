@@ -78,7 +78,11 @@ export class PostNotificationSqsConsumer {
     const commentersIds =
       await this.postRepository.getUserIdsWhoCommented(parentId);
 
-    const recipientIds = new Set<number>([postOwnerId]);
+    const recipientIds = new Set<number>();
+
+    if (postOwnerId !== commentAuthorId) {
+      recipientIds.add(postOwnerId);
+    }
 
     commentersIds.forEach((id) => {
       if (id !== commentAuthorId) {
