@@ -101,6 +101,10 @@ describe('PostNotificationSqsConsumer', () => {
         title: 'Novo comentário',
         message: 'John Doe comentou em uma publicação',
         userIds: expect.arrayContaining([5, 3, 4]) as number[],
+        data: {
+          postId: '10',
+          type: 'comment',
+        },
       });
       expect(logger.log).toHaveBeenCalledWith(
         expect.objectContaining({

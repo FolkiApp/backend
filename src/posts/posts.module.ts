@@ -6,6 +6,7 @@ import { PostRepository } from './repositories/post.repository';
 import { ListFirstPostService } from './services/list-first-post.service';
 import { DeletePostService } from './services/delete-post.service';
 import { ListPostChildrenService } from './services/list-post-children.service';
+import { GetPostByIdService } from './services/get-post-by-id.service';
 import { NotificationsModule } from '../notifications/notifications.module';
 import { PostNotificationSqsConsumer } from './consumers/post-notification-sqs.consumer';
 
@@ -18,6 +19,7 @@ import { PostNotificationSqsConsumer } from './consumers/post-notification-sqs.c
     ListFirstPostService,
     DeletePostService,
     ListPostChildrenService,
+    GetPostByIdService,
     PostNotificationSqsConsumer,
   ],
 })

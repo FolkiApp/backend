@@ -59,6 +59,7 @@ export class PostNotificationSqsConsumer {
         body.commentAuthorName,
         message.MessageId || 'unknown',
         body.postId,
+        body.parentId,
       );
     } catch (error: unknown) {
       this.logger.error({
@@ -98,11 +99,16 @@ export class PostNotificationSqsConsumer {
     commentAuthorName: string,
     messageId: string,
     postId: number,
+    parentId: number,
   ): Promise<void> {
     await this.notificationQueueService.addNotificationJob({
       title: 'Novo comentário',
       message: `${commentAuthorName} comentou em uma publicação`,
       userIds: recipientIds,
+      data: {
+        postId: parentId.toString(),
+        type: 'comment',
+      },
     });
 
     this.logger.log({
