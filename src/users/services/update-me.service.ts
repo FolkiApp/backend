@@ -65,6 +65,17 @@ export class UpdateMeService {
   ): Promise<void> {
     if (!notificationId) return;
 
+    const uuidRegex =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    if (!uuidRegex.test(notificationId)) {
+      this.logger.warn({
+        message: 'Invalid notification ID format - not a UUID',
+        userId,
+        notificationId,
+      });
+      return;
+    }
+
     try {
       await this.userNotificationIdRepository.upsert(userId, notificationId);
 

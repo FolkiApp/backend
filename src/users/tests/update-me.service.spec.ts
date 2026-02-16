@@ -91,15 +91,16 @@ describe('UpdateMeService', () => {
     });
 
     it('deve atualizar usuário e fazer upsert do notificationId quando fornecido', async () => {
+      const validUuid = '550e8400-e29b-41d4-a716-446655440000';
       const dtoWithNotification: UpdateUserDto = {
         ...updateUserDto,
-        notificationId: 'abc123-token',
+        notificationId: validUuid,
       };
 
       mockUserRepository.update.mockResolvedValue(mockUser);
       mockUserNotificationIdRepository.upsert.mockResolvedValue({
         userId,
-        notificationId: 'abc123-token',
+        notificationId: validUuid,
         lastUpdated: new Date(),
       });
 
@@ -110,7 +111,7 @@ describe('UpdateMeService', () => {
       expect(result.id).toBe(userId);
       expect(userNotificationIdRepository.upsert).toHaveBeenCalledWith(
         userId,
-        'abc123-token',
+        validUuid,
       );
       expect(userRepository.update).toHaveBeenCalledWith(
         userId,
@@ -122,9 +123,10 @@ describe('UpdateMeService', () => {
     });
 
     it('deve atualizar usuário mesmo se o upsert do notificationId falhar', async () => {
+      const validUuid = '550e8400-e29b-41d4-a716-446655440000';
       const dtoWithNotification: UpdateUserDto = {
         ...updateUserDto,
-        notificationId: 'abc123-token',
+        notificationId: validUuid,
       };
 
       mockUserNotificationIdRepository.upsert.mockRejectedValue(
@@ -139,8 +141,31 @@ describe('UpdateMeService', () => {
       expect(result.id).toBe(userId);
       expect(userNotificationIdRepository.upsert).toHaveBeenCalledWith(
         userId,
-        'abc123-token',
+        validUuid,
       );
+      expect(userRepository.update).toHaveBeenCalledWith(
+        userId,
+        expect.objectContaining({
+          name: 'João Silva',
+          instituteId: 5,
+        }),
+      );
+    });
+
+    it('deve ignorar notificationId inválido (não UUID)', async () => {
+      const dtoWithInvalidNotification: UpdateUserDto = {
+        ...updateUserDto,
+        notificationId: 'invalid-not-a-uuid',
+      };
+
+      mockUserRepository.update.mockResolvedValue(mockUser);
+
+      const result = await service.execute(userId, dtoWithInvalidNotification);
+
+      expect(result).toBeDefined();
+      expect(result).toBeInstanceOf(User);
+      expect(result.id).toBe(userId);
+      expect(userNotificationIdRepository.upsert).not.toHaveBeenCalled();
       expect(userRepository.update).toHaveBeenCalledWith(
         userId,
         expect.objectContaining({
