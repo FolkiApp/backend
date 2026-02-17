@@ -22,7 +22,14 @@ export class PostPostService {
     tags: string[],
     parentId?: number,
   ): Promise<Post> {
-    this.logger.log({ message: 'Creating Post' });
+    this.logger.log({
+      message: 'Creating post',
+      userId: user.id,
+      universityId: user.universityId,
+      hasParent: !!parentId,
+      parentId,
+      tagsCount: tags.length,
+    });
     return this.createPost(content, user.id, user.universityId, tags, parentId);
   }
   async createPost(
@@ -50,7 +57,20 @@ export class PostPostService {
         parentId,
       );
 
+      this.logger.log({
+        message: 'Post created successfully',
+        postId: post.id,
+        userId,
+        isComment: !!parentId,
+        parentId,
+      });
+
       if (parentId) {
+        this.logger.log({
+          message: 'Comment detected, sending notification',
+          postId: post.id,
+          parentId,
+        });
         await this.sendCommentNotification(
           post.id,
           userId,
@@ -79,14 +99,26 @@ export class PostPostService {
     parentId: number,
   ): Promise<void> {
     if (!this.sqsService) {
-      this.logger.warn({
-        message: 'SQS not configured, skipping comment notification',
+      this.logger.error({
+        message: 'Sqs not configured, cannot send comment notification',
         postId,
+        parentId,
       });
       return;
     }
 
     try {
+      this.logger.log({
+        message: 'Sending to SQS',
+        queueName: 'post-notifications',
+        payload: {
+          postId,
+          commentAuthorId,
+          commentAuthorName,
+          parentId,
+        },
+      });
+
       await this.sqsService.send('post-notifications', {
         id: `post-${postId}-${Date.now()}`,
         body: {
@@ -98,9 +130,10 @@ export class PostPostService {
       });
 
       this.logger.log({
-        message: 'Post notification sent to SQS',
+        message: 'Post notification sent to SQS successfully',
         postId,
         parentId,
+        queueName: 'post-notifications',
       });
     } catch (error) {
       this.logger.error({
@@ -108,6 +141,7 @@ export class PostPostService {
         postId,
         parentId,
         error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
       });
     }
   }
