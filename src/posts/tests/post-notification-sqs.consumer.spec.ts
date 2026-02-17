@@ -106,6 +106,7 @@ describe('PostNotificationSqsConsumer', () => {
           type: 'comment',
         },
         url: 'https://web.folki.com.br/#/Board?postId=10',
+        separateWebMobile: true,
       });
       expect(logger.log).toHaveBeenCalledWith(
         expect.objectContaining({

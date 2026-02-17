@@ -9,6 +9,7 @@ interface SendNotificationDto {
   idempotencyId?: string;
   data?: Record<string, any>;
   url?: string;
+  separateWebMobile?: boolean;
 }
 
 @Injectable()
@@ -36,7 +37,15 @@ export class PipoNotificationService {
 
   async sendNotification(dto: SendNotificationDto): Promise<void> {
     try {
-      const { idempotencyId, title, message, playerIds, data, url } = dto;
+      const {
+        idempotencyId,
+        title,
+        message,
+        playerIds,
+        data,
+        url,
+        separateWebMobile,
+      } = dto;
       const isConfigured = this.verifyConfiguration();
 
       if (!isConfigured) {
@@ -53,21 +62,25 @@ export class PipoNotificationService {
         return;
       }
 
-      const notification = {
-        headings: { en: title },
-        contents: { en: message },
-        include_player_ids: playerIds,
-        external_id: idempotencyId,
-        ...(data ? { data } : {}),
-        ...(url ? { url } : {}),
-      };
-
-      this.logger.log({
-        message: `Sending notification to ${playerIds.length} players`,
-        idempotencyId,
-      });
-
-      await this.client.createNotification(notification);
+      if (url && separateWebMobile) {
+        await this.sendSeparateNotifications({
+          title,
+          message,
+          playerIds,
+          idempotencyId,
+          data,
+          url,
+        });
+      } else {
+        await this.sendSingleNotification({
+          title,
+          message,
+          playerIds,
+          idempotencyId,
+          data,
+          url,
+        });
+      }
 
       this.logger.log({
         message: `Notification sent successfully to ${playerIds.length} players`,
@@ -80,6 +93,51 @@ export class PipoNotificationService {
         dto,
       });
     }
+  }
+
+  private async sendSingleNotification(
+    dto: Omit<SendNotificationDto, 'separateWebMobile'>,
+  ): Promise<void> {
+    const { title, message, playerIds, idempotencyId, data, url } = dto;
+
+    await this.client.createNotification({
+      headings: { en: title },
+      contents: { en: message },
+      include_player_ids: playerIds,
+      external_id: idempotencyId,
+      ...(data ? { data } : {}),
+      ...(url ? { url } : {}),
+    });
+  }
+
+  private async sendSeparateNotifications(
+    dto: Omit<SendNotificationDto, 'separateWebMobile'>,
+  ): Promise<void> {
+    const { title, message, playerIds, idempotencyId, data, url } = dto;
+
+    const baseNotification = {
+      headings: { en: title },
+      contents: { en: message },
+      external_id: idempotencyId,
+      ...(data ? { data } : {}),
+    };
+
+    await this.client.createNotification({
+      ...baseNotification,
+      include_player_ids: playerIds,
+      url,
+      filters: [
+        { field: 'tag', key: 'device_type', relation: '=', value: 'web' },
+      ],
+    });
+
+    await this.client.createNotification({
+      ...baseNotification,
+      include_player_ids: playerIds,
+      filters: [
+        { field: 'tag', key: 'device_type', relation: '!=', value: 'web' },
+      ],
+    });
   }
 
   private verifyConfiguration(): boolean {
