@@ -160,9 +160,20 @@ export class ScrapJupiterService {
           if (subject) {
             subject = subject.split('-')[0];
 
-            await page.waitForSelector(`span[class="${subject}"]`, {
-              timeout: 5000,
-            });
+            try {
+              await page.waitForSelector(`span[class="${subject}"]`, {
+                timeout: 7000,
+              });
+            } catch (error) {
+              this.logger.warn({
+                message: 'Subject span not found, skipping',
+                subject,
+                nUsp,
+                error,
+              });
+              continue;
+            }
+
             const spanElement = await page.$(`span[class="${subject}"]`);
             await spanElement?.click();
             await page.waitForSelector('.blockOverlay', { hidden: true });
