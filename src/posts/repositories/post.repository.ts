@@ -60,8 +60,8 @@ export class PostRepository {
       post.content,
       post.userId,
       userName,
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      (post.user.institute?.name as string | undefined) ?? null,
+      // eslint-disable-next-line
+      post.user.institute?.name ?? null,
       post.parentId,
       post.commentsCount,
       post.tags,
