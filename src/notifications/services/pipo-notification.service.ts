@@ -133,13 +133,16 @@ export class PipoNotificationService {
       await this.client.createNotification({
         ...baseNotification,
         url,
-        isAnyWeb: true,
+        filters: [{ field: 'device_type', relation: '=', value: '7' }],
       });
 
       await this.client.createNotification({
         ...baseNotification,
-        isIos: true,
-        isAndroid: true,
+        filters: [
+          { field: 'device_type', relation: '=', value: '0' },
+          { operator: 'OR' },
+          { field: 'device_type', relation: '=', value: '1' },
+        ],
       });
     }
   }
