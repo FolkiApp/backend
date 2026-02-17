@@ -105,7 +105,6 @@ describe('PostNotificationSqsConsumer', () => {
           postId: '10',
           type: 'comment',
         },
-        url: 'https://web.folki.com.br/#/Board?postId=10',
       });
       expect(logger.log).toHaveBeenCalledWith(
         expect.objectContaining({

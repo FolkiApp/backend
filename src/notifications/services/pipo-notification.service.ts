@@ -55,12 +55,18 @@ export class PipoNotificationService {
 
       const batches = this.chunkArray(playerIds, 900);
 
-      for (const batch of batches) {
+      for (let i = 0; i < batches.length; i++) {
+        const batch = batches[i];
+        const batchIdempotencyId =
+          batches.length > 1 && idempotencyId
+            ? `${idempotencyId}-batch-${i}`
+            : idempotencyId;
+
         await this.client.createNotification({
           headings: { en: title },
           contents: { en: message },
           include_player_ids: batch,
-          external_id: idempotencyId,
+          external_id: batchIdempotencyId,
           ...(data ? { data } : {}),
           ...(url ? { url } : {}),
         });
