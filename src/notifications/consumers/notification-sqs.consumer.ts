@@ -53,7 +53,6 @@ export class NotificationSqsConsumer {
         idempotencyId: body.idempotencyId,
         data: body.data,
         url: body.url,
-        separateWebMobile: body.separateWebMobile,
       });
 
       this.logger.log({

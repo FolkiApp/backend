@@ -9,7 +9,6 @@ interface SendNotificationDto {
   idempotencyId?: string;
   data?: Record<string, any>;
   url?: string;
-  separateWebMobile?: boolean;
 }
 
 @Injectable()
@@ -37,15 +36,7 @@ export class PipoNotificationService {
 
   async sendNotification(dto: SendNotificationDto): Promise<void> {
     try {
-      const {
-        idempotencyId,
-        title,
-        message,
-        playerIds,
-        data,
-        url,
-        separateWebMobile,
-      } = dto;
+      const { idempotencyId, title, message, playerIds, data, url } = dto;
       const isConfigured = this.verifyConfiguration();
 
       if (!isConfigured) {
@@ -62,23 +53,16 @@ export class PipoNotificationService {
         return;
       }
 
-      if (url && separateWebMobile) {
-        await this.sendSeparateNotifications({
-          title,
-          message,
-          playerIds,
-          idempotencyId,
-          data,
-          url,
-        });
-      } else {
-        await this.sendSingleNotification({
-          title,
-          message,
-          playerIds,
-          idempotencyId,
-          data,
-          url,
+      const batches = this.chunkArray(playerIds, 900);
+
+      for (const batch of batches) {
+        await this.client.createNotification({
+          headings: { en: title },
+          contents: { en: message },
+          include_player_ids: batch,
+          external_id: idempotencyId,
+          ...(data ? { data } : {}),
+          ...(url ? { url } : {}),
         });
       }
 
@@ -91,58 +75,6 @@ export class PipoNotificationService {
         message: 'Failed to send notification',
         error: error instanceof Error ? error.message : String(error),
         dto,
-      });
-    }
-  }
-
-  private async sendSingleNotification(
-    dto: Omit<SendNotificationDto, 'separateWebMobile'>,
-  ): Promise<void> {
-    const { title, message, playerIds, idempotencyId, data, url } = dto;
-
-    const batches = this.chunkArray(playerIds, 900);
-
-    for (const batch of batches) {
-      await this.client.createNotification({
-        headings: { en: title },
-        contents: { en: message },
-        include_player_ids: batch,
-        external_id: idempotencyId,
-        ...(data ? { data } : {}),
-        ...(url ? { url } : {}),
-      });
-    }
-  }
-
-  private async sendSeparateNotifications(
-    dto: Omit<SendNotificationDto, 'separateWebMobile'>,
-  ): Promise<void> {
-    const { title, message, playerIds, idempotencyId, data, url } = dto;
-
-    const batches = this.chunkArray(playerIds, 900);
-
-    for (const batch of batches) {
-      const baseNotification = {
-        headings: { en: title },
-        contents: { en: message },
-        include_player_ids: batch,
-        external_id: idempotencyId,
-        ...(data ? { data } : {}),
-      };
-
-      await this.client.createNotification({
-        ...baseNotification,
-        url,
-        filters: [{ field: 'device_type', relation: '=', value: '7' }],
-      });
-
-      await this.client.createNotification({
-        ...baseNotification,
-        filters: [
-          { field: 'device_type', relation: '=', value: '0' },
-          { operator: 'OR' },
-          { field: 'device_type', relation: '=', value: '1' },
-        ],
       });
     }
   }

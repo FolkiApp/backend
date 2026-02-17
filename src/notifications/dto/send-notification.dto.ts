@@ -51,7 +51,7 @@ export class SendNotificationDto {
 
   @ApiPropertyOptional({
     description:
-      'Dados adicionais para navegação (ex: postId para abrir um post específico). Mobile usa esse campo para routing.',
+      'Dados adicionais para navegação (ex: postId para abrir um post específico). Mobile usa esse campo para routing customizado.',
     example: { postId: '123', type: 'comment' },
   })
   @IsOptional()
@@ -59,19 +59,10 @@ export class SendNotificationDto {
 
   @ApiPropertyOptional({
     description:
-      'URL para redirecionar o usuário ao clicar na notificação. IMPORTANTE: Funciona apenas em WEB. Para mobile, use o campo "data" com type e IDs necessários.',
+      'URL para redirecionar o usuário ao clicar na notificação. ATENÇÃO: Se enviado, TODOS (web e mobile) recebem. No mobile pode abrir o navegador. Use apenas se deseja comportamento de URL em todas plataformas.',
     example: 'https://web.folki.com.br/#/Board?postId=123',
   })
   @IsString()
   @IsOptional()
   url?: string;
-
-  @ApiPropertyOptional({
-    description:
-      'Se true, envia notificações separadas para web (com URL) e mobile (sem URL). Útil quando há comportamento diferente entre plataformas.',
-    example: true,
-    default: false,
-  })
-  @IsOptional()
-  separateWebMobile?: boolean;
 }

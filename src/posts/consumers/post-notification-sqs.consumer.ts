@@ -110,7 +110,6 @@ export class PostNotificationSqsConsumer {
         type: 'comment',
       },
       url: `https://web.folki.com.br/#/Board?postId=${parentId}`,
-      separateWebMobile: true,
     });
 
     this.logger.log({
