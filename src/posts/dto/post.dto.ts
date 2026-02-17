@@ -22,6 +22,12 @@ export class PostDto {
   @ApiProperty({ example: 'João Silva' })
   userName: string;
 
+  @ApiProperty({
+    example: 'Instituto de Ciências Matemáticas e de Computação',
+    nullable: true,
+  })
+  userInstituteName: string | null;
+
   @ApiProperty({ example: 10, nullable: true })
   parentId?: number | null;
 
@@ -40,6 +46,7 @@ export class PostDto {
     content: string,
     userId: number,
     userName: string,
+    userInstituteName: string | null,
     parentId: number | null,
     commentsCount: number,
     tags?: string[],
@@ -49,6 +56,7 @@ export class PostDto {
     this.content = content;
     this.userId = userId;
     this.userName = userName;
+    this.userInstituteName = userInstituteName;
     this.parentId = parentId;
     this.commentsCount = commentsCount;
     this.tags = tags ?? [];

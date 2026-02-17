@@ -37,6 +37,7 @@ describe('DeletePostService', () => {
     1,
     'Test User',
     null,
+    null,
     0,
     ['tag1', 'tag2'],
     null,

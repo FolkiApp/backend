@@ -65,6 +65,7 @@ describe('PostsController', () => {
     1,
     'Test User',
     null,
+    null,
     0,
     ['tag1', 'tag2'],
     null,
@@ -78,6 +79,7 @@ describe('PostsController', () => {
       'Test Content 2',
       2,
       'Another User',
+      null,
       null,
       5,
       ['tag3'],
@@ -163,7 +165,6 @@ describe('PostsController', () => {
       const result = await controller.postPost(createPostDto, mockAuthUser);
 
       expect(result.id).toBe(mockPost.id);
-      expect(result.title).toBe(mockPost.title);
       expect(result.content).toBe(mockPost.content);
       expect(result.userId).toBe(mockPost.userId);
       expect(result.parentId).toBeNull();

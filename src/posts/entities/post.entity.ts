@@ -5,6 +5,7 @@ export class Post {
     public content: string,
     public userId: number,
     public userName: string,
+    public userInstituteName: string | null,
     public parentId: number | null,
     public commentsCount: number,
     public tags: string[] = [],

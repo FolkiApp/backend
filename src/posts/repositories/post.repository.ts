@@ -27,6 +27,11 @@ export class PostRepository {
           user: {
             select: {
               name: true,
+              institute: {
+                select: {
+                  name: true,
+                },
+              },
             },
           },
         },
@@ -55,6 +60,8 @@ export class PostRepository {
       post.content,
       post.userId,
       userName,
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+      (post.user.institute?.name as string | undefined) ?? null,
       post.parentId,
       post.commentsCount,
       post.tags,
@@ -84,6 +91,11 @@ export class PostRepository {
         user: {
           select: {
             name: true,
+            institute: {
+              select: {
+                name: true,
+              },
+            },
           },
         },
       },
@@ -102,6 +114,7 @@ export class PostRepository {
         post.content,
         post.userId,
         userName,
+        post.user.institute?.name ?? null,
         post.parentId,
         post.commentsCount,
         post.tags,
@@ -135,6 +148,11 @@ export class PostRepository {
         user: {
           select: {
             name: true,
+            institute: {
+              select: {
+                name: true,
+              },
+            },
           },
         },
       },
@@ -153,6 +171,7 @@ export class PostRepository {
         post.content,
         post.userId,
         userName,
+        post.user.institute?.name ?? null,
         post.parentId,
         post.commentsCount,
         post.tags,
@@ -168,6 +187,11 @@ export class PostRepository {
         user: {
           select: {
             name: true,
+            institute: {
+              select: {
+                name: true,
+              },
+            },
           },
         },
       },
@@ -186,6 +210,7 @@ export class PostRepository {
         post.content,
         post.userId,
         userName,
+        post.user.institute?.name ?? null,
         post.parentId,
         post.commentsCount,
         post.tags,
@@ -201,6 +226,11 @@ export class PostRepository {
         user: {
           select: {
             name: true,
+            institute: {
+              select: {
+                name: true,
+              },
+            },
           },
         },
       },
@@ -223,6 +253,7 @@ export class PostRepository {
       post.content,
       post.userId,
       userName,
+      post.user.institute?.name ?? null,
       post.parentId,
       post.commentsCount,
       post.tags,
@@ -270,6 +301,11 @@ export class PostRepository {
         user: {
           select: {
             name: true,
+            institute: {
+              select: {
+                name: true,
+              },
+            },
           },
         },
       },
@@ -291,6 +327,7 @@ export class PostRepository {
       post.content,
       post.userId,
       userName,
+      post.user.institute?.name ?? null,
       post.parentId,
       post.commentsCount,
       post.tags,
