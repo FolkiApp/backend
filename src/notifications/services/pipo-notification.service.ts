@@ -100,14 +100,18 @@ export class PipoNotificationService {
   ): Promise<void> {
     const { title, message, playerIds, idempotencyId, data, url } = dto;
 
-    await this.client.createNotification({
-      headings: { en: title },
-      contents: { en: message },
-      include_player_ids: playerIds,
-      external_id: idempotencyId,
-      ...(data ? { data } : {}),
-      ...(url ? { url } : {}),
-    });
+    const batches = this.chunkArray(playerIds, 900);
+
+    for (const batch of batches) {
+      await this.client.createNotification({
+        headings: { en: title },
+        contents: { en: message },
+        include_player_ids: batch,
+        external_id: idempotencyId,
+        ...(data ? { data } : {}),
+        ...(url ? { url } : {}),
+      });
+    }
   }
 
   private async sendSeparateNotifications(
@@ -115,29 +119,29 @@ export class PipoNotificationService {
   ): Promise<void> {
     const { title, message, playerIds, idempotencyId, data, url } = dto;
 
-    const baseNotification = {
-      headings: { en: title },
-      contents: { en: message },
-      external_id: idempotencyId,
-      ...(data ? { data } : {}),
-    };
+    const batches = this.chunkArray(playerIds, 900);
 
-    await this.client.createNotification({
-      ...baseNotification,
-      include_player_ids: playerIds,
-      url,
-      filters: [
-        { field: 'tag', key: 'device_type', relation: '=', value: 'web' },
-      ],
-    });
+    for (const batch of batches) {
+      const baseNotification = {
+        headings: { en: title },
+        contents: { en: message },
+        include_player_ids: batch,
+        external_id: idempotencyId,
+        ...(data ? { data } : {}),
+      };
 
-    await this.client.createNotification({
-      ...baseNotification,
-      include_player_ids: playerIds,
-      filters: [
-        { field: 'tag', key: 'device_type', relation: '!=', value: 'web' },
-      ],
-    });
+      await this.client.createNotification({
+        ...baseNotification,
+        url,
+        isAnyWeb: true,
+      });
+
+      await this.client.createNotification({
+        ...baseNotification,
+        isIos: true,
+        isAndroid: true,
+      });
+    }
   }
 
   private verifyConfiguration(): boolean {
@@ -151,5 +155,13 @@ export class PipoNotificationService {
       return false;
     }
     return true;
+  }
+
+  private chunkArray<T>(array: T[], size: number): T[][] {
+    const chunks: T[][] = [];
+    for (let i = 0; i < array.length; i += size) {
+      chunks.push(array.slice(i, i + size));
+    }
+    return chunks;
   }
 }
