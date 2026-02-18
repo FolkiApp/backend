@@ -67,6 +67,8 @@ export class PipoNotificationService {
           contents: { en: message },
           include_player_ids: batch,
           external_id: batchIdempotencyId,
+          small_icon: 'notification_icon',
+          android_accent_color: '7500BC',
           ...(data ? { data } : {}),
           ...(url ? { url } : {}),
         });

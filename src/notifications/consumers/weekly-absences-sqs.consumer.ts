@@ -11,8 +11,9 @@ export class WeeklyAbsencesSqsConsumer {
   private readonly BATCH_SIZE = 200;
   private readonly DELAY_MS = 1000;
   private readonly UNIVERSITY_SEMESTER_DATES: Record<number, [Date, Date]> = {
-    1: [new Date(2026, 2, 23), new Date(2026, 7, 4)], // USP
-    2: [new Date(2026, 3, 9), new Date(2026, 7, 18)], // UFSCar
+    1: [new Date(2026, 1, 23), new Date(2026, 6, 4)], // USP
+    2: [new Date(2026, 2, 9), new Date(2026, 6, 18)], // UFSCar
+    3: [new Date(2026, 1, 23), new Date(2026, 6, 8)], // Unicamp
   };
 
   constructor(
