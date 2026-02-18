@@ -45,6 +45,7 @@
     "jsonwebtoken": "^9.0.3",
     "nest-winston": "^1.10.2",
     "onesignal-node": "^3.4.0",
+    "openai": "^6.22.0",
     "prisma": "^5.22.0",
     "puppeteer": "^24.34.0",
     "puppeteer-extra": "^3.3.6",

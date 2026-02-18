@@ -1,16 +1,23 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { AuthUser } from '../../common/guards/auth.guard';
 import { PostRepository } from '../repositories/post.repository';
 import { PostInternalErrorException } from '../exceptions/post-internal-error.exception';
 import { NotFoundPostException } from '../exceptions/not-found-post.exception';
 import { UnauthorizedPostException } from '../exceptions/unauthorized-post.exception';
 import { Post } from '../entities/post.entity';
+import { CustomLogger } from '../../common/logger/custom-logger.service';
 
 @Injectable()
 export class DeletePostService {
-  private readonly logger = new Logger(DeletePostService.name);
+  private readonly logger: CustomLogger;
 
-  constructor(private readonly postsRepository: PostRepository) {}
+  constructor(
+    private readonly postsRepository: PostRepository,
+    logger: CustomLogger,
+  ) {
+    this.logger = logger;
+    this.logger.setContext(DeletePostService.name);
+  }
 
   async execute(postId: number, user: AuthUser): Promise<void> {
     this.logger.log({ message: 'Deleting Post', postId, userId: user.id });

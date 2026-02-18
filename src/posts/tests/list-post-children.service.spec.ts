@@ -4,6 +4,7 @@ import { PostRepository } from '../repositories/post.repository';
 import { Post } from '../entities/post.entity';
 import { NotFoundPostException } from '../exceptions/not-found-post.exception';
 import { PostInternalErrorException } from '../exceptions/post-internal-error.exception';
+import { CustomLogger } from '../../common/logger/custom-logger.service';
 
 describe('ListPostChildrenService', () => {
   let service: ListPostChildrenService;
@@ -14,6 +15,14 @@ describe('ListPostChildrenService', () => {
   > = {
     getPostById: jest.fn(),
     listChildrenByParentId: jest.fn(),
+  };
+
+  const mockCustomLogger = {
+    setContext: jest.fn(),
+    log: jest.fn(),
+    error: jest.fn(),
+    warn: jest.fn(),
+    debug: jest.fn(),
   };
 
   const mockParent: Post = new Post(
@@ -63,6 +72,10 @@ describe('ListPostChildrenService', () => {
         {
           provide: PostRepository,
           useValue: mockPostsRepository,
+        },
+        {
+          provide: CustomLogger,
+          useValue: mockCustomLogger,
         },
       ],
     }).compile();

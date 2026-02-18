@@ -6,6 +6,7 @@ import { NotFoundPostException } from '../exceptions/not-found-post.exception';
 import { UnauthorizedPostException } from '../exceptions/unauthorized-post.exception';
 import { PostInternalErrorException } from '../exceptions/post-internal-error.exception';
 import { AuthUser } from '../../common/guards/auth.guard';
+import { CustomLogger } from '../../common/logger/custom-logger.service';
 
 describe('DeletePostService', () => {
   let service: DeletePostService;
@@ -16,6 +17,14 @@ describe('DeletePostService', () => {
   > = {
     getPostById: jest.fn(),
     deletePost: jest.fn(),
+  };
+
+  const mockCustomLogger = {
+    setContext: jest.fn(),
+    log: jest.fn(),
+    error: jest.fn(),
+    warn: jest.fn(),
+    debug: jest.fn(),
   };
 
   const mockAuthUser: AuthUser = {
@@ -50,6 +59,10 @@ describe('DeletePostService', () => {
         {
           provide: PostRepository,
           useValue: mockPostsRepository,
+        },
+        {
+          provide: CustomLogger,
+          useValue: mockCustomLogger,
         },
       ],
     }).compile();

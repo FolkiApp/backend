@@ -4,6 +4,8 @@ import { PostRepository } from '../repositories/post.repository';
 import { Post } from '../entities/post.entity';
 import { NotFoundPostException } from '../exceptions/not-found-post.exception';
 import { PostInternalErrorException } from '../exceptions/post-internal-error.exception';
+import { CustomLogger } from '../../common/logger/custom-logger.service';
+import { CustomLogger } from '../../common/logger/custom-logger.service';
 
 describe('ListFirstPostService', () => {
   let service: ListFirstPostService;
@@ -11,6 +13,14 @@ describe('ListFirstPostService', () => {
 
   const mockPostsRepository: jest.Mocked<Pick<PostRepository, 'listPosts'>> = {
     listPosts: jest.fn(),
+  };
+
+  const mockCustomLogger = {
+    setContext: jest.fn(),
+    log: jest.fn(),
+    error: jest.fn(),
+    warn: jest.fn(),
+    debug: jest.fn(),
   };
 
   const mockPosts: Post[] = [
@@ -59,6 +69,10 @@ describe('ListFirstPostService', () => {
         {
           provide: PostRepository,
           useValue: mockPostsRepository,
+        },
+        {
+          provide: CustomLogger,
+          useValue: mockCustomLogger,
         },
       ],
     }).compile();

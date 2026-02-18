@@ -6,6 +6,10 @@ import { EmptyPostException } from '../exceptions/empty-post.exception';
 import { PostInternalErrorException } from '../exceptions/post-internal-error.exception';
 import { AuthUser } from '../../common/guards/auth.guard';
 import { NotFoundPostException } from '../exceptions/not-found-post.exception';
+import { InappropriateContentException } from '../exceptions/inappropriate-content.exception';
+import { ModerationService } from '../services/moderation.service';
+import { CustomLogger } from '../../common/logger/custom-logger.service';
+import { CustomLogger } from '../../common/logger/custom-logger.service';
 
 describe('PostPostService', () => {
   let service: PostPostService;
@@ -16,6 +20,20 @@ describe('PostPostService', () => {
   > = {
     createPost: jest.fn(),
     getPostById: jest.fn(),
+  };
+
+  const mockModerationService: jest.Mocked<
+    Pick<ModerationService, 'moderateContent'>
+  > = {
+    moderateContent: jest.fn(),
+  };
+
+  const mockCustomLogger = {
+    setContext: jest.fn(),
+    log: jest.fn(),
+    error: jest.fn(),
+    warn: jest.fn(),
+    debug: jest.fn(),
   };
 
   const mockAuthUser: AuthUser = {
@@ -51,13 +69,28 @@ describe('PostPostService', () => {
           provide: PostRepository,
           useValue: mockPostsRepository,
         },
+        {
+          provide: ModerationService,
+          useValue: mockModerationService,
+        },
+        {
+          provide: CustomLogger,
+          useValue: mockCustomLogger,
+        },
       ],
     }).compile();
 
     service = module.get<PostPostService>(PostPostService);
     postsRepository = module.get<PostRepository>(PostRepository);
+    // moderationService = module.get<ModerationService>(ModerationService);
 
     jest.clearAllMocks();
+
+    // Default: moderation passes
+    mockModerationService.moderateContent.mockResolvedValue({
+      flagged: false,
+      categories: {},
+    });
   });
 
   it('should be defined', () => {
@@ -190,44 +223,45 @@ describe('PostPostService', () => {
     });
   });
 
-  describe('createPost', () => {
-    it('should create post with valid parameters', async () => {
+  describe('moderation and validation', () => {
+    it('should throw InappropriateContentException when content is flagged by moderation', async () => {
+      mockModerationService.moderateContent.mockResolvedValue({
+        flagged: true,
+        categories: {
+          hate: true,
+        },
+      });
+
+      await expect(
+        service.execute('Inappropriate content', mockAuthUser, [], undefined),
+      ).rejects.toThrow(InappropriateContentException);
+
+      expect(mockModerationService.moderateContent).toHaveBeenCalledWith(
+        'Inappropriate content',
+      );
+      expect(postsRepository.createPost).not.toHaveBeenCalled();
+    });
+
+    it('should allow post creation when moderation passes', async () => {
+      mockModerationService.moderateContent.mockResolvedValue({
+        flagged: false,
+        categories: {},
+      });
       mockPostsRepository.createPost.mockResolvedValue(mockPost);
       mockPostsRepository.getPostById.mockResolvedValue(null);
 
-      const result = await service.createPost(
-        'Test Content',
-        1,
-        null,
-        ['tag1'],
+      const result = await service.execute(
+        'Safe content',
+        mockAuthUser,
+        [],
         undefined,
       );
 
+      expect(mockModerationService.moderateContent).toHaveBeenCalledWith(
+        'Safe content',
+      );
       expect(result).toEqual(mockPost);
-    });
-
-    it('should throw EmptyPostException for empty content', async () => {
-      await expect(
-        service.createPost('', 1, null, [], undefined),
-      ).rejects.toThrow(EmptyPostException);
-    });
-
-    it('should throw EmptyPostException for null content', async () => {
-      await expect(
-        service.createPost(null as unknown as string, 1, null, [], undefined),
-      ).rejects.toThrow(EmptyPostException);
-    });
-
-    it('should throw EmptyPostException for undefined content', async () => {
-      await expect(
-        service.createPost(
-          undefined as unknown as string,
-          1,
-          null,
-          [],
-          undefined,
-        ),
-      ).rejects.toThrow(EmptyPostException);
+      expect(postsRepository.createPost).toHaveBeenCalled();
     });
   });
 });
