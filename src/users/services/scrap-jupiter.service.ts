@@ -70,7 +70,7 @@ export class ScrapJupiterService {
       });
 
       await page.waitForNavigation({
-        waitUntil: 'networkidle0',
+        waitUntil: 'domcontentloaded',
         timeout: 30000,
       });
 
@@ -81,10 +81,17 @@ export class ScrapJupiterService {
         currentUrl,
       });
 
-      if (currentUrl.includes('/jupiterweb/autenticar')) {
+      // Check for error message on page
+      const hasErrorMessage = await page.evaluate(() => {
+        const bodyText = document.body.textContent || '';
+        return bodyText.includes('Usuário / Senha Incorreta!');
+      });
+
+      if (hasErrorMessage) {
         this.logger.error({
           message: 'Login failed: Invalid credentials',
           nUsp,
+          hasErrorMessage,
         });
         throw new Error('Invalid credentials');
       }
@@ -97,8 +104,8 @@ export class ScrapJupiterService {
       await page.goto(
         'https://uspdigital.usp.br/jupiterweb/gradeHoraria?codmnu=4759',
         {
-          waitUntil: 'networkidle0',
-          timeout: 30000,
+          waitUntil: 'domcontentloaded',
+          timeout: 10000,
         },
       );
 
