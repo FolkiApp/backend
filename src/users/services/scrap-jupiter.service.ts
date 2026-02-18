@@ -279,10 +279,10 @@ export class ScrapJupiterService {
 
       for (const subjectCode of notRegisteredSubjectCodes) {
         try {
-          await page.waitForSelector(`span[class="${subjectCode}"]`, {
+          await page.waitForSelector(`span[class*="${subjectCode}"]`, {
             timeout: 5000,
           });
-          await page.$eval(`span[class="${subjectCode}"]`, (element) =>
+          await page.$eval(`span[class*="${subjectCode}"]`, (element) =>
             (element as HTMLElement).click(),
           );
           await page.waitForSelector(
