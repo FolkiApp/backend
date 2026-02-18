@@ -194,7 +194,7 @@ export class ScrapJupiterService {
 
             try {
               await page.waitForSelector(`span[class="${subject}"]`, {
-                timeout: 7000,
+                timeout: 2000,
               });
             } catch (error) {
               this.logger.warn({
