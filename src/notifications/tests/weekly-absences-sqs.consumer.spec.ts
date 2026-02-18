@@ -308,13 +308,14 @@ describe('WeeklyAbsencesSqsConsumer', () => {
 
   it('should only send to users with active semester', async () => {
     const message = createMockMessage();
-    // Mock data atual durante o semestre da universidade 1
+    // Mock data atual durante o semestre da universidade 1 e 3, mas antes do início da 2
     jest.useFakeTimers();
-    jest.setSystemTime(new Date(2026, 3, 1)); // 1 de abril - durante semestre USP, antes UFSCar
+    jest.setSystemTime(new Date(2026, 2, 1)); // 1 de março - USP e UNICAMP ativos, UFSCar ainda não começou
 
     const users = [
-      { id: 1, email: 'user1@test.com', universityId: 1 }, // USP - ativo (23/03 - 04/08)
-      { id: 2, email: 'user2@test.com', universityId: 2 }, // UFSCar - inativo (09/04 - 18/08)
+      { id: 1, email: 'user1@test.com', universityId: 1 }, // USP - ativo (23/fev - 04/jul)
+      { id: 2, email: 'user2@test.com', universityId: 2 }, // UFSCar - inativo (09/mar - 18/jul)
+      { id: 3, email: 'user3@test.com', universityId: 3 }, // UNICAMP - ativo (23/fev - 08/jul)
     ];
 
     mockUserRepository.findAllActive.mockResolvedValue(users);
@@ -327,9 +328,10 @@ describe('WeeklyAbsencesSqsConsumer', () => {
     expect(mockCustomLogger.log).toHaveBeenCalledWith(
       expect.objectContaining({
         message: 'Active users fetched and filtered by semester',
-        totalUsers: 2,
-        usersWithActiveSemester: 1,
+        totalUsers: 3,
+        usersWithActiveSemester: 2,
         filteredOut: 1,
+        usersWithoutUniversity: 0,
       }) as Record<string, unknown>,
     );
 
@@ -340,7 +342,7 @@ describe('WeeklyAbsencesSqsConsumer', () => {
       mockNotificationQueueService.addNotificationJob,
     ).toHaveBeenCalledWith(
       expect.objectContaining({
-        userIds: [1], // Apenas USP
+        userIds: [1, 3], // USP e UNICAMP
       }) as Record<string, unknown>,
     );
 

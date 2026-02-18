@@ -64,18 +64,50 @@ export class ScrapJupiterService {
       await page.keyboard.type(password);
       await page.keyboard.press('Enter');
 
-      await page.waitForSelector("a[href='gradeHoraria?codmnu=4759']", {
-        timeout: 5000,
+      this.logger.log({
+        message: 'Login submitted, waiting for navigation',
+        nUsp,
       });
+
+      await page.waitForNavigation({
+        waitUntil: 'domcontentloaded',
+        timeout: 30000,
+      });
+
+      const currentUrl = page.url();
+      this.logger.log({
+        message: 'Login navigation completed',
+        nUsp,
+        currentUrl,
+      });
+
+      // Check for error message on page
+      const hasErrorMessage = await page.evaluate(() => {
+        const bodyText = document.body.textContent || '';
+        return bodyText.includes('Usuário / Senha Incorreta!');
+      });
+
+      if (hasErrorMessage) {
+        this.logger.error({
+          message: 'Login failed: Invalid credentials',
+          nUsp,
+          hasErrorMessage,
+        });
+        throw new Error('Invalid credentials');
+      }
 
       this.logger.log({
         message: 'Login successful, accessing class schedule',
         nUsp,
       });
-      await page.waitForSelector("a[href='gradeHoraria?codmnu=4759']", {
-        timeout: 5000,
-      });
-      await page.click("a[href='gradeHoraria?codmnu=4759']");
+
+      await page.goto(
+        'https://uspdigital.usp.br/jupiterweb/gradeHoraria?codmnu=4759',
+        {
+          waitUntil: 'domcontentloaded',
+          timeout: 10000,
+        },
+      );
 
       await page.waitForSelector('select');
       await page.waitForSelector('option:nth-child(2)');
@@ -134,7 +166,7 @@ export class ScrapJupiterService {
         course: jupiterWebCourse,
         institute: jupiterWebInstitute,
       });
-      let firstTime = true;
+
       let rowIndex = 1;
       const hash: Record<
         string,
@@ -144,6 +176,7 @@ export class ScrapJupiterService {
         }
       > = {};
 
+      // First pass: collect all subjects and their schedules
       while (await page.$(`tr[id='${rowIndex}']`)) {
         let element = await page.$(`tr[id='${rowIndex}'] > td:nth-child(1)`);
         const startHour = await page.evaluate((el) => el?.textContent, element);
@@ -158,49 +191,7 @@ export class ScrapJupiterService {
           let subject = await page.evaluate((el) => el?.textContent, element);
 
           if (subject) {
-            subject = subject.split('-')[0];
-
-            try {
-              await page.waitForSelector(`span[class="${subject}"]`, {
-                timeout: 7000,
-              });
-            } catch (error) {
-              this.logger.warn({
-                message: 'Subject span not found, skipping',
-                subject,
-                nUsp,
-                error,
-              });
-              continue;
-            }
-
-            const spanElement = await page.$(`span[class="${subject}"]`);
-            await spanElement?.click();
-            await page.waitForSelector('.blockOverlay', { hidden: true });
-
-            if (firstTime) {
-              await spanElement?.click();
-              await page.waitForSelector('.blockOverlay', { hidden: true });
-              firstTime = false;
-            }
-
-            await page.waitForSelector('a[href="#div_oferecimento"]', {
-              timeout: 5000,
-            });
-            await page.click('a[href="#div_oferecimento"]');
-            await page.waitForSelector('.blockOverlay', { hidden: true });
-
-            await page.waitForSelector(
-              'div[class="adicionado"] > table > tbody > tr > td[class="obstur"]',
-              { timeout: 5000 },
-            );
-            const observationsElement = await page.$(
-              'div[class="adicionado"] > table > tbody > tr > td[class="obstur"]',
-            );
-            const observationsText = await page.evaluate(
-              (el) => el?.textContent?.replace(/\n/g, ' '),
-              observationsElement,
-            );
+            subject = subject.split('-')[0].trim();
 
             if (!hash[subject]) {
               hash[subject] = {
@@ -211,7 +202,7 @@ export class ScrapJupiterService {
                     end: lastHour!,
                   },
                 ],
-                observations: observationsText || '',
+                observations: '',
               };
             } else {
               hash[subject].days.push({
@@ -227,9 +218,63 @@ export class ScrapJupiterService {
       }
 
       this.logger.log({
+        message: 'Collected subjects from schedule',
+        nUsp,
+        totalSubjects: Object.keys(hash).length,
+      });
+
+      // Second pass: get observations for each unique subject
+      let firstTime = true;
+      for (const subjectCode of Object.keys(hash)) {
+        try {
+          await page.waitForSelector(`span[class*="${subjectCode}"]`, {
+            timeout: 3000,
+          });
+
+          const spanElement = await page.$(`span[class*="${subjectCode}"]`);
+          await spanElement?.click();
+          await page.waitForSelector('.blockOverlay', { hidden: true });
+
+          if (firstTime) {
+            await spanElement?.click();
+            await page.waitForSelector('.blockOverlay', { hidden: true });
+            firstTime = false;
+          }
+
+          await page.waitForSelector('a[href="#div_oferecimento"]', {
+            timeout: 5000,
+          });
+          await page.click('a[href="#div_oferecimento"]');
+          await page.waitForSelector('.blockOverlay', { hidden: true });
+
+          await page.waitForSelector(
+            'div[class="adicionado"] > table > tbody > tr > td[class="obstur"]',
+            { timeout: 5000 },
+          );
+          const observationsElement = await page.$(
+            'div[class="adicionado"] > table > tbody > tr > td[class="obstur"]',
+          );
+          const observationsText = await page.evaluate(
+            (el) => el?.textContent?.replace(/\n/g, ' '),
+            observationsElement,
+          );
+
+          hash[subjectCode].observations = observationsText || '';
+        } catch (error) {
+          this.logger.warn({
+            message: 'Failed to extract observations for subject',
+            subject: subjectCode,
+            nUsp,
+            error: error instanceof Error ? error.message : String(error),
+          });
+        }
+      }
+
+      this.logger.log({
         message: 'Processing found subjects',
         nUsp,
         totalSubjects: Object.keys(hash).length,
+        subjects: hash,
       });
       const newSubjectsInfo: Array<{
         subjectCode: string;
@@ -247,10 +292,10 @@ export class ScrapJupiterService {
 
       for (const subjectCode of notRegisteredSubjectCodes) {
         try {
-          await page.waitForSelector(`span[class="${subjectCode}"]`, {
+          await page.waitForSelector(`span[class*="${subjectCode}"]`, {
             timeout: 5000,
           });
-          await page.$eval(`span[class="${subjectCode}"]`, (element) =>
+          await page.$eval(`span[class*="${subjectCode}"]`, (element) =>
             (element as HTMLElement).click(),
           );
           await page.waitForSelector(
@@ -429,6 +474,14 @@ export class ScrapJupiterService {
 
         if (!userSubject) {
           await this.userSubjectRepository.create(user.id, subjectClassId);
+        } else if (userSubject.deletedAt) {
+          // Restore if it was soft deleted
+          await this.userSubjectRepository.restore(user.id, subjectClassId);
+          this.logger.log({
+            message: 'Restored deleted user subject',
+            userId: user.id,
+            subjectClassId,
+          });
         }
       }
 

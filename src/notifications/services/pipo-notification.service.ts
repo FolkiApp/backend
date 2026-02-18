@@ -8,7 +8,8 @@ interface SendNotificationDto {
   playerIds: string[];
   idempotencyId?: string;
   data?: Record<string, any>;
-  url?: string;
+  webUrl?: string;
+  appUrl?: string;
 }
 
 @Injectable()
@@ -36,7 +37,8 @@ export class PipoNotificationService {
 
   async sendNotification(dto: SendNotificationDto): Promise<void> {
     try {
-      const { idempotencyId, title, message, playerIds, data, url } = dto;
+      const { idempotencyId, title, message, playerIds, data, webUrl, appUrl } =
+        dto;
       const isConfigured = this.verifyConfiguration();
 
       if (!isConfigured) {
@@ -67,8 +69,11 @@ export class PipoNotificationService {
           contents: { en: message },
           include_player_ids: batch,
           external_id: batchIdempotencyId,
+          small_icon: 'notification_icon',
+          android_accent_color: '7500BC',
           ...(data ? { data } : {}),
-          ...(url ? { url } : {}),
+          ...(webUrl ? { web_url: webUrl } : {}),
+          ...(appUrl ? { app_url: appUrl } : {}),
         });
       }
 

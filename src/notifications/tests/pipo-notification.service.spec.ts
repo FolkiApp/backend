@@ -70,6 +70,9 @@ describe('PipoNotificationService', () => {
         headings: { en: 'Título do Teste' },
         contents: { en: 'Mensagem do Teste' },
         include_player_ids: ['player1', 'player2'],
+        external_id: undefined,
+        small_icon: 'notification_icon',
+        android_accent_color: '7500BC',
       });
     });
 

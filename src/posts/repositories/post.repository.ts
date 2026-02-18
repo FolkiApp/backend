@@ -293,45 +293,4 @@ export class PostRepository {
 
     return comments.map((comment) => comment.userId);
   }
-
-  async getPostById(postId: number): Promise<Post | null> {
-    const post = await this.prisma.post.findUnique({
-      where: { id: postId },
-      include: {
-        user: {
-          select: {
-            name: true,
-            institute: {
-              select: {
-                name: true,
-              },
-            },
-          },
-        },
-      },
-    });
-
-    if (!post) {
-      return null;
-    }
-
-    const nameParts: string[] = post.user.name.trim().split(/\s+/);
-    const userName: string =
-      nameParts.length > 1
-        ? `${nameParts[0]} ${nameParts[nameParts.length - 1]}`
-        : nameParts[0];
-
-    return new Post(
-      post.id,
-      post.postDate,
-      post.content,
-      post.userId,
-      userName,
-      post.user.institute?.name ?? null,
-      post.parentId,
-      post.commentsCount,
-      post.tags,
-      post.universityId,
-    );
-  }
 }
