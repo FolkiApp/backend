@@ -193,7 +193,7 @@ export class ScrapJupiterService {
             subject = subject.split('-')[0];
 
             try {
-              await page.waitForSelector(`span[class="${subject}"]`, {
+              await page.waitForSelector(`span[class*="${subject}"]`, {
                 timeout: 2000,
               });
             } catch (error) {
@@ -206,7 +206,7 @@ export class ScrapJupiterService {
               continue;
             }
 
-            const spanElement = await page.$(`span[class="${subject}"]`);
+            const spanElement = await page.$(`span[class*="${subject}"]`);
             await spanElement?.click();
             await page.waitForSelector('.blockOverlay', { hidden: true });
 
