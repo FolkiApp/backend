@@ -64,18 +64,43 @@ export class ScrapJupiterService {
       await page.keyboard.type(password);
       await page.keyboard.press('Enter');
 
-      await page.waitForSelector("a[href='gradeHoraria?codmnu=4759']", {
-        timeout: 5000,
+      this.logger.log({
+        message: 'Login submitted, waiting for navigation',
+        nUsp,
       });
+
+      await page.waitForNavigation({
+        waitUntil: 'networkidle0',
+        timeout: 30000,
+      });
+
+      const currentUrl = page.url();
+      this.logger.log({
+        message: 'Login navigation completed',
+        nUsp,
+        currentUrl,
+      });
+
+      if (currentUrl.includes('/jupiterweb/autenticar')) {
+        this.logger.error({
+          message: 'Login failed: Invalid credentials',
+          nUsp,
+        });
+        throw new Error('Invalid credentials');
+      }
 
       this.logger.log({
         message: 'Login successful, accessing class schedule',
         nUsp,
       });
-      await page.waitForSelector("a[href='gradeHoraria?codmnu=4759']", {
-        timeout: 5000,
-      });
-      await page.click("a[href='gradeHoraria?codmnu=4759']");
+
+      await page.goto(
+        'https://uspdigital.usp.br/jupiterweb/gradeHoraria?codmnu=4759',
+        {
+          waitUntil: 'networkidle0',
+          timeout: 30000,
+        },
+      );
 
       await page.waitForSelector('select');
       await page.waitForSelector('option:nth-child(2)');
