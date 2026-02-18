@@ -204,28 +204,11 @@ export class ScrapJupiterService {
                 ],
                 observations: '',
               };
-              this.logger.log({
-                message: 'Adding new subject to schedule',
-                nUsp,
-                subjectCode: subject,
-                day: weekDays[tdIndex - 3],
-                startTime: startHour,
-                endTime: lastHour,
-              });
             } else {
               hash[subject].days.push({
                 day: weekDays[tdIndex - 3],
                 start: startHour!,
                 end: lastHour!,
-              });
-              this.logger.log({
-                message: 'Adding additional day to existing subject',
-                nUsp,
-                subjectCode: subject,
-                day: weekDays[tdIndex - 3],
-                startTime: startHour,
-                endTime: lastHour,
-                totalDays: hash[subject].days.length,
               });
             }
           }
@@ -491,6 +474,14 @@ export class ScrapJupiterService {
 
         if (!userSubject) {
           await this.userSubjectRepository.create(user.id, subjectClassId);
+        } else if (userSubject.deletedAt) {
+          // Restore if it was soft deleted
+          await this.userSubjectRepository.restore(user.id, subjectClassId);
+          this.logger.log({
+            message: 'Restored deleted user subject',
+            userId: user.id,
+            subjectClassId,
+          });
         }
       }
 

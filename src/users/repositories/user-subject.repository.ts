@@ -95,4 +95,15 @@ export class UserSubjectRepository {
       data: { deletedAt: new Date() },
     });
   }
+
+  async restore(userId: number, subjectClassId: number) {
+    return this.prisma.user_subject.updateMany({
+      where: {
+        userId,
+        subjectClassId,
+        deletedAt: { not: null },
+      },
+      data: { deletedAt: null },
+    });
+  }
 }
