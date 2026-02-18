@@ -1,14 +1,21 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { PostRepository } from '../repositories/post.repository';
 import { Post } from '../entities/post.entity';
 import { PostInternalErrorException } from '../exceptions/post-internal-error.exception';
 import { NotFoundPostException } from '../exceptions/not-found-post.exception';
+import { CustomLogger } from '../../common/logger/custom-logger.service';
 
 @Injectable()
 export class ListFirstPostService {
-  private readonly logger = new Logger(ListFirstPostService.name);
+  private readonly logger: CustomLogger;
 
-  constructor(private readonly postRepository: PostRepository) {}
+  constructor(
+    private readonly postRepository: PostRepository,
+    logger: CustomLogger,
+  ) {
+    this.logger = logger;
+    this.logger.setContext(ListFirstPostService.name);
+  }
 
   async execute(
     quantity: number,

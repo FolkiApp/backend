@@ -1,4 +1,4 @@
-import { Injectable, Logger, Optional } from '@nestjs/common';
+import { Injectable, Optional } from '@nestjs/common';
 import { SqsService } from '@ssut/nestjs-sqs';
 import { AuthUser } from '../../common/guards/auth.guard';
 import { PostRepository } from '../repositories/post.repository';
@@ -6,15 +6,23 @@ import { Post } from '../entities/post.entity';
 import { PostInternalErrorException } from '../exceptions/post-internal-error.exception';
 import { EmptyPostException } from '../exceptions/empty-post.exception';
 import { NotFoundPostException } from '../exceptions/not-found-post.exception';
+import { InappropriateContentException } from '../exceptions/inappropriate-content.exception';
+import { ModerationService } from './moderation.service';
+import { CustomLogger } from '../../common/logger/custom-logger.service';
 
 @Injectable()
 export class PostPostService {
-  private readonly logger = new Logger(PostPostService.name);
+  private readonly logger: CustomLogger;
 
   constructor(
     private readonly postRepository: PostRepository,
+    private readonly moderationService: ModerationService,
     @Optional() private readonly sqsService: SqsService,
-  ) {}
+    logger: CustomLogger,
+  ) {
+    this.logger = logger;
+    this.logger.setContext(PostPostService.name);
+  }
 
   async execute(
     content: string,
@@ -30,25 +38,61 @@ export class PostPostService {
       parentId,
       tagsCount: tags.length,
     });
-    return this.createPost(content, user.id, user.universityId, tags, parentId);
+
+    this.validateContent(content);
+    await this.moderateContent(content, user.id);
+
+    if (parentId) await this.validateParent(parentId);
+
+    const post = await this.persistPost(
+      content,
+      user.id,
+      user.universityId,
+      tags,
+      parentId,
+    );
+
+    if (parentId) await this.notifyComment(post, user.id, parentId);
+
+    return post;
   }
-  async createPost(
+  private validateContent(content: string): void {
+    if (!content?.trim()) {
+      throw new EmptyPostException();
+    }
+  }
+
+  private async moderateContent(
+    content: string,
+    userId: number,
+  ): Promise<void> {
+    const moderationResult =
+      await this.moderationService.moderateContent(content);
+    if (moderationResult.flagged) {
+      this.logger.warn({
+        message: 'Content flagged by moderation',
+        userId,
+        categories: moderationResult.categories,
+      });
+      throw new InappropriateContentException();
+    }
+  }
+
+  private async validateParent(parentId: number): Promise<void> {
+    const parent = await this.postRepository.getPostById(parentId);
+    if (!parent) {
+      throw new NotFoundPostException();
+    }
+  }
+
+  private async persistPost(
     content: string,
     userId: number,
     universityId: number | null,
     tags: string[],
     parentId?: number,
   ): Promise<Post> {
-    if (!content?.trim()) {
-      throw new EmptyPostException();
-    }
     try {
-      if (parentId) {
-        const parent = await this.postRepository.getPostById(parentId);
-        if (!parent) {
-          throw new NotFoundPostException();
-        }
-      }
       const post = await this.postRepository.createPost(
         content,
         userId,
@@ -65,31 +109,27 @@ export class PostPostService {
         parentId,
       });
 
-      if (parentId) {
-        this.logger.log({
-          message: 'Comment detected, sending notification',
-          postId: post.id,
-          parentId,
-        });
-        await this.sendCommentNotification(
-          post.id,
-          userId,
-          post.userName,
-          parentId,
-        );
-      }
-
       return post;
     } catch (error: unknown) {
       this.logger.error({
         message: 'Error creating post',
         error: error instanceof Error ? error.message : error,
       });
-      if (error instanceof NotFoundPostException) {
-        throw error;
-      }
       throw new PostInternalErrorException();
     }
+  }
+
+  private async notifyComment(
+    post: Post,
+    userId: number,
+    parentId: number,
+  ): Promise<void> {
+    await this.sendCommentNotification(
+      post.id,
+      userId,
+      post.userName,
+      parentId,
+    );
   }
 
   private async sendCommentNotification(

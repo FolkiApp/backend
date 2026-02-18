@@ -9,6 +9,7 @@ import { ListPostChildrenService } from './services/list-post-children.service';
 import { GetPostByIdService } from './services/get-post-by-id.service';
 import { NotificationsModule } from '../notifications/notifications.module';
 import { PostNotificationSqsConsumer } from './consumers/post-notification-sqs.consumer';
+import { ModerationService } from './services/moderation.service';
 
 @Module({
   imports: [PrismaModule, NotificationsModule],
@@ -21,6 +22,7 @@ import { PostNotificationSqsConsumer } from './consumers/post-notification-sqs.c
     ListPostChildrenService,
     GetPostByIdService,
     PostNotificationSqsConsumer,
+    ModerationService,
   ],
 })
 export class PostsModule {}
