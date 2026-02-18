@@ -10,8 +10,9 @@ import { AuthResponseDto } from '../dto/auth-response.dto';
 import { UserResponseDto } from '../dto/user-response.dto';
 import { ScrapJupiterService } from './scrap-jupiter.service';
 import { AccessUFSCarSigaaService } from './access-ufscar-sigaa.service';
+import { AccessUnicampEdacService } from './access-unicamp-edac.service';
 
-const VALID_UNIVERSITY_IDS = [1, 2];
+const VALID_UNIVERSITY_IDS = [1, 2, 3];
 
 @Injectable()
 export class AuthenticateUserService {
@@ -20,6 +21,7 @@ export class AuthenticateUserService {
   constructor(
     private readonly scrapJupiterService: ScrapJupiterService,
     private readonly accessUFSCarSigaaService: AccessUFSCarSigaaService,
+    private readonly accessUnicampEdacService: AccessUnicampEdacService,
     logger: CustomLogger,
   ) {
     this.logger = logger;
@@ -27,7 +29,8 @@ export class AuthenticateUserService {
   }
 
   async execute(authDto: AuthDto): Promise<AuthResponseDto> {
-    const { uspCode, password, universityId = 1 } = authDto;
+    const { uspCode, password } = authDto;
+    const universityId = Number(authDto.universityId ?? 1);
 
     if (!VALID_UNIVERSITY_IDS.includes(universityId)) {
       throw new InvalidUniversityException();
@@ -40,10 +43,24 @@ export class AuthenticateUserService {
         uspCode,
       });
 
-      const user =
-        universityId === 1
-          ? await this.scrapJupiterService.execute(uspCode, password)
-          : await this.accessUFSCarSigaaService.execute(uspCode, password);
+      let user;
+
+      switch (universityId) {
+        case 1:
+          user = await this.scrapJupiterService.execute(uspCode, password);
+          break;
+
+        case 2:
+          user = await this.accessUFSCarSigaaService.execute(uspCode, password);
+          break;
+
+        case 3:
+          user = await this.accessUnicampEdacService.execute(uspCode, password);
+          break;
+
+        default:
+          throw new InvalidUniversityException();
+      }
 
       const token = createToken(user.id, user.securePin!);
 

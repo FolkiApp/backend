@@ -34,7 +34,7 @@ export class UsersController {
   @ApiOperation({
     summary: 'Autentica usuário via sistema da universidade',
     description:
-      'Autentica usuário usando credenciais do JupiterWeb (USP) ou SIGAA (UFSCar)',
+      'Autentica usuário usando credenciais do JupiterWeb (USP) ou SIGAA (UFSCar) ou EDAC (Unicamp)',
   })
   async authenticate(@Body() authDto: AuthDto): Promise<AuthResponseDto> {
     return await this.authenticateUserService.execute(authDto);

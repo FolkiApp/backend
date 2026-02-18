@@ -219,47 +219,47 @@ export class PostRepository {
     });
   }
 
-  async getPostById(id: number): Promise<Post | null> {
-    const post = await this.prisma.post.findUnique({
-      where: { id },
-      include: {
-        user: {
-          select: {
-            name: true,
-            institute: {
-              select: {
-                name: true,
-              },
-            },
-          },
-        },
-      },
-    });
+  // async getPostById(id: number): Promise<Post | null> {
+  //   const post = await this.prisma.post.findUnique({
+  //     where: { id },
+  //     include: {
+  //       user: {
+  //         select: {
+  //           name: true,
+  //           institute: {
+  //             select: {
+  //               name: true,
+  //             },
+  //           },
+  //         },
+  //       },
+  //     },
+  //   });
 
-    if (!post) {
-      return null;
-    }
+  //   if (!post) {
+  //     return null;
+  //   }
 
-    const nameParts: string[] = post.user.name.trim().split(/\s+/);
+  //   const nameParts: string[] = post.user.name.trim().split(/\s+/);
 
-    const userName: string =
-      nameParts.length > 1
-        ? `${nameParts[0]} ${nameParts[nameParts.length - 1]}`
-        : nameParts[0];
+  //   const userName: string =
+  //     nameParts.length > 1
+  //       ? `${nameParts[0]} ${nameParts[nameParts.length - 1]}`
+  //       : nameParts[0];
 
-    return new Post(
-      post.id,
-      post.postDate,
-      post.content,
-      post.userId,
-      userName,
-      post.user.institute?.name ?? null,
-      post.parentId,
-      post.commentsCount,
-      post.tags,
-      post.universityId,
-    );
-  }
+  //   return new Post(
+  //     post.id,
+  //     post.postDate,
+  //     post.content,
+  //     post.userId,
+  //     userName,
+  //     post.user.institute?.name ?? null,
+  //     post.parentId,
+  //     post.commentsCount,
+  //     post.tags,
+  //     post.universityId,
+  //   );
+  // }
 
   async deletePost(id: number): Promise<void> {
     await this.prisma.$transaction(async (tx) => {
