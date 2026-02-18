@@ -59,6 +59,24 @@ export class SendNotificationDto {
 
   @ApiPropertyOptional({
     description:
+      'URL para web push subscribers. Será usada apenas em notificações web.',
+    example: 'https://web.folki.com.br/#/Board?postId=123',
+  })
+  @IsString()
+  @IsOptional()
+  webUrl?: string;
+
+  @ApiPropertyOptional({
+    description:
+      'Deep link URL para mobile app subscribers. Será usada apenas em notificações mobile.',
+    example: 'folki://Board?postId=123',
+  })
+  @IsString()
+  @IsOptional()
+  appUrl?: string;
+
+  @ApiPropertyOptional({
+    description:
       'URL para redirecionar o usuário ao clicar na notificação. ATENÇÃO: Se enviado, TODOS (web e mobile) recebem. No mobile pode abrir o navegador. Use apenas se deseja comportamento de URL em todas plataformas.',
     example: 'https://web.folki.com.br/#/Board?postId=123',
   })

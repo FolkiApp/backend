@@ -102,10 +102,8 @@ describe('PostNotificationSqsConsumer', () => {
         title: 'Novo comentário',
         message: 'John Doe comentou em uma publicação',
         userIds: expect.arrayContaining([5, 3, 4]) as number[],
-        data: {
-          postId: '10',
-          type: 'comment',
-        },
+        webUrl: 'https://web.folki.com.br/#/Board?postId=10',
+        appUrl: 'folki://Board?postId=10',
       });
       expect(logger.log).toHaveBeenCalledWith(
         expect.objectContaining({

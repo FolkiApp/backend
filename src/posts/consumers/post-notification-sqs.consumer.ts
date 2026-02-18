@@ -105,10 +105,8 @@ export class PostNotificationSqsConsumer {
       title: 'Novo comentário',
       message: `${commentAuthorName} comentou em uma publicação`,
       userIds: recipientIds,
-      data: {
-        postId: parentId.toString(),
-        type: 'comment',
-      },
+      webUrl: `https://web.folki.com.br/#/Board?postId=${parentId}`,
+      appUrl: `folki://Board?postId=${parentId}`,
     });
 
     this.logger.log({

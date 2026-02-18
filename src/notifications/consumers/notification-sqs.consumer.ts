@@ -52,7 +52,8 @@ export class NotificationSqsConsumer {
         playerIds,
         idempotencyId: body.idempotencyId,
         data: body.data,
-        url: body.url,
+        webUrl: body.webUrl,
+        appUrl: body.appUrl,
       });
 
       this.logger.log({
