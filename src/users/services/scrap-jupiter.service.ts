@@ -166,7 +166,7 @@ export class ScrapJupiterService {
         course: jupiterWebCourse,
         institute: jupiterWebInstitute,
       });
-      let firstTime = true;
+
       let rowIndex = 1;
       const hash: Record<
         string,
@@ -176,6 +176,7 @@ export class ScrapJupiterService {
         }
       > = {};
 
+      // First pass: collect all subjects and their schedules
       while (await page.$(`tr[id='${rowIndex}']`)) {
         let element = await page.$(`tr[id='${rowIndex}'] > td:nth-child(1)`);
         const startHour = await page.evaluate((el) => el?.textContent, element);
@@ -190,49 +191,7 @@ export class ScrapJupiterService {
           let subject = await page.evaluate((el) => el?.textContent, element);
 
           if (subject) {
-            subject = subject.split('-')[0];
-
-            try {
-              await page.waitForSelector(`span[class*="${subject}"]`, {
-                timeout: 2000,
-              });
-            } catch (error) {
-              this.logger.warn({
-                message: 'Subject span not found, skipping',
-                subject,
-                nUsp,
-                error,
-              });
-              continue;
-            }
-
-            const spanElement = await page.$(`span[class*="${subject}"]`);
-            await spanElement?.click();
-            await page.waitForSelector('.blockOverlay', { hidden: true });
-
-            if (firstTime) {
-              await spanElement?.click();
-              await page.waitForSelector('.blockOverlay', { hidden: true });
-              firstTime = false;
-            }
-
-            await page.waitForSelector('a[href="#div_oferecimento"]', {
-              timeout: 5000,
-            });
-            await page.click('a[href="#div_oferecimento"]');
-            await page.waitForSelector('.blockOverlay', { hidden: true });
-
-            await page.waitForSelector(
-              'div[class="adicionado"] > table > tbody > tr > td[class="obstur"]',
-              { timeout: 5000 },
-            );
-            const observationsElement = await page.$(
-              'div[class="adicionado"] > table > tbody > tr > td[class="obstur"]',
-            );
-            const observationsText = await page.evaluate(
-              (el) => el?.textContent?.replace(/\n/g, ' '),
-              observationsElement,
-            );
+            subject = subject.split('-')[0].trim();
 
             if (!hash[subject]) {
               hash[subject] = {
@@ -243,7 +202,7 @@ export class ScrapJupiterService {
                     end: lastHour!,
                   },
                 ],
-                observations: observationsText || '',
+                observations: '',
               };
             } else {
               hash[subject].days.push({
@@ -256,6 +215,60 @@ export class ScrapJupiterService {
         }
 
         rowIndex++;
+      }
+
+      this.logger.log({
+        message: 'Collected subjects from schedule',
+        nUsp,
+        totalSubjects: Object.keys(hash).length,
+      });
+
+      // Second pass: get observations for each unique subject
+      let firstTime = true;
+      for (const subjectCode of Object.keys(hash)) {
+        try {
+          await page.waitForSelector(`span[class*="${subjectCode}"]`, {
+            timeout: 3000,
+          });
+
+          const spanElement = await page.$(`span[class*="${subjectCode}"]`);
+          await spanElement?.click();
+          await page.waitForSelector('.blockOverlay', { hidden: true });
+
+          if (firstTime) {
+            await spanElement?.click();
+            await page.waitForSelector('.blockOverlay', { hidden: true });
+            firstTime = false;
+          }
+
+          await page.waitForSelector('a[href="#div_oferecimento"]', {
+            timeout: 5000,
+          });
+          await page.click('a[href="#div_oferecimento"]');
+          await page.waitForSelector('.blockOverlay', { hidden: true });
+
+          await page.waitForSelector(
+            'div[class="adicionado"] > table > tbody > tr > td[class="obstur"]',
+            { timeout: 5000 },
+          );
+          const observationsElement = await page.$(
+            'div[class="adicionado"] > table > tbody > tr > td[class="obstur"]',
+          );
+          const observationsText = await page.evaluate(
+            (el) => el?.textContent?.replace(/\n/g, ' '),
+            observationsElement,
+          );
+
+          hash[subjectCode].observations = observationsText || '';
+        } catch (error) {
+          this.logger.warn({
+            message: 'Failed to extract observations for subject',
+            subject: subjectCode,
+            nUsp,
+            error: error instanceof Error ? error.message : String(error),
+          });
+          // Observations remain empty but subject is still in hash
+        }
       }
 
       this.logger.log({
