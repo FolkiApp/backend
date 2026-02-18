@@ -284,7 +284,6 @@ export class ScrapJupiterService {
             nUsp,
             error: error instanceof Error ? error.message : String(error),
           });
-          // Observations remain empty but subject is still in hash
         }
       }
 
@@ -292,6 +291,7 @@ export class ScrapJupiterService {
         message: 'Processing found subjects',
         nUsp,
         totalSubjects: Object.keys(hash).length,
+        subjects: hash,
       });
       const newSubjectsInfo: Array<{
         subjectCode: string;
