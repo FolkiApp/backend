@@ -204,11 +204,28 @@ export class ScrapJupiterService {
                 ],
                 observations: '',
               };
+              this.logger.log({
+                message: 'Adding new subject to schedule',
+                nUsp,
+                subjectCode: subject,
+                day: weekDays[tdIndex - 3],
+                startTime: startHour,
+                endTime: lastHour,
+              });
             } else {
               hash[subject].days.push({
                 day: weekDays[tdIndex - 3],
                 start: startHour!,
                 end: lastHour!,
+              });
+              this.logger.log({
+                message: 'Adding additional day to existing subject',
+                nUsp,
+                subjectCode: subject,
+                day: weekDays[tdIndex - 3],
+                startTime: startHour,
+                endTime: lastHour,
+                totalDays: hash[subject].days.length,
               });
             }
           }
