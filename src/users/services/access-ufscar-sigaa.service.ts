@@ -185,6 +185,13 @@ export class AccessUFSCarSigaaService {
 
       if (!userSubject) {
         await this.userSubjectRepository.create(user.id, subjectClassId);
+      } else if (userSubject.deletedAt) {
+        await this.userSubjectRepository.restore(user.id, subjectClassId);
+        this.logger.log({
+          message: 'Restored deleted user subject',
+          userId: user.id,
+          subjectClassId,
+        });
       }
     }
 

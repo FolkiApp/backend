@@ -421,9 +421,9 @@ export class ScrapJupiterService {
 
       // Special name mappings for specific users
       const nameOverrides: Record<string, string> = {
-        '179': 'Yuri Faria',
-        '180': 'Felipe Skubs',
-        '9570': 'Prado',
+        '13725587': 'Yuri Faria',
+        '15451742': 'Felipe Skubs',
+        '15582071': 'Prado',
       };
 
       const name =

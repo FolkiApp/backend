@@ -45,16 +45,21 @@ describe('AccessUnicampEdacService', () => {
   const mockSubjectClassRepository = {
     findBySubjectAndSchedule: jest.fn(),
     create: jest.fn(),
+    updateObservations: jest.fn(),
   } as unknown as jest.Mocked<SubjectClassRepository>;
 
   const mockUserSubjectRepository = {
     findByUserAndSubjectClass: jest.fn(),
+    findManyByUserId: jest.fn(),
     create: jest.fn(),
+    softDeleteMany: jest.fn(),
+    restore: jest.fn(),
   } as unknown as jest.Mocked<UserSubjectRepository>;
 
   const mockLogger = {
     setContext: jest.fn(),
     error: jest.fn(),
+    log: jest.fn(),
   } as unknown as jest.Mocked<CustomLogger>;
 
   const mockClose = jest.fn();
@@ -196,6 +201,8 @@ describe('AccessUnicampEdacService', () => {
       name: 'João da Silva',
       email: 'joao@dac.unicamp.br',
     } as user);
+
+    mockUserSubjectRepository.findManyByUserId.mockResolvedValue([]);
 
     mockUserSubjectRepository.findByUserAndSubjectClass.mockResolvedValue({
       id: 999,

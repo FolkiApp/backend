@@ -303,18 +303,64 @@ export class AccessUnicampEdacService {
           }
         }
 
-        const subjectClass = await this.subjectClassRepository.create(
-          subject.id,
-          availableDays,
-          currentYear,
-          currentSemester,
-          UNICAMP_UNIVERSITY_ID,
-          observationLines.join(', '),
-        );
+        const observations = observationLines.join(', ');
+        let subjectClass =
+          await this.subjectClassRepository.findBySubjectAndSchedule(
+            subject.id,
+            availableDays,
+            currentYear,
+            currentSemester,
+            UNICAMP_UNIVERSITY_ID,
+          );
+
+        if (subjectClass) {
+          if (subjectClass.observations !== observations) {
+            await this.subjectClassRepository.updateObservations(
+              subjectClass.id,
+              observations,
+            );
+          }
+        } else {
+          subjectClass = await this.subjectClassRepository.create(
+            subject.id,
+            availableDays,
+            currentYear,
+            currentSemester,
+            UNICAMP_UNIVERSITY_ID,
+            observations,
+          );
+        }
+
         subjectClassesIds.push(subjectClass.id);
       }
 
       let userEntity = await this.userRepository.findByEmail(email);
+
+      if (userEntity) {
+        const userSubjectClasses =
+          await this.userSubjectRepository.findManyByUserId(userEntity.id);
+        const userSubjectClassesIds = userSubjectClasses.map(
+          (usc) => usc.subjectClassId,
+        );
+        const userSubjectClassesToRemove = userSubjectClassesIds.filter(
+          (uscId) => !subjectClassesIds.includes(uscId),
+        );
+
+        if (userSubjectClassesToRemove.length) {
+          await this.userSubjectRepository.softDeleteMany(
+            userEntity.id,
+            userSubjectClassesToRemove,
+          );
+        }
+
+        if (name !== userEntity.name) {
+          userEntity = await this.userRepository.updateName(
+            userEntity.id,
+            name,
+          );
+        }
+      }
+
       if (!userEntity) {
         userEntity = await this.userRepository.create(
           email,
@@ -323,18 +369,25 @@ export class AccessUnicampEdacService {
           institute.id,
           UNICAMP_UNIVERSITY_ID,
         );
-      } else if (userEntity.name !== name) {
-        userEntity = await this.userRepository.updateName(userEntity.id, name);
       }
 
       for (const classId of subjectClassesIds) {
-        const exists =
+        const userSubject =
           await this.userSubjectRepository.findByUserAndSubjectClass(
             userEntity.id,
             classId,
           );
-        if (!exists)
+
+        if (!userSubject) {
           await this.userSubjectRepository.create(userEntity.id, classId);
+        } else if (userSubject.deletedAt) {
+          await this.userSubjectRepository.restore(userEntity.id, classId);
+          this.logger.log({
+            message: 'Restored deleted user subject',
+            userId: userEntity.id,
+            subjectClassId: classId,
+          });
+        }
       }
 
       await browser.close();
