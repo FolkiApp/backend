@@ -419,12 +419,15 @@ export class ScrapJupiterService {
         ),
       );
 
-      let name = all77WidthFontTexts[1] || 'Estudante USP';
+      // Special name mappings for specific users
+      const nameOverrides: Record<string, string> = {
+        '179': 'Yuri Faria',
+        '180': 'Felipe Skubs',
+        '9570': 'Prado',
+      };
 
-      // Special case for user ID 179
-      if (nUsp === '179') {
-        name = 'Yuri Faria';
-      }
+      const name =
+        nameOverrides[nUsp] || all77WidthFontTexts[1] || 'Estudante USP';
 
       const emails = allFontsTexts.filter((text: string) =>
         text!.includes('@'),
