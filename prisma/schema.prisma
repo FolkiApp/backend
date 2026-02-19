@@ -79,6 +79,8 @@ model subject_class {
   universityId  Int?
   user_subject  user_subject[]
   activity      activity[]
+
+  @@index([subjectId, year, semester, universityId])
 }
 
 model user {
@@ -120,6 +122,8 @@ model user_subject {
   deletedAt      DateTime?
   user_absences  user_absence[]
   grade          grade[]
+
+  @@index([userId, subjectClassId])
 }
 
 model user_absence {

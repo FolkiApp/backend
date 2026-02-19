@@ -36,12 +36,12 @@ export class SubjectClassRepository {
     const data = await this.prisma.subject_class.findFirst({
       where: {
         subjectId,
-        availableDays: {
-          equals: availableDays,
-        },
         year,
         semester,
         universityId,
+        availableDays: {
+          equals: availableDays,
+        },
       },
       include: {
         subject: true,

@@ -161,12 +161,12 @@ export class AccessUnicampEdacService {
         }
       });
 
-      await page.goto(UNICAMP_LOGIN_URL, { waitUntil: 'networkidle2' });
+      await page.goto(UNICAMP_LOGIN_URL, { waitUntil: 'load' });
       await page.type('#username', ra);
       await page.type('#password', password);
       await Promise.all([
         page.click('#signin-confirmar'),
-        page.waitForNavigation({ waitUntil: 'networkidle2' }),
+        page.waitForNavigation({ waitUntil: 'load' }),
       ]);
 
       await page.goto(

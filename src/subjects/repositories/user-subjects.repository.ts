@@ -31,6 +31,7 @@ export class UserSubjectsRepository {
         deletedAt: null,
       },
       select: {
+        userId: true,
         user: {
           select: {
             user_notification_id: {
@@ -83,6 +84,7 @@ export class UserSubjectsRepository {
       },
       select: {
         userId: true,
+        subjectClassId: true,
       },
     });
 

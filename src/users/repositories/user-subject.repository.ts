@@ -61,7 +61,10 @@ export class UserSubjectRepository {
 
   async findByUserAndSubjectClass(userId: number, subjectClassId: number) {
     return this.prisma.user_subject.findFirst({
-      where: { userId, subjectClassId },
+      where: {
+        userId,
+        subjectClassId,
+      },
     });
   }
 
