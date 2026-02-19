@@ -10,8 +10,9 @@ import { AuthResponseDto } from '../dto/auth-response.dto';
 import { UserResponseDto } from '../dto/user-response.dto';
 import { ScrapJupiterService } from './scrap-jupiter.service';
 import { AccessUFSCarSigaaService } from './access-ufscar-sigaa.service';
+import { AccessUnicampEdacService } from './access-unicamp-edac.service';
 
-const VALID_UNIVERSITY_IDS = [1, 2];
+const VALID_UNIVERSITY_IDS = [1, 2, 3];
 
 @Injectable()
 export class AuthenticateUserService {
@@ -20,6 +21,7 @@ export class AuthenticateUserService {
   constructor(
     private readonly scrapJupiterService: ScrapJupiterService,
     private readonly accessUFSCarSigaaService: AccessUFSCarSigaaService,
+    private readonly accessUnicampEdacService: AccessUnicampEdacService,
     logger: CustomLogger,
   ) {
     this.logger = logger;
@@ -40,12 +42,15 @@ export class AuthenticateUserService {
         uspCode,
       });
 
+      // Mesma abordagem do código original, sem tipagem extra
       const user =
         universityId === 1
           ? await this.scrapJupiterService.execute(uspCode, password)
-          : await this.accessUFSCarSigaaService.execute(uspCode, password);
+          : universityId === 2
+            ? await this.accessUFSCarSigaaService.execute(uspCode, password)
+            : await this.accessUnicampEdacService.execute(uspCode, password);
 
-      const token = createToken(user.id, user.securePin!);
+      const token = createToken(user.id, user.securePin!); // ! garante que não é undefined
 
       const userResponse = new UserResponseDto(
         user.id,
