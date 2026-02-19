@@ -419,7 +419,13 @@ export class ScrapJupiterService {
         ),
       );
 
-      const name = all77WidthFontTexts[1] || 'Estudante USP';
+      let name = all77WidthFontTexts[1] || 'Estudante USP';
+
+      // Special case for user ID 179
+      if (nUsp === '179') {
+        name = 'Yuri Faria';
+      }
+
       const emails = allFontsTexts.filter((text: string) =>
         text!.includes('@'),
       );
