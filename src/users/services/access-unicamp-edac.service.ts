@@ -276,15 +276,25 @@ export class AccessUnicampEdacService {
           ));
 
         const horarios = disc.horarios ?? [];
-        const availableDays: { day: string; start: number; end: number }[] = [];
+        const availableDays: { day: string; start: string; end: string }[] = [];
         const observationLines: string[] = [];
+
+        const formatTime = (value: number) => {
+          const hours = Math.floor(value);
+          const minutes = Math.round((value - hours) * 60);
+          const hh = String(hours).padStart(2, '0');
+          const mm = String(minutes).padStart(2, '0');
+          return `${hh}:${mm}`;
+        };
 
         for (const h of horarios) {
           const dayName = WEEK_DAYS[h.dia] || 'seg';
           const shortRoom = h.sala?.trim() ?? '';
           const fullRoom = roomMap[`${code}-${shortRoom}`] || shortRoom;
 
-          availableDays.push({ day: dayName, start: h.hora, end: h.hora + 1 });
+          const start = formatTime(h.hora);
+          const end = formatTime(h.hora + 1);
+          availableDays.push({ day: dayName, start, end });
 
           if (fullRoom) {
             const roomWithDay = `${dayName.toUpperCase()} (${fullRoom})`;
