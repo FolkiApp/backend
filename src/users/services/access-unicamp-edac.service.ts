@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import puppeteer from 'puppeteer-extra';
-import type { Browser, Page } from 'puppeteer';
+import type { Browser, Page, HTTPResponse } from 'puppeteer';
 import { CustomLogger } from '../../common/logger/custom-logger.service';
 import { user } from '@prisma/client';
 import { UserRepository } from '../repositories/user.repository';
@@ -9,6 +9,31 @@ import { InstituteRepository } from '../../institutes/repositories/institute.rep
 import { SubjectRepository } from '../../subjects/repositories/subject.repository';
 import { SubjectClassRepository } from '../../subjects/repositories/subject-class.repository';
 import { UserSubjectRepository } from '../repositories/user-subject.repository';
+
+interface SigaHorario {
+  dia: number;
+  hora: number;
+  sala?: string;
+}
+
+interface SigaDisciplina {
+  codigoDisciplina: string;
+  nomeDisciplina: string;
+  horarios?: SigaHorario[];
+  sala?: string;
+}
+
+interface SigaResponse {
+  retorno: SigaDisciplina[];
+}
+
+interface SigaDadosBasicos {
+  retorno: {
+    DadosBasicos: {
+      Nome: string;
+    };
+  };
+}
 
 const UNICAMP_UNIVERSITY_ID = 3;
 const UNICAMP_LOGIN_URL = 'https://sistemas.dac.unicamp.br/siga/mobile/';
@@ -108,90 +133,121 @@ export class AccessUnicampEdacService {
 
     try {
       browser = await puppeteer.launch({
-        args: ['--no-sandbox'],
+        args: ['--no-sandbox', '--disable-setuid-sandbox'],
         headless: true,
       });
 
       const page: Page = await browser.newPage();
-      await page.goto(UNICAMP_LOGIN_URL, { waitUntil: 'networkidle2' });
+      let gradeJson: SigaResponse | null = null;
+      let dadosBasicosJson: SigaDadosBasicos | null = null;
 
+      page.on('response', (response: HTTPResponse) => {
+        const url = response.url();
+        if (url.includes('dados-basicos')) {
+          response
+            .json()
+            .then((d) => {
+              dadosBasicosJson = d as SigaDadosBasicos;
+            })
+            .catch(() => {});
+        }
+        if (url.includes('grade-horaria')) {
+          response
+            .json()
+            .then((d) => {
+              gradeJson = d as SigaResponse;
+            })
+            .catch(() => {});
+        }
+      });
+
+      await page.goto(UNICAMP_LOGIN_URL, { waitUntil: 'networkidle2' });
       await page.type('#username', ra);
       await page.type('#password', password);
-
       await Promise.all([
         page.click('#signin-confirmar'),
         page.waitForNavigation({ waitUntil: 'networkidle2' }),
       ]);
 
-      let gradeJson: any = null;
-      let dadosBasicosJson: any = null;
-
-      page.on('response', async (response) => {
-        const url = response.url();
-
-        if (url.includes('dados-basicos')) {
-          try {
-            dadosBasicosJson = await response.json();
-          } catch {}
-        }
-
-        if (url.includes('grade-horaria')) {
-          try {
-            gradeJson = await response.json();
-          } catch {}
-        }
-      });
-
       await page.goto(
         `${UNICAMP_LOGIN_URL}app/aluno/dados-pessoais/dados-basicos`,
         { waitUntil: 'networkidle2' },
       );
-
       await page.goto(`${UNICAMP_LOGIN_URL}app/meu-curso/grade-horaria`, {
         waitUntil: 'networkidle2',
       });
 
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      await page
+        .waitForFunction(() => document.querySelectorAll('button').length > 5, {
+          timeout: 10000,
+        })
+        .catch(() => {});
+      const roomMap = await page
+        .evaluate(async () => {
+          const map: Record<string, string> = {};
+          const buttons = Array.from(
+            document.querySelectorAll('button'),
+          ).filter((b) => b.innerText.includes('/'));
+          for (const btn of buttons) {
+            const parts = (btn as HTMLElement).innerText
+              .split('/')
+              .map((p) => p.trim());
+            if (parts.length < 3) continue;
+            const key = `${parts[0]}-${parts[2]}`;
+            if (map[key]) continue;
+            (btn as HTMLElement).click();
+            await new Promise((r) => setTimeout(r, 450));
+            const modalText =
+              document.querySelector('[role="dialog"] h6')?.textContent;
+            if (modalText) map[key] = modalText.trim();
+            (
+              document.querySelector(
+                '[role="dialog"] button:last-child',
+              ) as HTMLElement
+            )?.click();
+            await new Promise((r) => setTimeout(r, 350));
+          }
+          return map;
+        })
+        .catch(() => ({}) as Record<string, string>);
 
       await page.goto(`${UNICAMP_LOGIN_URL}app/meu-curso/dados-curso`, {
         waitUntil: 'networkidle2',
       });
-
       const coursePageData = await page.evaluate(() => {
-        const getValueByLabel = (label: string) => {
-          const spans = Array.from(document.querySelectorAll('span'));
-          const target = spans.find((el) => el.textContent?.includes(label));
-
-          if (!target) return null;
-
-          const container = target.closest('div');
-          const value = container?.querySelector('h6');
-
-          return value?.textContent?.trim() ?? null;
-        };
-
+        const spans = Array.from(document.querySelectorAll('span'));
+        const target = spans.find((s) => s.textContent?.includes('Curso:'));
         return {
-          emailInstitucional: getValueByLabel('E-mail Institucional:'),
-          cursoRaw: getValueByLabel('Curso:'),
+          email: spans
+            .find((s) => s.textContent?.includes('E-mail:'))
+            ?.closest('div')
+            ?.querySelector('h6')
+            ?.textContent?.trim(),
+          cursoRaw: target
+            ?.closest('div')
+            ?.querySelector('h6')
+            ?.textContent?.trim(),
         };
       });
 
-      const name =
-        dadosBasicosJson?.retorno?.DadosBasicos?.Nome?.trim() ??
-        'Aluno Unicamp';
+      const safeDados = dadosBasicosJson as SigaDadosBasicos | null;
+      const safeGrade = gradeJson as SigaResponse | null;
 
-      const email = coursePageData.emailInstitucional ?? `${ra}@dac.unicamp.br`;
+      const name =
+        safeDados?.retorno?.DadosBasicos?.Nome?.trim() ?? 'Aluno Unicamp';
+      const email = coursePageData.email ?? `${ra}@dac.unicamp.br`;
 
       let instituteName = 'Unicamp';
       let courseName = 'Curso Unicamp';
 
       if (coursePageData.cursoRaw) {
         const match = coursePageData.cursoRaw.match(/^(\d+)\s*-\s*(.*)$/);
-
         if (match) {
           const courseCode = match[1];
           courseName = match[2].trim();
           instituteName = INSTITUTE_MAPPER[courseCode] ?? 'Unicamp';
+        } else {
+          courseName = coursePageData.cursoRaw;
         }
       }
 
@@ -199,148 +255,86 @@ export class AccessUnicampEdacService {
         instituteName,
         UNICAMP_UNIVERSITY_ID,
       );
-
       const course = await this.courseRepository.findOrCreate(
         courseName,
         UNICAMP_UNIVERSITY_ID,
       );
 
-      const disciplinas = gradeJson?.retorno ?? [];
-
+      const disciplinas = safeGrade?.retorno ?? [];
       const currentYear = new Date().getFullYear();
       const currentSemester = 1 + Math.floor(new Date().getMonth() / 6);
-
       const subjectClassesIds: number[] = [];
 
       for (const disc of disciplinas) {
-        const code = disc.codigoDisciplina?.trim();
-        const subjectName = disc.nomeDisciplina?.trim();
-        if (!code) continue;
-
-        let subject = await this.subjectRepository.findByCode(code);
-        if (!subject) {
-          subject = await this.subjectRepository.create(
+        const code = disc.codigoDisciplina.trim();
+        const subject =
+          (await this.subjectRepository.findByCode(code)) ||
+          (await this.subjectRepository.create(
             code,
-            subjectName,
+            disc.nomeDisciplina.trim(),
             UNICAMP_UNIVERSITY_ID,
-          );
-        }
+          ));
 
         const horarios = disc.horarios ?? [];
-        const grouped: Record<string, number[]> = {};
-
-        for (const h of horarios) {
-          const dayName = WEEK_DAYS[h.dia];
-          if (!dayName) continue;
-
-          const room = h.sala?.trim() ?? '';
-          const key = `${dayName}|${room}`;
-
-          if (!grouped[key]) grouped[key] = [];
-          grouped[key].push(h.hora);
-        }
-
-        function mergeConsecutive(hours: number[]) {
-          const sorted = [...hours].sort((a, b) => a - b);
-          const ranges: { start: number; end: number }[] = [];
-
-          let start = sorted[0];
-          let prev = sorted[0];
-
-          for (let i = 1; i < sorted.length; i++) {
-            if (sorted[i] === prev + 1) {
-              prev = sorted[i];
-            } else {
-              ranges.push({ start, end: prev + 1 });
-              start = sorted[i];
-              prev = sorted[i];
-            }
-          }
-
-          ranges.push({ start, end: prev + 1 });
-          return ranges;
-        }
-
         const availableDays: { day: string; start: number; end: number }[] = [];
         const observationLines: string[] = [];
 
-        for (const key of Object.keys(grouped)) {
-          const [dayName, room] = key.split('|');
-          const ranges = mergeConsecutive(grouped[key]);
+        for (const h of horarios) {
+          const dayName = WEEK_DAYS[h.dia] || 'seg';
+          const shortRoom = h.sala?.trim() ?? '';
+          const fullRoom = roomMap[`${code}-${shortRoom}`] || shortRoom;
 
-          for (const range of ranges) {
-            availableDays.push({
-              day: dayName,
-              start: range.start,
-              end: range.end,
-            });
+          availableDays.push({ day: dayName, start: h.hora, end: h.hora + 1 });
 
-            observationLines.push(`${dayName.toUpperCase()} (${room})`);
+          if (fullRoom) {
+            const roomWithDay = `${dayName.toUpperCase()} (${fullRoom})`;
+            if (!observationLines.includes(roomWithDay))
+              observationLines.push(roomWithDay);
           }
         }
 
-        const observations = observationLines.join(' ');
-
-        let subjectClass =
-          await this.subjectClassRepository.findBySubjectAndSchedule(
-            subject.id,
-            availableDays,
-            currentYear,
-            currentSemester,
-            UNICAMP_UNIVERSITY_ID,
-          );
-
-        if (!subjectClass) {
-          subjectClass = await this.subjectClassRepository.create(
-            subject.id,
-            availableDays,
-            currentYear,
-            currentSemester,
-            UNICAMP_UNIVERSITY_ID,
-            observations,
-          );
-        }
-
+        const subjectClass = await this.subjectClassRepository.create(
+          subject.id,
+          availableDays,
+          currentYear,
+          currentSemester,
+          UNICAMP_UNIVERSITY_ID,
+          observationLines.join(', '),
+        );
         subjectClassesIds.push(subjectClass.id);
       }
 
-      let user = await this.userRepository.findByEmail(email);
-
-      if (!user) {
-        user = await this.userRepository.create(
+      let userEntity = await this.userRepository.findByEmail(email);
+      if (!userEntity) {
+        userEntity = await this.userRepository.create(
           email,
           name,
           course.id,
           institute.id,
           UNICAMP_UNIVERSITY_ID,
         );
-      } else if (user.name !== name) {
-        user = await this.userRepository.updateName(user.id, name);
+      } else if (userEntity.name !== name) {
+        userEntity = await this.userRepository.updateName(userEntity.id, name);
       }
 
-      for (const subjectClassId of subjectClassesIds) {
+      for (const classId of subjectClassesIds) {
         const exists =
           await this.userSubjectRepository.findByUserAndSubjectClass(
-            user.id,
-            subjectClassId,
+            userEntity.id,
+            classId,
           );
-
-        if (!exists) {
-          await this.userSubjectRepository.create(user.id, subjectClassId);
-        }
+        if (!exists)
+          await this.userSubjectRepository.create(userEntity.id, classId);
       }
 
       await browser.close();
-      return user;
+      return userEntity;
     } catch (error) {
       if (browser) await browser.close();
-
       this.logger.error({
-        message: 'Error in Unicamp scraping',
-        ra,
+        message: 'Scraping failed',
         error: error instanceof Error ? error.message : String(error),
       });
-
       throw error;
     }
   }

@@ -29,8 +29,7 @@ export class AuthenticateUserService {
   }
 
   async execute(authDto: AuthDto): Promise<AuthResponseDto> {
-    const { uspCode, password } = authDto;
-    const universityId = Number(authDto.universityId ?? 1);
+    const { uspCode, password, universityId = 1 } = authDto;
 
     if (!VALID_UNIVERSITY_IDS.includes(universityId)) {
       throw new InvalidUniversityException();
@@ -43,26 +42,15 @@ export class AuthenticateUserService {
         uspCode,
       });
 
-      let user;
+      // Mesma abordagem do código original, sem tipagem extra
+      const user =
+        universityId === 1
+          ? await this.scrapJupiterService.execute(uspCode, password)
+          : universityId === 2
+            ? await this.accessUFSCarSigaaService.execute(uspCode, password)
+            : await this.accessUnicampEdacService.execute(uspCode, password);
 
-      switch (universityId) {
-        case 1:
-          user = await this.scrapJupiterService.execute(uspCode, password);
-          break;
-
-        case 2:
-          user = await this.accessUFSCarSigaaService.execute(uspCode, password);
-          break;
-
-        case 3:
-          user = await this.accessUnicampEdacService.execute(uspCode, password);
-          break;
-
-        default:
-          throw new InvalidUniversityException();
-      }
-
-      const token = createToken(user.id, user.securePin!);
+      const token = createToken(user.id, user.securePin!); // ! garante que não é undefined
 
       const userResponse = new UserResponseDto(
         user.id,
