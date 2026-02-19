@@ -70,6 +70,8 @@ describe('AccessUnicampEdacService', () => {
   const mockOn = jest.fn();
   const mockEvaluate = jest.fn();
   const mockWaitForFunction = jest.fn().mockResolvedValue(true);
+  const mockWaitForSelector = jest.fn().mockResolvedValue(null);
+  const mockRemoveAllListeners = jest.fn();
 
   const mockPage: Partial<Page> = {
     goto: mockGoto,
@@ -79,6 +81,8 @@ describe('AccessUnicampEdacService', () => {
     on: mockOn,
     evaluate: mockEvaluate,
     waitForFunction: mockWaitForFunction,
+    waitForSelector: mockWaitForSelector,
+    removeAllListeners: mockRemoveAllListeners,
   };
 
   const mockBrowser: Partial<Browser> = {
