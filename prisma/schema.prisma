@@ -264,10 +264,18 @@ model post {
   parent        post?     @relation("post_children", fields: [parentId], references: [id], onDelete: Cascade)
   children      post[]    @relation("post_children")
   tags          String[]
+  images    PostImage[]
+
 
   @@index([universityId])
 }
 
+model PostImage {
+  id        Int      @id @default(autoincrement())
+  key       String   @unique
+  postId    Int
+  post      post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+}
 
 
 enum ActivityType {

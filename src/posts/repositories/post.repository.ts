@@ -12,6 +12,7 @@ export class PostRepository {
     universityId: number | null,
     tags: string[],
     parentId?: number | null,
+    imageKeys?: string[],
   ): Promise<Post> {
     const post = await this.prisma.$transaction(async (tx) => {
       const created = await tx.post.create({
@@ -22,6 +23,12 @@ export class PostRepository {
           commentsCount: 0,
           tags: tags,
           parentId: parentId ?? null,
+          images:
+            imageKeys && imageKeys.length > 0
+              ? {
+                  create: imageKeys.map((key) => ({ key })),
+                }
+              : undefined,
         },
         include: {
           user: {
