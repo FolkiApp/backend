@@ -6,6 +6,7 @@ import { EmptyPostException } from '../exceptions/empty-post.exception';
 import { PostInternalErrorException } from '../exceptions/post-internal-error.exception';
 import { AuthUser } from '../../common/guards/auth.guard';
 import { NotFoundPostException } from '../exceptions/not-found-post.exception';
+import { S3Service } from '../../common/services/s3.service';
 
 describe('PostPostService', () => {
   let service: PostPostService;
@@ -16,6 +17,15 @@ describe('PostPostService', () => {
   > = {
     createPost: jest.fn(),
     getPostById: jest.fn(),
+  };
+
+  const mockS3Service = {
+    uploadFile: jest.fn(),
+    uploadFiles: jest.fn(),
+    getPublicUrl: jest.fn(),
+    getPublicUrls: jest.fn(),
+    deleteObject: jest.fn(),
+    deleteObjects: jest.fn(),
   };
 
   const mockAuthUser: AuthUser = {
@@ -51,6 +61,10 @@ describe('PostPostService', () => {
           provide: PostRepository,
           useValue: mockPostsRepository,
         },
+        {
+          provide: S3Service,
+          useValue: mockS3Service,
+        },
       ],
     }).compile();
 
@@ -68,6 +82,7 @@ describe('PostPostService', () => {
     it('should create a post successfully with valid content', async () => {
       mockPostsRepository.createPost.mockResolvedValue(mockPost);
       mockPostsRepository.getPostById.mockResolvedValue(null);
+      mockS3Service.uploadFiles.mockResolvedValue([]);
 
       const result = await service.execute(
         'Test Content',
@@ -83,10 +98,13 @@ describe('PostPostService', () => {
         null,
         ['tag1', 'tag2'],
         undefined,
+        [],
       );
     });
 
     it('should throw EmptyPostException when content is empty', async () => {
+      mockS3Service.uploadFiles.mockResolvedValue([]);
+
       await expect(
         service.execute('', mockAuthUser, [], undefined),
       ).rejects.toThrow(EmptyPostException);
@@ -95,6 +113,8 @@ describe('PostPostService', () => {
     });
 
     it('should throw EmptyPostException when content is only whitespace', async () => {
+      mockS3Service.uploadFiles.mockResolvedValue([]);
+
       await expect(
         service.execute('   ', mockAuthUser, [], undefined),
       ).rejects.toThrow(EmptyPostException);
@@ -107,6 +127,7 @@ describe('PostPostService', () => {
         new Error('Database error'),
       );
       mockPostsRepository.getPostById.mockResolvedValue(null);
+      mockS3Service.uploadFiles.mockResolvedValue([]);
 
       await expect(
         service.execute('Test Content', mockAuthUser, [], undefined),
@@ -130,6 +151,7 @@ describe('PostPostService', () => {
         ),
       );
       mockPostsRepository.getPostById.mockResolvedValue(null);
+      mockS3Service.uploadFiles.mockResolvedValue([]);
 
       const result = await service.execute(
         'Test Content',
@@ -145,12 +167,14 @@ describe('PostPostService', () => {
         null,
         tags,
         undefined,
+        [],
       );
     });
 
     it('should create post with empty tags array', async () => {
       mockPostsRepository.createPost.mockResolvedValue(mockPost);
       mockPostsRepository.getPostById.mockResolvedValue(null);
+      mockS3Service.uploadFiles.mockResolvedValue([]);
 
       await service.execute('Test Content', mockAuthUser, [], undefined);
 
@@ -160,12 +184,14 @@ describe('PostPostService', () => {
         null,
         [],
         undefined,
+        [],
       );
     });
 
     it('should create a child post when parentId is provided', async () => {
       mockPostsRepository.getPostById.mockResolvedValue(mockPost);
       mockPostsRepository.createPost.mockResolvedValue(mockPost);
+      mockS3Service.uploadFiles.mockResolvedValue([]);
 
       await service.execute('Child Content', mockAuthUser, [], 10);
 
@@ -176,11 +202,13 @@ describe('PostPostService', () => {
         null,
         [],
         10,
+        [],
       );
     });
 
     it('should throw NotFoundPostException when parent post does not exist', async () => {
       mockPostsRepository.getPostById.mockResolvedValue(null);
+      mockS3Service.uploadFiles.mockResolvedValue([]);
 
       await expect(
         service.execute('Child Content', mockAuthUser, [], 999),

@@ -40,6 +40,13 @@ export class PostDto {
   })
   tags: string[];
 
+  @ApiProperty({
+    example: ['https://s3.amazonaws.com/bucket/image1.jpg'],
+    type: [String],
+    description: 'URLs das imagens do post',
+  })
+  imageUrls: string[];
+
   constructor(
     id: number,
     postDate: Date,
@@ -50,6 +57,7 @@ export class PostDto {
     parentId: number | null,
     commentsCount: number,
     tags?: string[],
+    imageUrls?: string[],
   ) {
     this.id = id;
     this.postDate = postDate;
@@ -60,5 +68,6 @@ export class PostDto {
     this.parentId = parentId;
     this.commentsCount = commentsCount;
     this.tags = tags ?? [];
+    this.imageUrls = imageUrls ?? [];
   }
 }

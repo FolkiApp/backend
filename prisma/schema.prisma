@@ -264,13 +264,13 @@ model post {
   parent        post?     @relation("post_children", fields: [parentId], references: [id], onDelete: Cascade)
   children      post[]    @relation("post_children")
   tags          String[]
-  images    PostImage[]
+  postKeys    post_image[]
 
 
   @@index([universityId])
 }
 
-model PostImage {
+model post_image {
   id        Int      @id @default(autoincrement())
   key       String   @unique
   postId    Int

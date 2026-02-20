@@ -1,6 +1,5 @@
 import { Injectable, Logger, Optional } from '@nestjs/common';
 import { SqsService } from '@ssut/nestjs-sqs';
-import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
 import { AuthUser } from '../../common/guards/auth.guard';
 import { PostRepository } from '../repositories/post.repository';
 import { Post } from '../entities/post.entity';
@@ -8,16 +7,15 @@ import { PostInternalErrorException } from '../exceptions/post-internal-error.ex
 import { EmptyPostException } from '../exceptions/empty-post.exception';
 import { NotFoundPostException } from '../exceptions/not-found-post.exception';
 import { UploadImageErrorException } from '../exceptions/upload-image-error.exception';
+import { S3Service } from '../../common/services/s3.service';
 
 @Injectable()
 export class PostPostService {
   private readonly logger = new Logger(PostPostService.name);
-  private S3 = new S3Client({
-    region: process.env.AWS_REGION,
-  });
 
   constructor(
     private readonly postRepository: PostRepository,
+    private readonly s3Service: S3Service,
     @Optional() private readonly sqsService: SqsService,
   ) {}
 
@@ -26,7 +24,7 @@ export class PostPostService {
     user: AuthUser,
     tags: string[],
     parentId?: number,
-    files?: any[],
+    files?: Express.Multer.File[],
   ): Promise<Post> {
     this.logger.log({
       message: 'Creating post',
@@ -48,40 +46,34 @@ export class PostPostService {
     );
   }
 
-  async sendFilesToS3(files?: any[]): Promise<string[]> {
-    const postKeys: string[] = [];
+  async sendFilesToS3(files?: Express.Multer.File[]): Promise<string[]> {
     if (!files || files.length === 0) {
-      return postKeys;
+      return [];
     }
 
-    for (const file of files) {
-      const key = `posts/${Date.now()}-${file.originalname}`;
-      try {
-        await this.S3.send(
-          new PutObjectCommand({
-            Bucket: process.env.AWS_BUCKET_NAME,
-            Key: key,
-            Body: file.buffer,
-            ContentType: file.mimetype,
-          }),
-        );
-        postKeys.push(key);
-        this.logger.log({
-          message: 'Image uploaded successfully',
-          key,
-          fileName: file.originalname,
-        });
-      } catch (error) {
-        this.logger.error({
-          message: 'Error uploading image to S3',
-          fileName: file.originalname,
-          key,
-          error: error instanceof Error ? error.message : error,
-        });
-        throw new UploadImageErrorException();
-      }
+    try {
+      const filesToUpload = files.map((file) => ({
+        key: `posts/${Date.now()}-${file.originalname}`,
+        buffer: file.buffer,
+        contentType: file.mimetype,
+      }));
+
+      await this.s3Service.uploadFiles(filesToUpload);
+      const keys = filesToUpload.map((file) => file.key);
+
+      this.logger.log({
+        message: 'Images uploaded successfully',
+        count: keys.length,
+      });
+
+      return keys;
+    } catch (error: unknown) {
+      this.logger.error({
+        message: 'Error uploading images to S3',
+        error: error instanceof Error ? error.message : error,
+      });
+      throw new UploadImageErrorException();
     }
-    return postKeys;
   }
 
   async createPost(

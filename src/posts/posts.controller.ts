@@ -9,7 +9,6 @@ import {
   UseInterceptors,
   UploadedFiles,
 } from '@nestjs/common';
-import { Multer } from 'multer';
 import { Auth } from '../common/decorators/auth.decorator';
 import {
   ApiBearerAuth,
@@ -70,6 +69,7 @@ export class PostsController {
       post.parentId ?? null,
       post.commentsCount,
       post.tags,
+      post.imageUrls,
     );
   }
 
@@ -116,6 +116,7 @@ export class PostsController {
             post.parentId ?? null,
             post.commentsCount,
             post.tags,
+            post.imageUrls,
           ),
       ),
       nextId,
@@ -144,6 +145,7 @@ export class PostsController {
           post.parentId ?? null,
           post.commentsCount,
           post.tags,
+          post.imageUrls,
         ),
     );
   }
@@ -188,6 +190,7 @@ export class PostsController {
       post.parentId ?? null,
       post.commentsCount,
       post.tags,
+      post.imageUrls,
     );
   }
 }
