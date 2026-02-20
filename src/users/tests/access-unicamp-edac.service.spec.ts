@@ -67,7 +67,6 @@ describe('AccessUnicampEdacService', () => {
   const mockType = jest.fn();
   const mockClick = jest.fn();
   const mockWaitForNavigation = jest.fn();
-  const mockWaitForSelector = jest.fn();
   const mockOn = jest.fn();
   const mockEvaluate = jest.fn();
   const mockWaitForFunction = jest.fn().mockResolvedValue(true);
@@ -77,7 +76,6 @@ describe('AccessUnicampEdacService', () => {
     type: mockType,
     click: mockClick,
     waitForNavigation: mockWaitForNavigation,
-    waitForSelector: mockWaitForSelector,
     on: mockOn,
     evaluate: mockEvaluate,
     waitForFunction: mockWaitForFunction,
