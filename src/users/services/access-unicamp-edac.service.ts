@@ -9,6 +9,7 @@ import { InstituteRepository } from '../../institutes/repositories/institute.rep
 import { SubjectRepository } from '../../subjects/repositories/subject.repository';
 import { SubjectClassRepository } from '../../subjects/repositories/subject-class.repository';
 import { UserSubjectRepository } from '../repositories/user-subject.repository';
+import { mergeAvailableDays } from '../../common/utils/merge-available-days';
 
 interface SigaHorario {
   dia: number;
@@ -307,11 +308,13 @@ export class AccessUnicampEdacService {
           }
         }
 
+        const mergedAvailableDays = mergeAvailableDays(availableDays);
+
         const observations = observationLines.join(', ');
         let subjectClass =
           await this.subjectClassRepository.findBySubjectAndSchedule(
             subject.id,
-            availableDays,
+            mergedAvailableDays,
             currentYear,
             currentSemester,
             UNICAMP_UNIVERSITY_ID,
@@ -327,7 +330,7 @@ export class AccessUnicampEdacService {
         } else {
           subjectClass = await this.subjectClassRepository.create(
             subject.id,
-            availableDays,
+            mergedAvailableDays,
             currentYear,
             currentSemester,
             UNICAMP_UNIVERSITY_ID,

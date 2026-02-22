@@ -81,6 +81,8 @@ describe('AccessUnicampEdacService', () => {
     on: mockOn,
     evaluate: mockEvaluate,
     waitForFunction: mockWaitForFunction,
+    waitForSelector: mockWaitForSelector,
+    removeAllListeners: mockRemoveAllListeners,
   };
 
   const mockBrowser: Partial<Browser> = {
