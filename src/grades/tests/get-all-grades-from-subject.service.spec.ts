@@ -2,10 +2,10 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { GetAllGradesFromSubjectService } from '../services/get-all-grades-from-subject.service';
 import { GradesRepository } from '../repositories/grades.repository';
 import { UserSubjectsRepository } from '../../subjects/repositories/user-subjects.repository';
+import { CustomLogger } from '../../common/logger/custom-logger.service';
 import { UserSubjectNotFoundException } from '../exceptions/user-subject-not-found.exception';
 import { GradesFetchException } from '../exceptions/grades-fetch.exception';
 import { Grade } from '../entities/grade.entity';
-import { CustomLogger } from '../../common/logger/custom-logger.service';
 
 describe('GetAllGradesFromSubjectService', () => {
   let service: GetAllGradesFromSubjectService;
@@ -53,13 +53,12 @@ describe('GetAllGradesFromSubjectService', () => {
     findByIdAndUserId: jest.fn(),
   };
 
-  const mockCustomLogger = {
+  const mockLogger = {
+    setContext: jest.fn(),
     log: jest.fn(),
     error: jest.fn(),
     warn: jest.fn(),
     debug: jest.fn(),
-    verbose: jest.fn(),
-    setContext: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -76,7 +75,7 @@ describe('GetAllGradesFromSubjectService', () => {
         },
         {
           provide: CustomLogger,
-          useValue: mockCustomLogger,
+          useValue: mockLogger,
         },
       ],
     }).compile();

@@ -2,11 +2,11 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { DeleteGradeService } from '../services/delete-grade.service';
 import { GradesRepository } from '../repositories/grades.repository';
 import { UserSubjectsRepository } from '../../subjects/repositories/user-subjects.repository';
+import { CustomLogger } from '../../common/logger/custom-logger.service';
 import { GradeNotFoundException } from '../exceptions/grade-not-found.exception';
 import { PermissionDeniedToDeleteGradeException } from '../exceptions/permission-denied-to-delete-grade.exception';
 import { GradeDeleteException } from '../exceptions/grade-delete.exception';
 import { Grade } from '../entities/grade.entity';
-import { CustomLogger } from '../../common/logger/custom-logger.service';
 
 describe('DeleteGradeService', () => {
   let service: DeleteGradeService;
@@ -43,13 +43,12 @@ describe('DeleteGradeService', () => {
     findByIdAndUserId: jest.fn(),
   };
 
-  const mockCustomLogger = {
+  const mockLogger = {
+    setContext: jest.fn(),
     log: jest.fn(),
     error: jest.fn(),
     warn: jest.fn(),
     debug: jest.fn(),
-    verbose: jest.fn(),
-    setContext: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -66,7 +65,7 @@ describe('DeleteGradeService', () => {
         },
         {
           provide: CustomLogger,
-          useValue: mockCustomLogger,
+          useValue: mockLogger,
         },
       ],
     }).compile();

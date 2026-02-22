@@ -70,12 +70,14 @@ describe('AccessUnicampEdacService', () => {
   const mockOn = jest.fn();
   const mockEvaluate = jest.fn();
   const mockWaitForFunction = jest.fn().mockResolvedValue(true);
+  const mockWaitForSelector = jest.fn().mockResolvedValue(true);
 
   const mockPage: Partial<Page> = {
     goto: mockGoto,
     type: mockType,
     click: mockClick,
     waitForNavigation: mockWaitForNavigation,
+    waitForSelector: mockWaitForSelector,
     on: mockOn,
     evaluate: mockEvaluate,
     waitForFunction: mockWaitForFunction,

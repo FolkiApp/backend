@@ -1,5 +1,7 @@
 import { Injectable, Logger, Optional } from '@nestjs/common';
 import { SqsService } from '@ssut/nestjs-sqs';
+import sharp from 'sharp';
+import { randomUUID } from 'crypto';
 import { AuthUser } from '../../common/guards/auth.guard';
 import { PostRepository } from '../repositories/post.repository';
 import { Post } from '../entities/post.entity';
@@ -7,7 +9,19 @@ import { PostInternalErrorException } from '../exceptions/post-internal-error.ex
 import { EmptyPostException } from '../exceptions/empty-post.exception';
 import { NotFoundPostException } from '../exceptions/not-found-post.exception';
 import { UploadImageErrorException } from '../exceptions/upload-image-error.exception';
+import { InvalidImageTypeException } from '../exceptions/invalid-image-type.exception';
+import { ImageTooLargeException } from '../exceptions/image-too-large.exception';
+import { MaliciousFileException } from '../exceptions/malicious-file.exception';
 import { S3Service } from '../../common/services/s3.service';
+
+interface MulterFile {
+  fieldname: string;
+  originalname: string;
+  encoding: string;
+  mimetype: string;
+  size: number;
+  buffer: Buffer;
+}
 
 @Injectable()
 export class PostPostService {
@@ -24,7 +38,7 @@ export class PostPostService {
     user: AuthUser,
     tags: string[],
     parentId?: number,
-    files?: Express.Multer.File[],
+    files?: MulterFile[],
   ): Promise<Post> {
     this.logger.log({
       message: 'Creating post',
@@ -46,23 +60,34 @@ export class PostPostService {
     );
   }
 
-  async sendFilesToS3(files?: Express.Multer.File[]): Promise<string[]> {
+  async sendFilesToS3(files?: MulterFile[]): Promise<string[]> {
     if (!files || files.length === 0) {
       return [];
     }
 
-    try {
-      const filesToUpload = files.map((file) => ({
-        key: `posts/${Date.now()}-${file.originalname}`,
-        buffer: file.buffer,
-        contentType: file.mimetype,
-      }));
+    for (const file of files) {
+      this.validateImageFile(file);
+    }
 
-      await this.s3Service.uploadFiles(filesToUpload);
-      const keys = filesToUpload.map((file) => file.key);
+    try {
+      const compressedFiles = await Promise.all(
+        files.map(async (file) => {
+          const compressedBuffer = await this.compressImage(file);
+          const extension = file.originalname.split('.').pop() || 'jpg';
+          const uuid = randomUUID();
+          return {
+            key: `posts/${uuid}.${extension}`,
+            buffer: compressedBuffer,
+            contentType: file.mimetype,
+          };
+        }),
+      );
+
+      await this.s3Service.uploadFiles(compressedFiles);
+      const keys = compressedFiles.map((file) => file.key);
 
       this.logger.log({
-        message: 'Images uploaded successfully',
+        message: 'Images compressed and uploaded successfully',
         count: keys.length,
       });
 
@@ -73,6 +98,125 @@ export class PostPostService {
         error: error instanceof Error ? error.message : error,
       });
       throw new UploadImageErrorException();
+    }
+  }
+
+  private async compressImage(file: MulterFile): Promise<Buffer> {
+    const MAX_WIDTH = 1920;
+    const MAX_HEIGHT = 1920;
+    const JPEG_QUALITY = 85;
+    const PNG_QUALITY = 85;
+    const WEBP_QUALITY = 85;
+
+    try {
+      let sharpInstance = sharp(file.buffer).rotate();
+
+      const metadata = await sharpInstance.metadata();
+      const needsResize =
+        (metadata.width && metadata.width > MAX_WIDTH) ||
+        (metadata.height && metadata.height > MAX_HEIGHT);
+
+      if (needsResize) {
+        sharpInstance = sharpInstance.resize(MAX_WIDTH, MAX_HEIGHT, {
+          fit: 'inside',
+          withoutEnlargement: true,
+        });
+      }
+
+      if (file.mimetype === 'image/jpeg' || file.mimetype === 'image/jpg') {
+        return await sharpInstance.jpeg({ quality: JPEG_QUALITY }).toBuffer();
+      } else if (file.mimetype === 'image/png') {
+        return await sharpInstance.png({ quality: PNG_QUALITY }).toBuffer();
+      } else if (file.mimetype === 'image/webp') {
+        return await sharpInstance.webp({ quality: WEBP_QUALITY }).toBuffer();
+      } else if (file.mimetype === 'image/gif') {
+        return file.buffer;
+      }
+
+      return file.buffer;
+    } catch (error) {
+      this.logger.error({
+        message: 'Error compressing image, using original',
+        filename: file.originalname,
+        error: error instanceof Error ? error.message : String(error),
+      });
+      return file.buffer;
+    }
+  }
+
+  private validateImageFile(file: MulterFile): void {
+    const MAX_SIZE = 6 * 1024 * 1024;
+    const ALLOWED_MIMETYPES = [
+      'image/jpeg',
+      'image/jpg',
+      'image/png',
+      'image/gif',
+      'image/webp',
+    ];
+
+    if (!ALLOWED_MIMETYPES.includes(file.mimetype)) {
+      this.logger.warn({
+        message: 'Invalid image type',
+        mimetype: file.mimetype,
+        filename: file.originalname,
+      });
+      throw new InvalidImageTypeException();
+    }
+
+    if (file.size > MAX_SIZE) {
+      this.logger.warn({
+        message: 'Image too large',
+        size: file.size,
+        maxSize: MAX_SIZE,
+        filename: file.originalname,
+      });
+      throw new ImageTooLargeException();
+    }
+
+    this.checkMagicNumbers(file);
+
+    this.logger.log({
+      message: 'Image validated successfully',
+      filename: file.originalname,
+      size: file.size,
+      mimetype: file.mimetype,
+    });
+  }
+
+  private checkMagicNumbers(file: MulterFile): void {
+    const buffer = file.buffer;
+    if (!buffer || buffer.length < 4) {
+      throw new MaliciousFileException();
+    }
+
+    const magicNumbers: { [key: string]: number[][] } = {
+      'image/jpeg': [[0xff, 0xd8, 0xff]],
+      'image/jpg': [[0xff, 0xd8, 0xff]],
+      'image/png': [[0x89, 0x50, 0x4e, 0x47]],
+      'image/gif': [
+        [0x47, 0x49, 0x46, 0x38, 0x37, 0x61],
+        [0x47, 0x49, 0x46, 0x38, 0x39, 0x61],
+      ],
+      'image/webp': [[0x52, 0x49, 0x46, 0x46]],
+    };
+
+    const expectedMagic = magicNumbers[file.mimetype];
+    if (!expectedMagic) {
+      return;
+    }
+
+    const isValid = expectedMagic.some((magic) =>
+      magic.every((byte, index) => buffer[index] === byte),
+    );
+
+    if (!isValid) {
+      this.logger.warn({
+        message: 'Magic numbers mismatch - possible malicious file',
+        filename: file.originalname,
+        declaredMimetype: file.mimetype,
+        firstBytes: Array.from(buffer.slice(0, 8)),
+      });
+      throw new MaliciousFileException();
     }
   }
 
