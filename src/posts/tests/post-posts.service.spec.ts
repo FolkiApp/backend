@@ -6,6 +6,10 @@ import { EmptyPostException } from '../exceptions/empty-post.exception';
 import { PostInternalErrorException } from '../exceptions/post-internal-error.exception';
 import { AuthUser } from '../../common/guards/auth.guard';
 import { NotFoundPostException } from '../exceptions/not-found-post.exception';
+import { InvalidImageTypeException } from '../exceptions/invalid-image-type.exception';
+import { ImageTooLargeException } from '../exceptions/image-too-large.exception';
+import { MaliciousFileException } from '../exceptions/malicious-file.exception';
+import { S3Service } from '../../common/services/s3.service';
 
 describe('PostPostService', () => {
   let service: PostPostService;
@@ -18,6 +22,15 @@ describe('PostPostService', () => {
     getPostById: jest.fn(),
   };
 
+  const mockS3Service = {
+    uploadFile: jest.fn(),
+    uploadFiles: jest.fn(),
+    getPublicUrl: jest.fn(),
+    getPublicUrls: jest.fn(),
+    deleteObject: jest.fn(),
+    deleteObjects: jest.fn(),
+  };
+
   const mockAuthUser: AuthUser = {
     id: 1,
     email: 'test@example.com',
@@ -28,6 +41,8 @@ describe('PostPostService', () => {
     universityId: null,
     isBlocked: false,
     userVersion: null,
+    institute: null,
+    university: null,
   };
 
   const mockPost = new Post(
@@ -51,6 +66,10 @@ describe('PostPostService', () => {
           provide: PostRepository,
           useValue: mockPostsRepository,
         },
+        {
+          provide: S3Service,
+          useValue: mockS3Service,
+        },
       ],
     }).compile();
 
@@ -68,6 +87,7 @@ describe('PostPostService', () => {
     it('should create a post successfully with valid content', async () => {
       mockPostsRepository.createPost.mockResolvedValue(mockPost);
       mockPostsRepository.getPostById.mockResolvedValue(null);
+      mockS3Service.uploadFiles.mockResolvedValue([]);
 
       const result = await service.execute(
         'Test Content',
@@ -83,10 +103,13 @@ describe('PostPostService', () => {
         null,
         ['tag1', 'tag2'],
         undefined,
+        [],
       );
     });
 
     it('should throw EmptyPostException when content is empty', async () => {
+      mockS3Service.uploadFiles.mockResolvedValue([]);
+
       await expect(
         service.execute('', mockAuthUser, [], undefined),
       ).rejects.toThrow(EmptyPostException);
@@ -95,6 +118,8 @@ describe('PostPostService', () => {
     });
 
     it('should throw EmptyPostException when content is only whitespace', async () => {
+      mockS3Service.uploadFiles.mockResolvedValue([]);
+
       await expect(
         service.execute('   ', mockAuthUser, [], undefined),
       ).rejects.toThrow(EmptyPostException);
@@ -107,6 +132,7 @@ describe('PostPostService', () => {
         new Error('Database error'),
       );
       mockPostsRepository.getPostById.mockResolvedValue(null);
+      mockS3Service.uploadFiles.mockResolvedValue([]);
 
       await expect(
         service.execute('Test Content', mockAuthUser, [], undefined),
@@ -130,6 +156,7 @@ describe('PostPostService', () => {
         ),
       );
       mockPostsRepository.getPostById.mockResolvedValue(null);
+      mockS3Service.uploadFiles.mockResolvedValue([]);
 
       const result = await service.execute(
         'Test Content',
@@ -145,12 +172,14 @@ describe('PostPostService', () => {
         null,
         tags,
         undefined,
+        [],
       );
     });
 
     it('should create post with empty tags array', async () => {
       mockPostsRepository.createPost.mockResolvedValue(mockPost);
       mockPostsRepository.getPostById.mockResolvedValue(null);
+      mockS3Service.uploadFiles.mockResolvedValue([]);
 
       await service.execute('Test Content', mockAuthUser, [], undefined);
 
@@ -160,12 +189,14 @@ describe('PostPostService', () => {
         null,
         [],
         undefined,
+        [],
       );
     });
 
     it('should create a child post when parentId is provided', async () => {
       mockPostsRepository.getPostById.mockResolvedValue(mockPost);
       mockPostsRepository.createPost.mockResolvedValue(mockPost);
+      mockS3Service.uploadFiles.mockResolvedValue([]);
 
       await service.execute('Child Content', mockAuthUser, [], 10);
 
@@ -176,17 +207,153 @@ describe('PostPostService', () => {
         null,
         [],
         10,
+        [],
       );
     });
 
     it('should throw NotFoundPostException when parent post does not exist', async () => {
       mockPostsRepository.getPostById.mockResolvedValue(null);
+      mockS3Service.uploadFiles.mockResolvedValue([]);
 
       await expect(
         service.execute('Child Content', mockAuthUser, [], 999),
       ).rejects.toThrow(NotFoundPostException);
 
       expect(postsRepository.createPost).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('sendFilesToS3', () => {
+    interface MockFile {
+      fieldname: string;
+      originalname: string;
+      encoding: string;
+      mimetype: string;
+      size: number;
+      buffer: Buffer;
+    }
+
+    const createMockFile = (
+      mimetype: string,
+      size: number,
+      buffer: Buffer,
+      filename = 'test.jpg',
+    ): MockFile => ({
+      fieldname: 'postsImages',
+      originalname: filename,
+      encoding: '7bit',
+      mimetype,
+      size,
+      buffer,
+    });
+
+    it('should return empty array when no files provided', async () => {
+      const result = await service.sendFilesToS3(undefined);
+      expect(result).toEqual([]);
+    });
+
+    it('should upload valid image files successfully', async () => {
+      const validJpegBuffer = Buffer.from([0xff, 0xd8, 0xff, 0xe0, 0x00, 0x10]);
+      const mockFile = createMockFile(
+        'image/jpeg',
+        1024 * 1024,
+        validJpegBuffer,
+      );
+
+      mockS3Service.uploadFiles.mockResolvedValue(['key1']);
+
+      const result = await service.sendFilesToS3([mockFile]);
+
+      expect(result.length).toBe(1);
+      expect(result[0]).toContain('posts/');
+      expect(mockS3Service.uploadFiles).toHaveBeenCalled();
+    });
+
+    it('should throw InvalidImageTypeException for non-image files', async () => {
+      const mockFile = createMockFile(
+        'application/pdf',
+        1024,
+        Buffer.from([0x25, 0x50, 0x44, 0x46]),
+      );
+
+      await expect(service.sendFilesToS3([mockFile])).rejects.toThrow(
+        InvalidImageTypeException,
+      );
+    });
+
+    it('should throw ImageTooLargeException for files larger than 6MB', async () => {
+      const largeSize = 7 * 1024 * 1024;
+      const validJpegBuffer = Buffer.from([0xff, 0xd8, 0xff, 0xe0, 0x00, 0x10]);
+      const mockFile = createMockFile('image/jpeg', largeSize, validJpegBuffer);
+
+      await expect(service.sendFilesToS3([mockFile])).rejects.toThrow(
+        ImageTooLargeException,
+      );
+    });
+
+    it('should throw MaliciousFileException for files with mismatched magic numbers', async () => {
+      const pngBuffer = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a]);
+      const mockFile = createMockFile('image/jpeg', 1024, pngBuffer);
+
+      await expect(service.sendFilesToS3([mockFile])).rejects.toThrow(
+        MaliciousFileException,
+      );
+    });
+
+    it('should accept valid PNG files', async () => {
+      const validPngBuffer = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a]);
+      const mockFile = createMockFile(
+        'image/png',
+        1024 * 1024,
+        validPngBuffer,
+        'test.png',
+      );
+
+      mockS3Service.uploadFiles.mockResolvedValue(['key1']);
+
+      const result = await service.sendFilesToS3([mockFile]);
+
+      expect(result.length).toBe(1);
+      expect(mockS3Service.uploadFiles).toHaveBeenCalled();
+    });
+
+    it('should accept valid GIF files', async () => {
+      const validGifBuffer = Buffer.from([0x47, 0x49, 0x46, 0x38, 0x39, 0x61]);
+      const mockFile = createMockFile(
+        'image/gif',
+        1024 * 1024,
+        validGifBuffer,
+        'test.gif',
+      );
+
+      mockS3Service.uploadFiles.mockResolvedValue(['key1']);
+
+      const result = await service.sendFilesToS3([mockFile]);
+
+      expect(result.length).toBe(1);
+      expect(mockS3Service.uploadFiles).toHaveBeenCalled();
+    });
+
+    it('should validate multiple files', async () => {
+      const validJpegBuffer = Buffer.from([0xff, 0xd8, 0xff, 0xe0, 0x00, 0x10]);
+      const validPngBuffer = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a]);
+
+      const mockFiles = [
+        createMockFile('image/jpeg', 1024 * 1024, validJpegBuffer, 'test1.jpg'),
+        createMockFile(
+          'image/png',
+          2 * 1024 * 1024,
+          validPngBuffer,
+          'test2.png',
+        ),
+      ];
+
+      mockS3Service.uploadFiles.mockResolvedValue(['key1', 'key2']);
+
+      const result = await service.sendFilesToS3(mockFiles);
+
+      expect(result.length).toBe(2);
+      expect(mockS3Service.uploadFiles).toHaveBeenCalled();
     });
   });
 

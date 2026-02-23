@@ -6,6 +6,8 @@ import {
   Query,
   Delete,
   Param,
+  UseInterceptors,
+  UploadedFiles,
 } from '@nestjs/common';
 import { Auth } from '../common/decorators/auth.decorator';
 import {
@@ -24,6 +26,7 @@ import { DeletePostService } from './services/delete-post.service';
 import { ListPostChildrenService } from './services/list-post-children.service';
 import { GetPostByIdService } from './services/get-post-by-id.service';
 import { ListPostResponseDto } from './dto/list-post-response.dto';
+import { FilesInterceptor } from '@nestjs/platform-express';
 
 @Controller()
 export class PostsController {
@@ -36,6 +39,7 @@ export class PostsController {
   ) {}
 
   @Post('posts')
+  @UseInterceptors(FilesInterceptor('postsImages', 5))
   @Auth()
   @ApiBearerAuth()
   @ApiOperation({
@@ -45,12 +49,14 @@ export class PostsController {
   async postPost(
     @Body() body: CreatePostDto,
     @CurrentUser() authUser: AuthUser,
+    @UploadedFiles() files: Express.Multer.File[],
   ): Promise<PostDto> {
     const post = await this.createPostService.execute(
       body.content,
       authUser,
       body.tags || [],
       body.parentId,
+      files,
     );
 
     return new PostDto(
@@ -63,6 +69,7 @@ export class PostsController {
       post.parentId ?? null,
       post.commentsCount,
       post.tags,
+      post.imageUrls,
     );
   }
 
@@ -109,6 +116,7 @@ export class PostsController {
             post.parentId ?? null,
             post.commentsCount,
             post.tags,
+            post.imageUrls,
           ),
       ),
       nextId,
@@ -137,6 +145,7 @@ export class PostsController {
           post.parentId ?? null,
           post.commentsCount,
           post.tags,
+          post.imageUrls,
         ),
     );
   }
@@ -181,6 +190,7 @@ export class PostsController {
       post.parentId ?? null,
       post.commentsCount,
       post.tags,
+      post.imageUrls,
     );
   }
 }

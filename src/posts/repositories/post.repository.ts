@@ -1,10 +1,31 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { Post } from '../entities/post.entity';
+import { S3Service } from '../../common/services/s3.service';
+
+interface PostKeyItem {
+  key: string;
+}
+
+interface PostWithImages {
+  postKeys: PostKeyItem[];
+}
+
+interface UserInfo {
+  name: string;
+  institute: { name: string } | null;
+}
+
+interface PostWithUser {
+  user: UserInfo;
+}
 
 @Injectable()
 export class PostRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly s3Service: S3Service,
+  ) {}
 
   async createPost(
     content: string,
@@ -12,6 +33,7 @@ export class PostRepository {
     universityId: number | null,
     tags: string[],
     parentId?: number | null,
+    imageKeys?: string[],
   ): Promise<Post> {
     const post = await this.prisma.$transaction(async (tx) => {
       const created = await tx.post.create({
@@ -22,6 +44,12 @@ export class PostRepository {
           commentsCount: 0,
           tags: tags,
           parentId: parentId ?? null,
+          postKeys:
+            imageKeys && imageKeys.length > 0
+              ? {
+                  create: imageKeys.map((key) => ({ key })),
+                }
+              : undefined,
         },
         include: {
           user: {
@@ -32,6 +60,11 @@ export class PostRepository {
                   name: true,
                 },
               },
+            },
+          },
+          postKeys: {
+            select: {
+              key: true,
             },
           },
         },
@@ -47,12 +80,16 @@ export class PostRepository {
       return created;
     });
 
-    // eslint-disable-next-line
-    const nameParts: string[] = post.user.name.trim().split(/\s+/);
+    const postWithUser = post as unknown as PostWithUser;
+    const nameParts: string[] = postWithUser.user.name.trim().split(/\s+/);
     const userName: string =
       nameParts.length > 1
         ? `${nameParts[0]} ${nameParts[nameParts.length - 1]}`
         : nameParts[0];
+
+    const postImages = (post as unknown as PostWithImages).postKeys;
+    const keys = postImages.map((img) => img.key);
+    const imageUrls = keys.length > 0 ? this.s3Service.getPublicUrls(keys) : [];
 
     return new Post(
       post.id,
@@ -60,12 +97,12 @@ export class PostRepository {
       post.content,
       post.userId,
       userName,
-      // eslint-disable-next-line
-      post.user.institute?.name ?? null,
+      postWithUser.user.institute?.name ?? null,
       post.parentId,
       post.commentsCount,
       post.tags,
       post.universityId,
+      imageUrls,
     );
   }
 
@@ -98,15 +135,26 @@ export class PostRepository {
             },
           },
         },
+        postKeys: {
+          select: {
+            key: true,
+          },
+        },
       },
       orderBy: { id: 'desc' },
     });
     return posts.map((post) => {
-      const nameParts: string[] = post.user.name.trim().split(/\s+/);
+      const postWithUser = post as unknown as PostWithUser;
+      const nameParts: string[] = postWithUser.user.name.trim().split(/\s+/);
       const userName: string =
         nameParts.length > 1
           ? `${nameParts[0]} ${nameParts[nameParts.length - 1]}`
           : nameParts[0];
+
+      const postImages = (post as unknown as PostWithImages).postKeys;
+      const keys = postImages.map((img) => img.key);
+      const imageUrls =
+        keys.length > 0 ? this.s3Service.getPublicUrls(keys) : [];
 
       return new Post(
         post.id,
@@ -114,11 +162,12 @@ export class PostRepository {
         post.content,
         post.userId,
         userName,
-        post.user.institute?.name ?? null,
+        postWithUser.user.institute?.name ?? null,
         post.parentId,
         post.commentsCount,
         post.tags,
         post.universityId,
+        imageUrls,
       );
     });
   }
@@ -155,15 +204,26 @@ export class PostRepository {
             },
           },
         },
+        postKeys: {
+          select: {
+            key: true,
+          },
+        },
       },
       orderBy: { id: 'desc' },
     });
     return posts.map((post) => {
-      const nameParts: string[] = post.user.name.trim().split(/\s+/);
+      const postWithUser = post as unknown as PostWithUser;
+      const nameParts: string[] = postWithUser.user.name.trim().split(/\s+/);
       const userName: string =
         nameParts.length > 1
           ? `${nameParts[0]} ${nameParts[nameParts.length - 1]}`
           : nameParts[0];
+
+      const postImages = (post as unknown as PostWithImages).postKeys;
+      const keys = postImages.map((img) => img.key);
+      const imageUrls =
+        keys.length > 0 ? this.s3Service.getPublicUrls(keys) : [];
 
       return new Post(
         post.id,
@@ -171,11 +231,12 @@ export class PostRepository {
         post.content,
         post.userId,
         userName,
-        post.user.institute?.name ?? null,
+        postWithUser.user.institute?.name ?? null,
         post.parentId,
         post.commentsCount,
         post.tags,
         post.universityId,
+        imageUrls,
       );
     });
   }
@@ -194,15 +255,26 @@ export class PostRepository {
             },
           },
         },
+        postKeys: {
+          select: {
+            key: true,
+          },
+        },
       },
       orderBy: { id: 'asc' },
     });
     return posts.map((post) => {
-      const nameParts: string[] = post.user.name.trim().split(/\s+/);
+      const postWithUser = post as unknown as PostWithUser;
+      const nameParts: string[] = postWithUser.user.name.trim().split(/\s+/);
       const userName: string =
         nameParts.length > 1
           ? `${nameParts[0]} ${nameParts[nameParts.length - 1]}`
           : nameParts[0];
+
+      const postImages = (post as unknown as PostWithImages).postKeys;
+      const keys = postImages.map((img) => img.key);
+      const imageUrls =
+        keys.length > 0 ? this.s3Service.getPublicUrls(keys) : [];
 
       return new Post(
         post.id,
@@ -210,11 +282,12 @@ export class PostRepository {
         post.content,
         post.userId,
         userName,
-        post.user.institute?.name ?? null,
+        postWithUser.user.institute?.name ?? null,
         post.parentId,
         post.commentsCount,
         post.tags,
         post.universityId,
+        imageUrls,
       );
     });
   }
@@ -233,6 +306,11 @@ export class PostRepository {
             },
           },
         },
+        postKeys: {
+          select: {
+            key: true,
+          },
+        },
       },
     });
 
@@ -240,12 +318,17 @@ export class PostRepository {
       return null;
     }
 
-    const nameParts: string[] = post.user.name.trim().split(/\s+/);
+    const postWithUser = post as unknown as PostWithUser;
+    const nameParts: string[] = postWithUser.user.name.trim().split(/\s+/);
 
     const userName: string =
       nameParts.length > 1
         ? `${nameParts[0]} ${nameParts[nameParts.length - 1]}`
         : nameParts[0];
+
+    const postImages = (post as unknown as PostWithImages).postKeys;
+    const keys = postImages.map((img) => img.key);
+    const imageUrls = keys.length > 0 ? this.s3Service.getPublicUrls(keys) : [];
 
     return new Post(
       post.id,
@@ -253,11 +336,12 @@ export class PostRepository {
       post.content,
       post.userId,
       userName,
-      post.user.institute?.name ?? null,
+      postWithUser.user.institute?.name ?? null,
       post.parentId,
       post.commentsCount,
       post.tags,
       post.universityId,
+      imageUrls,
     );
   }
 
@@ -278,6 +362,26 @@ export class PostRepository {
         where: { id },
       });
     });
+  }
+
+  async getPostImageKeys(id: number): Promise<string[]> {
+    const post = await this.prisma.post.findUnique({
+      where: { id },
+      select: {
+        postKeys: {
+          select: {
+            key: true,
+          },
+        },
+      },
+    });
+
+    if (!post) {
+      return [];
+    }
+
+    const postImages = (post as unknown as PostWithImages).postKeys;
+    return postImages.map((img) => img.key);
   }
 
   async getUserIdsWhoCommented(postId: number): Promise<number[]> {

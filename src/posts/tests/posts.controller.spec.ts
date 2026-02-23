@@ -140,7 +140,11 @@ describe('PostsController', () => {
 
       mockCreatePostService.execute.mockResolvedValue(mockPost);
 
-      const result = await controller.postPost(createPostDto, mockAuthUser);
+      const result = await controller.postPost(
+        createPostDto,
+        mockAuthUser,
+        undefined,
+      );
 
       expect(result).toBeInstanceOf(PostDto);
       expect(result.id).toBe(1);
@@ -149,6 +153,7 @@ describe('PostsController', () => {
         'Test Content',
         mockAuthUser,
         ['tag1', 'tag2'],
+        undefined,
         undefined,
       );
     });
@@ -162,7 +167,11 @@ describe('PostsController', () => {
 
       mockCreatePostService.execute.mockResolvedValue(mockPost);
 
-      const result = await controller.postPost(createPostDto, mockAuthUser);
+      const result = await controller.postPost(
+        createPostDto,
+        mockAuthUser,
+        undefined,
+      );
 
       expect(result.id).toBe(mockPost.id);
       expect(result.content).toBe(mockPost.content);

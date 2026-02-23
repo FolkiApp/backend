@@ -1,4 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
 import {
   IsString,
   IsNotEmpty,
@@ -14,7 +15,7 @@ export class CreatePostDto {
   })
   @IsString()
   @IsNotEmpty()
-  content: string;
+  content!: string;
 
   @ApiPropertyOptional({
     example: ['Value', 'Value2'],
@@ -30,6 +31,7 @@ export class CreatePostDto {
   })
   @IsOptional()
   @IsInt()
+  @Type(() => Number)
   @Min(1)
   parentId?: number;
 }

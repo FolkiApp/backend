@@ -6,16 +6,27 @@ import { NotFoundPostException } from '../exceptions/not-found-post.exception';
 import { UnauthorizedPostException } from '../exceptions/unauthorized-post.exception';
 import { PostInternalErrorException } from '../exceptions/post-internal-error.exception';
 import { AuthUser } from '../../common/guards/auth.guard';
+import { S3Service } from '../../common/services/s3.service';
 
 describe('DeletePostService', () => {
   let service: DeletePostService;
   let postsRepository: PostRepository;
 
   const mockPostsRepository: jest.Mocked<
-    Pick<PostRepository, 'getPostById' | 'deletePost'>
+    Pick<PostRepository, 'getPostById' | 'deletePost' | 'getPostImageKeys'>
   > = {
     getPostById: jest.fn(),
     deletePost: jest.fn(),
+    getPostImageKeys: jest.fn(),
+  };
+
+  const mockS3Service = {
+    uploadFile: jest.fn(),
+    uploadFiles: jest.fn(),
+    getPublicUrl: jest.fn(),
+    getPublicUrls: jest.fn(),
+    deleteObject: jest.fn(),
+    deleteObjects: jest.fn(),
   };
 
   const mockAuthUser: AuthUser = {
@@ -51,6 +62,10 @@ describe('DeletePostService', () => {
           provide: PostRepository,
           useValue: mockPostsRepository,
         },
+        {
+          provide: S3Service,
+          useValue: mockS3Service,
+        },
       ],
     }).compile();
 
@@ -68,10 +83,13 @@ describe('DeletePostService', () => {
     it('should delete a post successfully when user is the author', async () => {
       mockPostsRepository.getPostById.mockResolvedValue(mockPost);
       mockPostsRepository.deletePost.mockResolvedValue(undefined);
+      mockPostsRepository.getPostImageKeys.mockResolvedValue([]);
+      mockS3Service.deleteObjects.mockResolvedValue(undefined);
 
       await service.execute(1, mockAuthUser);
 
       expect(postsRepository.getPostById).toHaveBeenCalledWith(1);
+      expect(postsRepository.getPostImageKeys).toHaveBeenCalledWith(1);
       expect(postsRepository.deletePost).toHaveBeenCalledWith(1);
     });
 

@@ -10,5 +10,6 @@ export class Post {
     public commentsCount: number,
     public tags: string[] = [],
     public universityId: number | null = null,
+    public imageUrls: string[] = [],
   ) {}
 }
