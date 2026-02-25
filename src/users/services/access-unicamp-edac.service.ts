@@ -182,6 +182,32 @@ export class AccessUnicampEdacService {
         waitUntil: 'networkidle2',
       });
 
+      await page.goto(
+        `${UNICAMP_LOGIN_URL}app/aluno/dados-pessoais/nome-social`,
+        {
+          waitUntil: 'networkidle2',
+        },
+      );
+
+      const socialName = await page
+        .evaluate(() => {
+          const labelSpans = Array.from(
+            document.querySelectorAll('span'),
+          ).filter((span) =>
+            span.textContent?.trim().toLowerCase().includes('nome social'),
+          );
+
+          for (const span of labelSpans) {
+            const container = span.closest('div');
+            const nameNode = container?.querySelector('h6');
+            const value = nameNode?.textContent?.trim();
+            if (value) return value;
+          }
+
+          return null;
+        })
+        .catch(() => null);
+
       await page
         .waitForFunction(() => document.querySelectorAll('button').length > 5, {
           timeout: 10000,
@@ -239,7 +265,9 @@ export class AccessUnicampEdacService {
       const safeGrade = gradeJson as SigaResponse | null;
 
       const name =
-        safeDados?.retorno?.DadosBasicos?.Nome?.trim() ?? 'Aluno Unicamp';
+        socialName?.trim() ||
+        safeDados?.retorno?.DadosBasicos?.Nome?.trim() ||
+        'Aluno Unicamp';
       const email = coursePageData.email ?? `${ra}@dac.unicamp.br`;
 
       let instituteName = 'Unicamp';
