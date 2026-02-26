@@ -5,6 +5,7 @@ import { ListFirstPostService } from '../services/list-first-post.service';
 import { DeletePostService } from '../services/delete-post.service';
 import { ListPostChildrenService } from '../services/list-post-children.service';
 import { GetPostByIdService } from '../services/get-post-by-id.service';
+import { VotePostService } from '../services/vote-post.service';
 import { Post } from '../entities/post.entity';
 import { PostDto } from '../dto/post.dto';
 import { CreatePostDto } from '../dto/create-post.dto';
@@ -43,6 +44,10 @@ describe('PostsController', () => {
   const mockGetPostByIdService: jest.Mocked<
     Pick<GetPostByIdService, 'execute'>
   > = {
+    execute: jest.fn(),
+  };
+
+  const mockVotePostService: jest.Mocked<Pick<VotePostService, 'execute'>> = {
     execute: jest.fn(),
   };
 
@@ -110,6 +115,10 @@ describe('PostsController', () => {
         {
           provide: GetPostByIdService,
           useValue: mockGetPostByIdService,
+        },
+        {
+          provide: VotePostService,
+          useValue: mockVotePostService,
         },
       ],
     }).compile();
@@ -230,9 +239,13 @@ describe('PostsController', () => {
       const result = await controller.listFirstPosts(10, mockAuthUser);
 
       expect(result.posts[0].id).toBe(mockPosts[0].id);
-      expect(result.posts[0].title).toBe(mockPosts[0].title);
+      expect(result.posts[0].content).toBe(mockPosts[0].content);
+      expect(result.posts[0].upvotes).toBe(mockPosts[0].upvotes);
+      expect(result.posts[0].downvotes).toBe(mockPosts[0].downvotes);
       expect(result.posts[1].id).toBe(mockPosts[1].id);
-      expect(result.posts[1].title).toBe(mockPosts[1].title);
+      expect(result.posts[1].content).toBe(mockPosts[1].content);
+      expect(result.posts[1].upvotes).toBe(mockPosts[1].upvotes);
+      expect(result.posts[1].downvotes).toBe(mockPosts[1].downvotes);
     });
   });
 

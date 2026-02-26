@@ -11,5 +11,7 @@ export class Post {
     public tags: string[] = [],
     public universityId: number | null = null,
     public imageUrls: string[] = [],
+    public upvotes: number = 0,
+    public downvotes: number = 0,
   ) {}
 }

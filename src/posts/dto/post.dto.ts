@@ -34,6 +34,12 @@ export class PostDto {
   @ApiProperty({ example: 21 })
   commentsCount: number;
 
+  @ApiProperty({ example: 15 })
+  upvotes: number;
+
+  @ApiProperty({ example: 3 })
+  downvotes: number;
+
   @ApiProperty({
     example: ['Value', 'Value2'],
     type: [String],
@@ -58,6 +64,8 @@ export class PostDto {
     commentsCount: number,
     tags?: string[],
     imageUrls?: string[],
+    upvotes = 0,
+    downvotes = 0,
   ) {
     this.id = id;
     this.postDate = postDate;
@@ -67,6 +75,8 @@ export class PostDto {
     this.userInstituteName = userInstituteName;
     this.parentId = parentId;
     this.commentsCount = commentsCount;
+    this.upvotes = upvotes;
+    this.downvotes = downvotes;
     this.tags = tags ?? [];
     this.imageUrls = imageUrls ?? [];
   }

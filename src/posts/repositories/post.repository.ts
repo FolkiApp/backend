@@ -103,6 +103,8 @@ export class PostRepository {
       post.tags,
       post.universityId,
       imageUrls,
+      post.upvotes,
+      post.downvotes,
     );
   }
 
@@ -168,6 +170,8 @@ export class PostRepository {
         post.tags,
         post.universityId,
         imageUrls,
+        post.upvotes,
+        post.downvotes,
       );
     });
   }
@@ -237,6 +241,8 @@ export class PostRepository {
         post.tags,
         post.universityId,
         imageUrls,
+        post.upvotes,
+        post.downvotes,
       );
     });
   }
@@ -288,6 +294,8 @@ export class PostRepository {
         post.tags,
         post.universityId,
         imageUrls,
+        post.upvotes,
+        post.downvotes,
       );
     });
   }
@@ -342,6 +350,8 @@ export class PostRepository {
       post.tags,
       post.universityId,
       imageUrls,
+      post.upvotes,
+      post.downvotes,
     );
   }
 
@@ -396,5 +406,70 @@ export class PostRepository {
     });
 
     return comments.map((comment) => comment.userId);
+  }
+
+  async vote_post(
+    postId: number,
+    userId: number,
+    upvote: boolean,
+    downvote: boolean,
+  ): Promise<boolean> {
+    await this.prisma.$transaction(async (tx) => {
+      const existingVote = await tx.votes.findUnique({
+        where: {
+          postId_userId: {
+            postId,
+            userId,
+          },
+        },
+      });
+
+      if (!existingVote) {
+        await tx.votes.create({
+          data: {
+            postId,
+            userId,
+            up: upvote,
+            down: downvote,
+          },
+        });
+
+        await tx.post.update({
+          where: { id: postId },
+          data: {
+            ...(upvote ? { upvotes: { increment: 1 } } : {}),
+            ...(downvote ? { downvotes: { increment: 1 } } : {}),
+          },
+        });
+
+        return;
+      }
+
+      if (existingVote.up === upvote && existingVote.down === downvote) {
+        return;
+      }
+
+      await tx.votes.update({
+        where: { id: existingVote.id },
+        data: {
+          up: upvote,
+          down: downvote,
+        },
+      });
+
+      await tx.post.update({
+        where: { id: postId },
+        data: {
+          ...(existingVote.up !== upvote
+            ? { upvotes: upvote ? { increment: 1 } : { decrement: 1 } }
+            : {}),
+          ...(existingVote.down !== downvote
+            ? { downvotes: downvote ? { increment: 1 } : { decrement: 1 } }
+            : {}),
+        },
+      });
+    });
+
+    return true;
   }
 }

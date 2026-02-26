@@ -27,6 +27,8 @@ import { ListPostChildrenService } from './services/list-post-children.service';
 import { GetPostByIdService } from './services/get-post-by-id.service';
 import { ListPostResponseDto } from './dto/list-post-response.dto';
 import { FilesInterceptor } from '@nestjs/platform-express';
+import { VotePostService } from './services/vote-post.service';
+import { VotePostDto } from './dto/vote-post.dto';
 
 @Controller()
 export class PostsController {
@@ -36,6 +38,7 @@ export class PostsController {
     private readonly deletePostService: DeletePostService,
     private readonly listPostChildrenService: ListPostChildrenService,
     private readonly getPostByIdService: GetPostByIdService,
+    private readonly votePostService: VotePostService,
   ) {}
 
   @Post('posts')
@@ -117,6 +120,8 @@ export class PostsController {
             post.commentsCount,
             post.tags,
             post.imageUrls,
+            post.upvotes,
+            post.downvotes,
           ),
       ),
       nextId,
@@ -146,6 +151,8 @@ export class PostsController {
           post.commentsCount,
           post.tags,
           post.imageUrls,
+          post.upvotes,
+          post.downvotes,
         ),
     );
   }
@@ -191,6 +198,29 @@ export class PostsController {
       post.commentsCount,
       post.tags,
       post.imageUrls,
+      post.upvotes,
+      post.downvotes,
     );
+  }
+
+  @Post('posts/:id/vote')
+  @Auth()
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Votar em uma postagem',
+    description: 'Registra ou atualiza o voto do usuário em um post',
+  })
+  async votePost(
+    @Param('id') id: number,
+    @Body() body: VotePostDto,
+    @CurrentUser() authUser: AuthUser,
+  ): Promise<{ voted: boolean }> {
+    const voted = await this.votePostService.execute(
+      Number(id),
+      authUser,
+      body.upvote,
+    );
+
+    return { voted };
   }
 }

@@ -108,6 +108,7 @@ model user {
   user_activity_ignore   user_activity_ignore[]
   user_notification_id   user_notification_id[]
   posts                  post[]
+  votes                  votes[]
 }
 
 model user_subject {
@@ -259,15 +260,31 @@ model post {
   universityId  Int?
   parentId      Int?
   commentsCount Int       @default(0)
+  upvotes       Int       @default(0)
+  downvotes     Int       @default(0)
   user          user      @relation(fields: [userId], references: [id], onDelete: Cascade)
   university    university? @relation(fields: [universityId], references: [id])
   parent        post?     @relation("post_children", fields: [parentId], references: [id], onDelete: Cascade)
   children      post[]    @relation("post_children")
+  vote          votes[]
   tags          String[]
-  postKeys    post_image[]
+  postKeys      post_image[]
 
 
   @@index([universityId])
+}
+
+model votes {
+  id            Int       @id @default(autoincrement())
+  postId        Int
+  userId        Int
+  down          Boolean
+  up            Boolean
+  user          user      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post          post      @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, userId])
+  @@index([userId])
 }
 
 model post_image {
