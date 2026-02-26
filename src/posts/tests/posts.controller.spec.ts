@@ -9,6 +9,7 @@ import { VotePostService } from '../services/vote-post.service';
 import { Post } from '../entities/post.entity';
 import { PostDto } from '../dto/post.dto';
 import { CreatePostDto } from '../dto/create-post.dto';
+import { VotePostDto } from '../dto/vote-post.dto';
 import { AuthUser } from '../../common/guards/auth.guard';
 import { NotFoundPostException } from '../exceptions/not-found-post.exception';
 import { UnauthorizedPostException } from '../exceptions/unauthorized-post.exception';
@@ -326,6 +327,48 @@ describe('PostsController', () => {
       await controller.listPostChildren('1' as unknown as number);
 
       expect(listPostChildrenService.execute).toHaveBeenCalledWith(1);
+    });
+  });
+
+  describe('votePost', () => {
+    it('should vote successfully and return voted true', async () => {
+      const voteDto: VotePostDto = { upvote: 1 };
+      mockVotePostService.execute.mockResolvedValue(true);
+
+      const result = await controller.votePost(1, voteDto, mockAuthUser);
+
+      expect(result).toEqual({ voted: true });
+      expect(mockVotePostService.execute).toHaveBeenCalledWith(
+        1,
+        mockAuthUser,
+        1,
+      );
+    });
+
+    it('should convert string id parameter to number', async () => {
+      const voteDto: VotePostDto = { upvote: 0 };
+      mockVotePostService.execute.mockResolvedValue(true);
+
+      await controller.votePost(
+        '1' as unknown as number,
+        voteDto,
+        mockAuthUser,
+      );
+
+      expect(mockVotePostService.execute).toHaveBeenCalledWith(
+        1,
+        mockAuthUser,
+        0,
+      );
+    });
+
+    it('should propagate errors from vote service', async () => {
+      const voteDto: VotePostDto = { upvote: 1 };
+      mockVotePostService.execute.mockRejectedValue(new Error('Vote error'));
+
+      await expect(
+        controller.votePost(1, voteDto, mockAuthUser),
+      ).rejects.toThrow('Vote error');
     });
   });
 });
