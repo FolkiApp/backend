@@ -4,6 +4,7 @@ import { CustomLogger } from '../../common/logger/custom-logger.service';
 import { InvalidCredentialsException } from '../../common/exceptions/invalid-credentials.exception';
 import { UniversitySystemTimeoutException } from '../../common/exceptions/university-system-timeout.exception';
 import { AuthenticationException } from '../../common/exceptions/authentication.exception';
+import { UFSCarMaintenanceException } from '../../common/exceptions/ufscar-maintenance.exception';
 import { createToken } from '../../common/utils/create-token';
 import { AuthDto } from '../dto/auth.dto';
 import { AuthResponseDto } from '../dto/auth-response.dto';
@@ -76,6 +77,11 @@ export class AuthenticateUserService {
 
       return new AuthResponseDto(token, userResponse);
     } catch (error: unknown) {
+      // UFSCar maintenance
+      if (error instanceof UFSCarMaintenanceException) {
+        throw error;
+      }
+
       if (error instanceof Error) {
         // Invalid credentials
         if (
