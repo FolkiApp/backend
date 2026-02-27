@@ -29,11 +29,7 @@ export class ListFirstPostService {
     tags?: string[],
   ): Promise<Post[]> {
     try {
-      const posts = await this.postRepository.listPosts(
-        quantity,
-        universityId,
-        tags,
-      );
+      const posts = await this.postRepository.listPosts(quantity, null, tags);
       if (!posts) {
         throw new NotFoundPostException();
       }
