@@ -63,10 +63,10 @@ describe('AccessUnicampEdacService', () => {
   } as unknown as jest.Mocked<CustomLogger>;
 
   const mockClose = jest.fn();
-  const mockGoto = jest.fn();
-  const mockType = jest.fn();
-  const mockClick = jest.fn();
-  const mockWaitForNavigation = jest.fn();
+  const mockGoto = jest.fn().mockResolvedValue(null);
+  const mockType = jest.fn().mockResolvedValue(undefined);
+  const mockClick = jest.fn().mockResolvedValue(undefined);
+  const mockWaitForNavigation = jest.fn().mockResolvedValue(null);
   const mockOn = jest.fn();
   const mockEvaluate = jest.fn();
   const mockWaitForFunction = jest.fn().mockResolvedValue(true);
@@ -135,16 +135,19 @@ describe('AccessUnicampEdacService', () => {
       },
     );
 
-    mockEvaluate.mockImplementation(async (fn: any) => {
-      const fnString = fn.toString();
-      if (fnString.includes('nome social')) {
-        return socialName;
-      }
-      return {
-        email: 'joao@dac.unicamp.br',
-        cursoRaw: '42 - Ciência da Computação',
-      };
-    });
+    mockEvaluate.mockImplementation(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (fn: any) => {
+        const fnString = String(fn);
+        if (fnString.includes('nome social')) {
+          return Promise.resolve(socialName);
+        }
+        return Promise.resolve({
+          email: 'joao@dac.unicamp.br',
+          cursoRaw: '42 - Ciência da Computação',
+        });
+      },
+    );
   }
 
   const createMockSubjectClass = (id: number) =>

@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { user } from '@prisma/client';
 import { CustomLogger } from '../../common/logger/custom-logger.service';
+import { UFSCarMaintenanceException } from '../../common/exceptions/ufscar-maintenance.exception';
 import { UserRepository } from '../repositories/user.repository';
 import { CourseRepository } from '../../courses/repositories/course.repository';
 import { InstituteRepository } from '../../institutes/repositories/institute.repository';
@@ -38,8 +39,13 @@ export class AccessUFSCarSigaaService {
       },
     });
 
+    this.logger.log({
+      message: 'Requesting SIGAA data',
+      response,
+    });
+
     if (!response.ok) {
-      throw new Error('Invalid credentials');
+      throw new UFSCarMaintenanceException();
     }
 
     this.logger.log({
