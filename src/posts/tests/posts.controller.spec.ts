@@ -5,9 +5,11 @@ import { ListFirstPostService } from '../services/list-first-post.service';
 import { DeletePostService } from '../services/delete-post.service';
 import { ListPostChildrenService } from '../services/list-post-children.service';
 import { GetPostByIdService } from '../services/get-post-by-id.service';
+import { VotePostService } from '../services/vote-post.service';
 import { Post } from '../entities/post.entity';
 import { PostDto } from '../dto/post.dto';
 import { CreatePostDto } from '../dto/create-post.dto';
+import { VotePostDto } from '../dto/vote-post.dto';
 import { AuthUser } from '../../common/guards/auth.guard';
 import { NotFoundPostException } from '../exceptions/not-found-post.exception';
 import { UnauthorizedPostException } from '../exceptions/unauthorized-post.exception';
@@ -46,6 +48,10 @@ describe('PostsController', () => {
     execute: jest.fn(),
   };
 
+  const mockVotePostService: jest.Mocked<Pick<VotePostService, 'execute'>> = {
+    execute: jest.fn(),
+  };
+
   const mockAuthUser: AuthUser = {
     id: 1,
     email: 'test@example.com',
@@ -56,6 +62,8 @@ describe('PostsController', () => {
     universityId: null,
     isBlocked: false,
     userVersion: null,
+    institute: null,
+    university: null,
   };
 
   const mockPost = new Post(
@@ -111,6 +119,10 @@ describe('PostsController', () => {
           provide: GetPostByIdService,
           useValue: mockGetPostByIdService,
         },
+        {
+          provide: VotePostService,
+          useValue: mockVotePostService,
+        },
       ],
     }).compile();
 
@@ -140,11 +152,7 @@ describe('PostsController', () => {
 
       mockCreatePostService.execute.mockResolvedValue(mockPost);
 
-      const result = await controller.postPost(
-        createPostDto,
-        mockAuthUser,
-        undefined,
-      );
+      const result = await controller.postPost(createPostDto, mockAuthUser, []);
 
       expect(result).toBeInstanceOf(PostDto);
       expect(result.id).toBe(1);
@@ -154,7 +162,7 @@ describe('PostsController', () => {
         mockAuthUser,
         ['tag1', 'tag2'],
         undefined,
-        undefined,
+        [],
       );
     });
 
@@ -167,11 +175,7 @@ describe('PostsController', () => {
 
       mockCreatePostService.execute.mockResolvedValue(mockPost);
 
-      const result = await controller.postPost(
-        createPostDto,
-        mockAuthUser,
-        undefined,
-      );
+      const result = await controller.postPost(createPostDto, mockAuthUser, []);
 
       expect(result.id).toBe(mockPost.id);
       expect(result.content).toBe(mockPost.content);
@@ -230,9 +234,13 @@ describe('PostsController', () => {
       const result = await controller.listFirstPosts(10, mockAuthUser);
 
       expect(result.posts[0].id).toBe(mockPosts[0].id);
-      expect(result.posts[0].title).toBe(mockPosts[0].title);
+      expect(result.posts[0].content).toBe(mockPosts[0].content);
+      expect(result.posts[0].upvotes).toBe(mockPosts[0].upvotes);
+      expect(result.posts[0].downvotes).toBe(mockPosts[0].downvotes);
       expect(result.posts[1].id).toBe(mockPosts[1].id);
-      expect(result.posts[1].title).toBe(mockPosts[1].title);
+      expect(result.posts[1].content).toBe(mockPosts[1].content);
+      expect(result.posts[1].upvotes).toBe(mockPosts[1].upvotes);
+      expect(result.posts[1].downvotes).toBe(mockPosts[1].downvotes);
     });
   });
 
@@ -279,6 +287,8 @@ describe('PostsController', () => {
         universityId: null,
         isBlocked: false,
         userVersion: null,
+        institute: null,
+        university: null,
       };
 
       await expect(controller.deletePost(1, differentUser)).rejects.toThrow(
@@ -313,6 +323,48 @@ describe('PostsController', () => {
       await controller.listPostChildren('1' as unknown as number);
 
       expect(listPostChildrenService.execute).toHaveBeenCalledWith(1);
+    });
+  });
+
+  describe('votePost', () => {
+    it('should vote successfully and not return body', async () => {
+      const voteDto: VotePostDto = { upvote: 1 };
+      mockVotePostService.execute.mockResolvedValue(true);
+
+      const result = await controller.votePost(1, voteDto, mockAuthUser);
+
+      expect(result).toBeUndefined();
+      expect(mockVotePostService.execute).toHaveBeenCalledWith(
+        1,
+        mockAuthUser,
+        1,
+      );
+    });
+
+    it('should convert string id parameter to number', async () => {
+      const voteDto: VotePostDto = { upvote: 0 };
+      mockVotePostService.execute.mockResolvedValue(true);
+
+      await controller.votePost(
+        '1' as unknown as number,
+        voteDto,
+        mockAuthUser,
+      );
+
+      expect(mockVotePostService.execute).toHaveBeenCalledWith(
+        1,
+        mockAuthUser,
+        0,
+      );
+    });
+
+    it('should propagate errors from vote service', async () => {
+      const voteDto: VotePostDto = { upvote: 1 };
+      mockVotePostService.execute.mockRejectedValue(new Error('Vote error'));
+
+      await expect(
+        controller.votePost(1, voteDto, mockAuthUser),
+      ).rejects.toThrow('Vote error');
     });
   });
 });

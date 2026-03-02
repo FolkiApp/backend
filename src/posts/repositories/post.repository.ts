@@ -103,6 +103,8 @@ export class PostRepository {
       post.tags,
       post.universityId,
       imageUrls,
+      post.upvotes,
+      post.downvotes,
     );
   }
 
@@ -168,6 +170,8 @@ export class PostRepository {
         post.tags,
         post.universityId,
         imageUrls,
+        post.upvotes,
+        post.downvotes,
       );
     });
   }
@@ -237,6 +241,8 @@ export class PostRepository {
         post.tags,
         post.universityId,
         imageUrls,
+        post.upvotes,
+        post.downvotes,
       );
     });
   }
@@ -288,6 +294,8 @@ export class PostRepository {
         post.tags,
         post.universityId,
         imageUrls,
+        post.upvotes,
+        post.downvotes,
       );
     });
   }
@@ -342,6 +350,8 @@ export class PostRepository {
       post.tags,
       post.universityId,
       imageUrls,
+      post.upvotes,
+      post.downvotes,
     );
   }
 
@@ -396,5 +406,92 @@ export class PostRepository {
     });
 
     return comments.map((comment) => comment.userId);
+  }
+
+  async votePost(
+    postId: number,
+    userId: number,
+    upvote: boolean,
+  ): Promise<boolean> {
+    await this.prisma.$transaction(async (tx) => {
+      const existingVote = await tx.vote.findUnique({
+        where: {
+          postId_userId: {
+            postId,
+            userId,
+          },
+        },
+      });
+
+      if (!existingVote) {
+        await tx.vote.create({
+          data: {
+            postId,
+            userId,
+            up: upvote,
+          },
+        });
+
+        await tx.post.update({
+          where: { id: postId },
+          data: {
+            ...(upvote
+              ? { upvotes: { increment: 1 } }
+              : { downvotes: { increment: 1 } }),
+          },
+        });
+
+        return;
+      }
+
+      if (existingVote.up === upvote) {
+        await tx.vote.delete({
+          where: {
+            postId_userId: {
+              postId,
+              userId,
+            },
+          },
+        });
+
+        await tx.post.update({
+          where: { id: postId },
+          data: upvote
+            ? { upvotes: { decrement: 1 } }
+            : { downvotes: { decrement: 1 } },
+        });
+
+        return;
+      }
+
+      await tx.vote.update({
+        where: {
+          postId_userId: {
+            postId,
+            userId,
+          },
+        },
+        data: {
+          up: upvote,
+        },
+      });
+
+      await tx.post.update({
+        where: { id: postId },
+        data: {
+          ...(upvote
+            ? {
+                upvotes: { increment: 1 },
+                downvotes: { decrement: 1 },
+              }
+            : {
+                upvotes: { decrement: 1 },
+                downvotes: { increment: 1 },
+              }),
+        },
+      });
+    });
+
+    return true;
   }
 }
