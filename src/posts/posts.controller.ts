@@ -214,13 +214,7 @@ export class PostsController {
     @Param('id') id: number,
     @Body() body: VotePostDto,
     @CurrentUser() authUser: AuthUser,
-  ): Promise<{ voted: boolean }> {
-    const voted = await this.votePostService.execute(
-      Number(id),
-      authUser,
-      body.upvote,
-    );
-
-    return { voted };
+  ): Promise<void> {
+    await this.votePostService.execute(Number(id), authUser, body.upvote);
   }
 }

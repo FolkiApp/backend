@@ -62,6 +62,8 @@ describe('PostsController', () => {
     universityId: null,
     isBlocked: false,
     userVersion: null,
+    institute: null,
+    university: null,
   };
 
   const mockPost = new Post(
@@ -150,11 +152,7 @@ describe('PostsController', () => {
 
       mockCreatePostService.execute.mockResolvedValue(mockPost);
 
-      const result = await controller.postPost(
-        createPostDto,
-        mockAuthUser,
-        undefined,
-      );
+      const result = await controller.postPost(createPostDto, mockAuthUser, []);
 
       expect(result).toBeInstanceOf(PostDto);
       expect(result.id).toBe(1);
@@ -164,7 +162,7 @@ describe('PostsController', () => {
         mockAuthUser,
         ['tag1', 'tag2'],
         undefined,
-        undefined,
+        [],
       );
     });
 
@@ -177,11 +175,7 @@ describe('PostsController', () => {
 
       mockCreatePostService.execute.mockResolvedValue(mockPost);
 
-      const result = await controller.postPost(
-        createPostDto,
-        mockAuthUser,
-        undefined,
-      );
+      const result = await controller.postPost(createPostDto, mockAuthUser, []);
 
       expect(result.id).toBe(mockPost.id);
       expect(result.content).toBe(mockPost.content);
@@ -293,6 +287,8 @@ describe('PostsController', () => {
         universityId: null,
         isBlocked: false,
         userVersion: null,
+        institute: null,
+        university: null,
       };
 
       await expect(controller.deletePost(1, differentUser)).rejects.toThrow(
@@ -331,13 +327,13 @@ describe('PostsController', () => {
   });
 
   describe('votePost', () => {
-    it('should vote successfully and return voted true', async () => {
+    it('should vote successfully and not return body', async () => {
       const voteDto: VotePostDto = { upvote: 1 };
       mockVotePostService.execute.mockResolvedValue(true);
 
       const result = await controller.votePost(1, voteDto, mockAuthUser);
 
-      expect(result).toEqual({ voted: true });
+      expect(result).toBeUndefined();
       expect(mockVotePostService.execute).toHaveBeenCalledWith(
         1,
         mockAuthUser,

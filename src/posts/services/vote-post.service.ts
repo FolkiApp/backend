@@ -3,6 +3,7 @@ import { AuthUser } from '../../common/guards/auth.guard';
 import { PostRepository } from '../repositories/post.repository';
 import { PostInternalErrorException } from '../exceptions/post-internal-error.exception';
 import { NotFoundPostException } from '../exceptions/not-found-post.exception';
+import { InvalidVoteException } from '../exceptions/invalid-vote-exception';
 
 @Injectable()
 export class VotePostService {
@@ -16,29 +17,28 @@ export class VotePostService {
     upvote: number,
   ): Promise<boolean> {
     this.logger.log({ message: 'Voting Post', postId, userId: user.id });
-    return this.vote_post(postId, user.id, upvote);
+    return this.votePost(postId, user.id, upvote);
   }
 
-  private async vote_post(
+  private async votePost(
     postId: number,
     userId: number,
     upvote: number,
   ): Promise<boolean> {
     try {
       if (upvote !== 0 && upvote !== 1) {
-        throw new BadRequestException('Invalid vote value');
+        throw new InvalidVoteException();
       }
 
       const post = await this.postsRepository.getPostById(postId);
 
       if (!post) {
-        throw new NotFoundPostException('Post not found');
+        throw new NotFoundPostException();
       }
 
-      const up = upvote === 1;
-      const down = !up;
+      const isUpvote = upvote === 1;
 
-      return await this.postsRepository.vote_post(postId, userId, up, down);
+      return await this.postsRepository.votePost(postId, userId, isUpvote);
     } catch (error: unknown) {
       this.logger.error({
         message: 'Error voting post',

@@ -408,14 +408,13 @@ export class PostRepository {
     return comments.map((comment) => comment.userId);
   }
 
-  async vote_post(
+  async votePost(
     postId: number,
     userId: number,
     upvote: boolean,
-    downvote: boolean,
   ): Promise<boolean> {
     await this.prisma.$transaction(async (tx) => {
-      const existingVote = await tx.votes.findUnique({
+      const existingVote = await tx.vote.findUnique({
         where: {
           postId_userId: {
             postId,
@@ -425,47 +424,70 @@ export class PostRepository {
       });
 
       if (!existingVote) {
-        await tx.votes.create({
+        await tx.vote.create({
           data: {
             postId,
             userId,
             up: upvote,
-            down: downvote,
           },
         });
 
         await tx.post.update({
           where: { id: postId },
           data: {
-            ...(upvote ? { upvotes: { increment: 1 } } : {}),
-            ...(downvote ? { downvotes: { increment: 1 } } : {}),
+            ...(upvote
+              ? { upvotes: { increment: 1 } }
+              : { downvotes: { increment: 1 } }),
           },
         });
 
         return;
       }
 
-      if (existingVote.up === upvote && existingVote.down === downvote) {
+      if (existingVote.up === upvote) {
+        await tx.vote.delete({
+          where: {
+            postId_userId: {
+              postId,
+              userId,
+            },
+          },
+        });
+
+        await tx.post.update({
+          where: { id: postId },
+          data: upvote
+            ? { upvotes: { decrement: 1 } }
+            : { downvotes: { decrement: 1 } },
+        });
+
         return;
       }
 
-      await tx.votes.update({
-        where: { id: existingVote.id },
+      await tx.vote.update({
+        where: {
+          postId_userId: {
+            postId,
+            userId,
+          },
+        },
         data: {
           up: upvote,
-          down: downvote,
         },
       });
 
       await tx.post.update({
         where: { id: postId },
         data: {
-          ...(existingVote.up !== upvote
-            ? { upvotes: upvote ? { increment: 1 } : { decrement: 1 } }
-            : {}),
-          ...(existingVote.down !== downvote
-            ? { downvotes: downvote ? { increment: 1 } : { decrement: 1 } }
-            : {}),
+          ...(upvote
+            ? {
+                upvotes: { increment: 1 },
+                downvotes: { decrement: 1 },
+              }
+            : {
+                upvotes: { decrement: 1 },
+                downvotes: { increment: 1 },
+              }),
         },
       });
     });

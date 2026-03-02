@@ -21,6 +21,8 @@ describe('VotePostService', () => {
     universityId: null,
     isBlocked: false,
     userVersion: null,
+    institute: null,
+    university: null,
   };
 
   const mockPost = new Post(
@@ -47,7 +49,7 @@ describe('VotePostService', () => {
           provide: PostRepository,
           useValue: {
             getPostById: jest.fn(),
-            vote_post: jest.fn(),
+            votePost: jest.fn(),
           },
         },
       ],
@@ -64,24 +66,24 @@ describe('VotePostService', () => {
   describe('execute', () => {
     it('should register an upvote when upvote value is 1', async () => {
       postRepository.getPostById.mockResolvedValue(mockPost);
-      postRepository.vote_post.mockResolvedValue(true);
+      postRepository.votePost.mockResolvedValue(true);
 
       const result = await service.execute(1, mockAuthUser, 1);
 
       expect(result).toBe(true);
       expect(postRepository.getPostById).toHaveBeenCalledWith(1);
-      expect(postRepository.vote_post).toHaveBeenCalledWith(1, 1, true, false);
+      expect(postRepository.votePost).toHaveBeenCalledWith(1, 1, true);
     });
 
     it('should register a downvote when upvote value is 0', async () => {
       postRepository.getPostById.mockResolvedValue(mockPost);
-      postRepository.vote_post.mockResolvedValue(true);
+      postRepository.votePost.mockResolvedValue(true);
 
       const result = await service.execute(1, mockAuthUser, 0);
 
       expect(result).toBe(true);
       expect(postRepository.getPostById).toHaveBeenCalledWith(1);
-      expect(postRepository.vote_post).toHaveBeenCalledWith(1, 1, false, true);
+      expect(postRepository.votePost).toHaveBeenCalledWith(1, 1, false);
     });
 
     it('should throw BadRequestException when vote value is invalid', async () => {
@@ -90,7 +92,7 @@ describe('VotePostService', () => {
       );
 
       expect(postRepository.getPostById).not.toHaveBeenCalled();
-      expect(postRepository.vote_post).not.toHaveBeenCalled();
+      expect(postRepository.votePost).not.toHaveBeenCalled();
     });
 
     it('should throw NotFoundPostException when post does not exist', async () => {
@@ -101,7 +103,7 @@ describe('VotePostService', () => {
       );
 
       expect(postRepository.getPostById).toHaveBeenCalledWith(999);
-      expect(postRepository.vote_post).not.toHaveBeenCalled();
+      expect(postRepository.votePost).not.toHaveBeenCalled();
     });
 
     it('should throw PostInternalErrorException when repository fails', async () => {
