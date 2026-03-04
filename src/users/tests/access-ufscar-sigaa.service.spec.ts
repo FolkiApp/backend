@@ -114,11 +114,11 @@ describe('AccessUFSCarSigaaService', () => {
   });
 
   describe('execute', () => {
-    it('deve estar definido', () => {
+    it('should be defined', () => {
       expect(service).toBeDefined();
     });
 
-    it('deve ter todas as dependências injetadas', () => {
+    it('should have all dependencies injected', () => {
       expect(userRepository).toBeDefined();
       expect(courseRepository).toBeDefined();
       expect(instituteRepository).toBeDefined();
@@ -127,46 +127,66 @@ describe('AccessUFSCarSigaaService', () => {
       expect(userSubjectRepository).toBeDefined();
     });
 
-    it.skip('deve lançar erro quando credenciais são inválidas', async () => {
+    it('should throw error when credentials are invalid', async () => {
       (global.fetch as jest.Mock).mockResolvedValue({
         ok: false,
         status: 401,
       });
 
       await expect(service.execute('123456', 'senha')).rejects.toThrow(
-        'Invalid credentials',
+        'Credenciais inválidas',
       );
     });
 
-    it('deve processar resposta do SIGAA com sucesso', async () => {
-      const mockResponse = {
-        usuarioLogado: {
-          nome: 'Test User',
-          email: 'test@ufscar.br',
-        },
-        curso: 'Ciência da Computação',
-        instituto: 'DC - Departamento de Computação',
-        turmas: [
+    it('should process SIGAA response successfully', async () => {
+      const mockDeferimento = {
+        data: [
           {
-            codigoTurma: 'T1',
-            codigoDisciplina: 'CC001',
-            nomeDisciplina: 'Algoritmos',
+            atividade: 'ALGORITMOS',
+            turma: 'A',
+            periodo: 1,
+            ano: 2026,
             horarios: [
               {
-                diaSemana: 'SEG',
-                horaInicio: '08:00',
-                horaFim: '10:00',
+                dia: 'SEGUNDA',
+                inicio: '08:00:00',
+                fim: '10:00:00',
+                sala: 'Lab 1',
               },
             ],
-            observacoes: 'Turma A',
           },
         ],
       };
 
-      (global.fetch as jest.Mock).mockResolvedValue({
-        ok: true,
-        json: () => Promise.resolve(mockResponse),
-      });
+      const mockCarteira = {
+        data: [
+          {
+            nome: 'Test User',
+            nomeSocial: null,
+            unidade: 'DC - Departamento de Computação',
+          },
+        ],
+      };
+
+      const mockDetails = {
+        details: {
+          email: 'test@estudante.ufscar.br',
+        },
+      };
+
+      (global.fetch as jest.Mock)
+        .mockResolvedValueOnce({
+          ok: true,
+          json: () => Promise.resolve(mockDeferimento),
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          json: () => Promise.resolve(mockCarteira),
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          json: () => Promise.resolve(mockDetails),
+        });
 
       mockInstituteRepository.findOrCreate.mockResolvedValue({
         id: 1,
@@ -174,13 +194,13 @@ describe('AccessUFSCarSigaaService', () => {
       });
       mockCourseRepository.findOrCreate.mockResolvedValue({
         id: 1,
-        name: 'Ciência da Computação',
+        name: 'Bacharelado UFSCar',
       });
       mockSubjectRepository.findManyByCodes.mockResolvedValue([
         {
           id: 1,
-          code: 'CC001',
-          name: 'Algoritmos',
+          code: 'ALGORITMOS',
+          name: 'ALGORITMOS',
         },
       ]);
       mockSubjectClassRepository.findBySubjectAndSchedule.mockResolvedValue(
@@ -193,7 +213,7 @@ describe('AccessUFSCarSigaaService', () => {
       mockUserRepository.findByEmail.mockResolvedValue(null);
       mockUserRepository.create.mockResolvedValue({
         id: 1,
-        email: 'test@ufscar.br',
+        email: 'test@estudante.ufscar.br',
         name: 'Test User',
         instituteId: 1,
         courseId: 1,
@@ -208,48 +228,71 @@ describe('AccessUFSCarSigaaService', () => {
       const result = await service.execute('123456', 'senha');
 
       expect(result).toBeDefined();
-      expect(result.email).toBe('test@ufscar.br');
-      expect(userRepository.findByEmail).toHaveBeenCalledWith('test@ufscar.br');
+      expect(result.email).toBe('test@estudante.ufscar.br');
+      expect(userRepository.findByEmail).toHaveBeenCalledWith(
+        'test@estudante.ufscar.br',
+      );
       expect(instituteRepository.findOrCreate).toHaveBeenCalled();
       expect(courseRepository.findOrCreate).toHaveBeenCalled();
     });
 
-    it('deve criar novas matérias quando não existem', async () => {
-      const mockResponse = {
-        usuarioLogado: {
-          nome: 'Test User',
-          email: 'test@ufscar.br',
-        },
-        curso: 'Ciência da Computação',
-        instituto: 'DC - Departamento de Computação',
-        turmas: [
+    it('should create new subjects when they do not exist', async () => {
+      const mockDeferimento = {
+        data: [
           {
-            codigoTurma: 'T1',
-            codigoDisciplina: 'CC002',
-            nomeDisciplina: 'Estruturas de Dados',
+            atividade: 'ESTRUTURAS DE DADOS',
+            turma: 'A',
+            periodo: 1,
+            ano: 2026,
             horarios: [
               {
-                diaSemana: 'TER',
-                horaInicio: '14:00',
-                horaFim: '16:00',
+                dia: 'TERÇA',
+                inicio: '14:00:00',
+                fim: '16:00:00',
+                sala: '',
               },
             ],
           },
         ],
       };
 
-      (global.fetch as jest.Mock).mockResolvedValue({
-        ok: true,
-        json: () => Promise.resolve(mockResponse),
-      });
+      const mockCarteira = {
+        data: [
+          {
+            nome: 'Test User',
+            nomeSocial: null,
+            unidade: 'DC - Departamento de Computação',
+          },
+        ],
+      };
+
+      const mockDetails = {
+        details: {
+          email: 'test@estudante.ufscar.br',
+        },
+      };
+
+      (global.fetch as jest.Mock)
+        .mockResolvedValueOnce({
+          ok: true,
+          json: () => Promise.resolve(mockDeferimento),
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          json: () => Promise.resolve(mockCarteira),
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          json: () => Promise.resolve(mockDetails),
+        });
 
       mockInstituteRepository.findOrCreate.mockResolvedValue({ id: 1 });
       mockCourseRepository.findOrCreate.mockResolvedValue({ id: 1 });
       mockSubjectRepository.findManyByCodes.mockResolvedValue([]);
       mockSubjectRepository.create.mockResolvedValue({
         id: 2,
-        code: 'CC002',
-        name: 'Estruturas de Dados',
+        code: 'ESTRUTURAS DE DADOS',
+        name: 'ESTRUTURAS DE DADOS',
       });
       mockSubjectClassRepository.findBySubjectAndSchedule.mockResolvedValue(
         null,
@@ -258,7 +301,7 @@ describe('AccessUFSCarSigaaService', () => {
       mockUserRepository.findByEmail.mockResolvedValue(null);
       mockUserRepository.create.mockResolvedValue({
         id: 1,
-        email: 'test@ufscar.br',
+        email: 'test@estudante.ufscar.br',
         securePin: 'pin',
       });
       mockUserSubjectRepository.findManyByUserId.mockResolvedValue([]);
@@ -269,50 +312,81 @@ describe('AccessUFSCarSigaaService', () => {
       await service.execute('123456', 'senha');
 
       expect(subjectRepository.create).toHaveBeenCalledWith(
-        'CC002',
-        'Estruturas de Dados',
+        'ESTRUTURAS DE DADOS',
+        'ESTRUTURAS DE DADOS',
         2,
       );
     });
 
-    it('deve atualizar observations quando mudarem', async () => {
-      const mockResponse = {
-        usuarioLogado: {
-          nome: 'Test User',
-          email: 'test@ufscar.br',
-        },
-        curso: 'Ciência da Computação',
-        instituto: 'DC',
-        turmas: [
+    it('should include classRoom in availableDays', async () => {
+      const mockDeferimento = {
+        data: [
           {
-            codigoDisciplina: 'CC001',
-            nomeDisciplina: 'Algoritmos',
+            atividade: 'ALGORITMOS',
+            turma: 'B',
+            periodo: 1,
+            ano: 2026,
             horarios: [
-              { diaSemana: 'SEG', horaInicio: '08:00', horaFim: '10:00' },
+              {
+                dia: 'QUARTA',
+                inicio: '14:00',
+                fim: '16:00',
+                sala: 'AT9 - 217',
+              },
+              {
+                dia: 'SEXTA',
+                inicio: '08:00',
+                fim: '10:00',
+                sala: 'AT9 - 217',
+              },
             ],
-            observacoes: 'Observação nova',
           },
         ],
       };
 
-      (global.fetch as jest.Mock).mockResolvedValue({
-        ok: true,
-        json: () => Promise.resolve(mockResponse),
-      });
+      const mockCarteira = {
+        data: [
+          {
+            nome: 'Test User',
+            nomeSocial: null,
+            unidade: 'DC',
+          },
+        ],
+      };
+
+      const mockDetails = {
+        details: {
+          email: 'test@estudante.ufscar.br',
+        },
+      };
+
+      (global.fetch as jest.Mock)
+        .mockResolvedValueOnce({
+          ok: true,
+          json: () => Promise.resolve(mockDeferimento),
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          json: () => Promise.resolve(mockCarteira),
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          json: () => Promise.resolve(mockDetails),
+        });
 
       mockInstituteRepository.findOrCreate.mockResolvedValue({ id: 1 });
       mockCourseRepository.findOrCreate.mockResolvedValue({ id: 1 });
       mockSubjectRepository.findManyByCodes.mockResolvedValue([
-        { id: 1, code: 'CC001' },
+        { id: 1, code: 'ALGORITMOS' },
       ]);
-      mockSubjectClassRepository.findBySubjectAndSchedule.mockResolvedValue({
+      mockSubjectClassRepository.findBySubjectAndSchedule.mockResolvedValue(
+        null,
+      );
+      mockSubjectClassRepository.create.mockResolvedValue({ id: 1 });
+      mockUserRepository.findByEmail.mockResolvedValue(null);
+      mockUserRepository.create.mockResolvedValue({
         id: 1,
-        observations: 'Observação antiga',
-      });
-      mockUserRepository.findByEmail.mockResolvedValue({
-        id: 1,
-        email: 'test@ufscar.br',
-        name: 'Test User',
+        email: 'test@estudante.ufscar.br',
         securePin: 'pin',
       });
       mockUserSubjectRepository.findManyByUserId.mockResolvedValue([]);
@@ -322,47 +396,75 @@ describe('AccessUFSCarSigaaService', () => {
 
       await service.execute('123456', 'senha');
 
-      expect(subjectClassRepository.updateObservations).toHaveBeenCalledWith(
+      expect(subjectClassRepository.create).toHaveBeenCalledWith(
         1,
-        'Observação nova',
+        [
+          { day: 'qua', start: '14:00', end: '16:00', classRoom: 'AT9 - 217' },
+          { day: 'sex', start: '08:00', end: '10:00', classRoom: 'AT9 - 217' },
+        ],
+        expect.any(Number),
+        expect.any(Number),
+        2,
+        '',
       );
     });
 
-    it('deve atualizar nome do usuário quando mudar', async () => {
-      const mockResponse = {
-        usuarioLogado: {
-          nome: 'New Name',
-          email: 'test@ufscar.br',
-        },
-        curso: 'Ciência da Computação',
-        instituto: 'DC',
-        turmas: [
+    it('should update user name when it changes', async () => {
+      const mockDeferimento = {
+        data: [
           {
-            codigoDisciplina: 'CC001',
-            nomeDisciplina: 'Algoritmos',
+            atividade: 'ALGORITMOS',
+            turma: 'A',
+            periodo: 1,
+            ano: 2026,
             horarios: [
-              { diaSemana: 'SEG', horaInicio: '08:00', horaFim: '10:00' },
+              { dia: 'SEGUNDA', inicio: '08:00:00', fim: '10:00:00', sala: '' },
             ],
           },
         ],
       };
 
-      (global.fetch as jest.Mock).mockResolvedValue({
-        ok: true,
-        json: () => Promise.resolve(mockResponse),
-      });
+      const mockCarteira = {
+        data: [
+          {
+            nome: 'New Name',
+            nomeSocial: null,
+            unidade: 'DC',
+          },
+        ],
+      };
+
+      const mockDetails = {
+        details: {
+          email: 'test@estudante.ufscar.br',
+        },
+      };
+
+      (global.fetch as jest.Mock)
+        .mockResolvedValueOnce({
+          ok: true,
+          json: () => Promise.resolve(mockDeferimento),
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          json: () => Promise.resolve(mockCarteira),
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          json: () => Promise.resolve(mockDetails),
+        });
 
       mockInstituteRepository.findOrCreate.mockResolvedValue({ id: 1 });
       mockCourseRepository.findOrCreate.mockResolvedValue({ id: 1 });
       mockSubjectRepository.findManyByCodes.mockResolvedValue([
-        { id: 1, code: 'CC001' },
+        { id: 1, code: 'ALGORITMOS' },
       ]);
       mockSubjectClassRepository.findBySubjectAndSchedule.mockResolvedValue({
         id: 1,
       });
       mockUserRepository.findByEmail.mockResolvedValue({
         id: 1,
-        email: 'test@ufscar.br',
+        email: 'test@estudante.ufscar.br',
         name: 'Old Name',
         securePin: 'pin',
       });
@@ -381,41 +483,62 @@ describe('AccessUFSCarSigaaService', () => {
       expect(userRepository.updateName).toHaveBeenCalledWith(1, 'New Name');
     });
 
-    it('deve remover matérias que o usuário não está mais cursando', async () => {
-      const mockResponse = {
-        usuarioLogado: {
-          nome: 'Test User',
-          email: 'test@ufscar.br',
-        },
-        curso: 'Ciência da Computação',
-        instituto: 'DC',
-        turmas: [
+    it('should remove subjects that the user is no longer taking', async () => {
+      const mockDeferimento = {
+        data: [
           {
-            codigoDisciplina: 'CC001',
-            nomeDisciplina: 'Algoritmos',
+            atividade: 'ALGORITMOS',
+            turma: 'A',
+            periodo: 1,
+            ano: 2026,
             horarios: [
-              { diaSemana: 'SEG', horaInicio: '08:00', horaFim: '10:00' },
+              { dia: 'SEGUNDA', inicio: '08:00:00', fim: '10:00:00', sala: '' },
             ],
           },
         ],
       };
 
-      (global.fetch as jest.Mock).mockResolvedValue({
-        ok: true,
-        json: () => Promise.resolve(mockResponse),
-      });
+      const mockCarteira = {
+        data: [
+          {
+            nome: 'Test User',
+            nomeSocial: null,
+            unidade: 'DC',
+          },
+        ],
+      };
+
+      const mockDetails = {
+        details: {
+          email: 'test@estudante.ufscar.br',
+        },
+      };
+
+      (global.fetch as jest.Mock)
+        .mockResolvedValueOnce({
+          ok: true,
+          json: () => Promise.resolve(mockDeferimento),
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          json: () => Promise.resolve(mockCarteira),
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          json: () => Promise.resolve(mockDetails),
+        });
 
       mockInstituteRepository.findOrCreate.mockResolvedValue({ id: 1 });
       mockCourseRepository.findOrCreate.mockResolvedValue({ id: 1 });
       mockSubjectRepository.findManyByCodes.mockResolvedValue([
-        { id: 1, code: 'CC001' },
+        { id: 1, code: 'ALGORITMOS' },
       ]);
       mockSubjectClassRepository.findBySubjectAndSchedule.mockResolvedValue({
         id: 1,
       });
       mockUserRepository.findByEmail.mockResolvedValue({
         id: 1,
-        email: 'test@ufscar.br',
+        email: 'test@estudante.ufscar.br',
         name: 'Test User',
         securePin: 'pin',
       });
