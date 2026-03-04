@@ -4,7 +4,6 @@ import { CustomLogger } from '../../common/logger/custom-logger.service';
 import { InvalidCredentialsException } from '../../common/exceptions/invalid-credentials.exception';
 import { UniversitySystemTimeoutException } from '../../common/exceptions/university-system-timeout.exception';
 import { AuthenticationException } from '../../common/exceptions/authentication.exception';
-import { UFSCarMaintenanceException } from '../../common/exceptions/ufscar-maintenance.exception';
 import { createToken } from '../../common/utils/create-token';
 import { AuthDto } from '../dto/auth.dto';
 import { AuthResponseDto } from '../dto/auth-response.dto';
@@ -43,7 +42,7 @@ export class AuthenticateUserService {
         uspCode,
       });
 
-      // Mesma abordagem do código original, sem tipagem extra
+      // Same approach as original code, without extra typing
       const user =
         universityId === 1
           ? await this.scrapJupiterService.execute(uspCode, password)
@@ -51,7 +50,7 @@ export class AuthenticateUserService {
             ? await this.accessUFSCarSigaaService.execute(uspCode, password)
             : await this.accessUnicampEdacService.execute(uspCode, password);
 
-      const token = createToken(user.id, user.securePin!); // ! garante que não é undefined
+      const token = createToken(user.id, user.securePin!); // ! ensures it's not undefined
 
       const userResponse = new UserResponseDto(
         user.id,
@@ -77,18 +76,12 @@ export class AuthenticateUserService {
 
       return new AuthResponseDto(token, userResponse);
     } catch (error: unknown) {
-      // UFSCar maintenance
-      if (error instanceof UFSCarMaintenanceException) {
-        throw error;
-      }
-
       if (error instanceof Error) {
         // Invalid credentials
         if (
           error.message.includes(
             "Waiting for selector `a[href='gradeHoraria?codmnu=4759']` failed",
-          ) ||
-          error.message === 'Invalid credentials'
+          )
         ) {
           this.logger.warn({
             message: 'Login attempt with invalid credentials',

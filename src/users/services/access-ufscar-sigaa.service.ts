@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { user } from '@prisma/client';
 import { CustomLogger } from '../../common/logger/custom-logger.service';
-import { UFSCarMaintenanceException } from '../../common/exceptions/ufscar-maintenance.exception';
+import { InvalidCredentialsException } from '../../common/exceptions/invalid-credentials.exception';
 import { UserRepository } from '../repositories/user.repository';
 import { CourseRepository } from '../../courses/repositories/course.repository';
 import { InstituteRepository } from '../../institutes/repositories/institute.repository';
@@ -10,7 +10,7 @@ import { SubjectClassRepository } from '../../subjects/repositories/subject-clas
 import { UserSubjectRepository } from '../repositories/user-subject.repository';
 
 const UFSCAR_UNIVERSITY_ID = 2;
-const sigaaUrl = `https://www.sistemas.ufscar.br/sagui-api`;
+const sigaaUrl = `https://sistemas.ufscar.br/sagui-api`;
 
 @Injectable()
 export class AccessUFSCarSigaaService {
@@ -32,7 +32,7 @@ export class AccessUFSCarSigaaService {
   async execute(ra: string, password: string): Promise<user> {
     const credentials = Buffer.from(`${ra}:${password}`).toString('base64');
 
-    const response = await fetch(`${sigaaUrl}/v1/ensino/turmas`, {
+    const deferimentoResponse = await fetch(`${sigaaUrl}/siga/deferimento`, {
       method: 'GET',
       headers: {
         Authorization: `Basic ${credentials}`,
@@ -40,34 +40,71 @@ export class AccessUFSCarSigaaService {
     });
 
     this.logger.log({
-      message: 'Requesting SIGAA data',
-      response,
+      message: 'Requesting SIGAA deferimento data',
+      status: deferimentoResponse.status,
     });
 
-    if (!response.ok) {
-      throw new UFSCarMaintenanceException();
+    if (!deferimentoResponse.ok) {
+      throw new InvalidCredentialsException();
     }
 
-    this.logger.log({
-      message: 'SIGAA response received, processing data',
-      ra,
-    });
-    const responseBody = await response.json();
+    const deferimentoData = await deferimentoResponse.json();
+    const enrollments = deferimentoData.data || [];
 
-    const { nome, email } = responseBody.usuarioLogado;
-    const { curso, instituto, turmas } = responseBody;
+    const carteiraResponse = await fetch(
+      `${sigaaUrl}/carteirinha/listar?id=&somenteAtivos=true`,
+      {
+        method: 'GET',
+        headers: {
+          Authorization: `Basic ${credentials}`,
+        },
+      },
+    );
+
+    if (!carteiraResponse.ok) {
+      throw new InvalidCredentialsException();
+    }
+
+    const carteiraData = await carteiraResponse.json();
+    const userData = carteiraData.data[0];
+    const name = userData.nomeSocial || userData.nome;
+    const institute = userData.unidade;
+
+    const detailsResponse = await fetch(`${sigaaUrl}/core/usuario/detalhes`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Basic ${credentials}`,
+      },
+    });
+
+    if (!detailsResponse.ok) {
+      throw new InvalidCredentialsException();
+    }
+
+    const detailsData = await detailsResponse.json();
+    const email = detailsData.details.email;
+    const course = 'Bacharelado UFSCar';
+
+    this.logger.log({
+      message: 'SIGAA data received, processing',
+      ra,
+      enrollmentsCount: enrollments.length,
+    });
 
     const dbInstitute = await this.instituteRepository.findOrCreate(
-      instituto,
+      institute,
       UFSCAR_UNIVERSITY_ID,
     );
 
     const dbCourse = await this.courseRepository.findOrCreate(
-      curso,
+      course,
       UFSCAR_UNIVERSITY_ID,
     );
 
-    const subjectCodes = turmas.map((turma: any) => turma.codigoDisciplina);
+    // Map subject codes (use activity as unique code)
+    const subjectCodes = enrollments.map(
+      (enrollment: any) => enrollment.atividade,
+    );
     const subjectsAlreadyRegistered =
       await this.subjectRepository.findManyByCodes(subjectCodes);
     const notRegisteredSubjectCodes = subjectCodes.filter(
@@ -85,28 +122,49 @@ export class AccessUFSCarSigaaService {
     });
 
     for (const subjectCode of notRegisteredSubjectCodes) {
-      const turma = turmas.find((t: any) => t.codigoDisciplina === subjectCode);
+      const enrollment = enrollments.find(
+        (e: any) => e.atividade === subjectCode,
+      );
       const newSubject = await this.subjectRepository.create(
         subjectCode,
-        turma.nomeDisciplina,
+        enrollment.atividade, // use activity as name too
         UFSCAR_UNIVERSITY_ID,
       );
       subjectsAlreadyRegistered.push(newSubject);
     }
 
-    const subjectClasses = turmas.map((turma: any) => {
+    const subjectClasses = enrollments.map((enrollment: any) => {
       const subject = subjectsAlreadyRegistered.find(
-        (s) => s.code === turma.codigoDisciplina,
+        (s) => s.code === enrollment.atividade,
       );
+
+      // Map weekdays from Portuguese to lowercase
+      const dayMap: { [key: string]: string } = {
+        SEGUNDA: 'seg',
+        TERÇA: 'ter',
+        QUARTA: 'qua',
+        QUINTA: 'qui',
+        SEXTA: 'sex',
+        SÁBADO: 'sab',
+        DOMINGO: 'dom',
+      };
+
+      // Format time from HH:MM:SS to HH:MM
+      const formatTime = (time: string) => {
+        return time.substring(0, 5);
+      };
+
+      const availableDays = enrollment.horarios.map((schedule: any) => ({
+        day: dayMap[schedule.dia] || schedule.dia.toLowerCase(),
+        start: formatTime(schedule.inicio),
+        end: formatTime(schedule.fim),
+        classRoom: schedule.sala || '',
+      }));
 
       return {
         subjectId: subject!.id,
-        availableDays: turma.horarios.map((h: any) => ({
-          day: h.diaSemana.toLowerCase(),
-          start: h.horaInicio,
-          end: h.horaFim,
-        })),
-        observations: turma.observacoes || '',
+        availableDays: availableDays,
+        observations: '',
       };
     });
 
@@ -167,15 +225,15 @@ export class AccessUFSCarSigaaService {
         );
       }
 
-      if (nome !== user.name) {
-        user = await this.userRepository.updateName(user.id, nome);
+      if (name !== user.name) {
+        user = await this.userRepository.updateName(user.id, name);
       }
     }
 
     if (!user) {
       user = await this.userRepository.create(
         email,
-        nome,
+        name,
         dbCourse.id,
         dbInstitute.id,
         UFSCAR_UNIVERSITY_ID,
