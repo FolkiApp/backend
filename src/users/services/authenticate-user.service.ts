@@ -42,7 +42,6 @@ export class AuthenticateUserService {
         uspCode,
       });
 
-      // Same approach as original code, without extra typing
       const user =
         universityId === 1
           ? await this.scrapJupiterService.execute(uspCode, password)
@@ -50,7 +49,7 @@ export class AuthenticateUserService {
             ? await this.accessUFSCarSigaaService.execute(uspCode, password)
             : await this.accessUnicampEdacService.execute(uspCode, password);
 
-      const token = createToken(user.id, user.securePin!); // ! ensures it's not undefined
+      const token = createToken(user.id, user.securePin!);
 
       const userResponse = new UserResponseDto(
         user.id,
