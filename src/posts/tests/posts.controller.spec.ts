@@ -198,6 +198,7 @@ describe('PostsController', () => {
       expect(listFirstPostsService.execute).toHaveBeenCalledWith(
         10,
         null,
+        1,
         undefined,
         undefined,
       );
@@ -214,6 +215,7 @@ describe('PostsController', () => {
       expect(listFirstPostsService.execute).toHaveBeenCalledWith(
         10,
         null,
+        1,
         1,
         undefined,
       );
@@ -310,19 +312,19 @@ describe('PostsController', () => {
     it('should list child posts for a parent', async () => {
       mockListPostChildrenService.execute.mockResolvedValue(mockPosts);
 
-      const result = await controller.listPostChildren(1);
+      const result = await controller.listPostChildren(1, mockAuthUser);
 
       expect(result).toHaveLength(2);
       expect(result[0]).toBeInstanceOf(PostDto);
-      expect(listPostChildrenService.execute).toHaveBeenCalledWith(1);
+      expect(listPostChildrenService.execute).toHaveBeenCalledWith(1, 1);
     });
 
     it('should convert string id parameter to number', async () => {
       mockListPostChildrenService.execute.mockResolvedValue([]);
 
-      await controller.listPostChildren('1' as unknown as number);
+      await controller.listPostChildren('1' as unknown as number, mockAuthUser);
 
-      expect(listPostChildrenService.execute).toHaveBeenCalledWith(1);
+      expect(listPostChildrenService.execute).toHaveBeenCalledWith(1, 1);
     });
   });
 

@@ -13,23 +13,30 @@ export class ListFirstPostService {
   async execute(
     quantity: number,
     universityId: number | null,
+    userId: number,
     lastId?: number,
     tags?: string[],
   ): Promise<Post[]> {
     this.logger.log({ message: 'Listing batch of Posts' });
     if (!lastId) {
-      return this.listFirstPosts(quantity, universityId, tags);
+      return this.listFirstPosts(quantity, universityId, userId, tags);
     } else {
-      return this.listNextPosts(lastId, quantity, universityId, tags);
+      return this.listNextPosts(lastId, quantity, universityId, userId, tags);
     }
   }
   async listFirstPosts(
     quantity: number,
     universityId: number | null,
+    userId: number,
     tags?: string[],
   ): Promise<Post[]> {
     try {
-      const posts = await this.postRepository.listPosts(quantity, null, tags);
+      const posts = await this.postRepository.listPosts(
+        quantity,
+        null,
+        tags,
+        userId,
+      );
       if (!posts) {
         throw new NotFoundPostException();
       }
@@ -50,6 +57,7 @@ export class ListFirstPostService {
     lastId: number,
     quantity: number,
     universityId: number | null,
+    userId: number,
     tags?: string[],
   ): Promise<Post[]> {
     try {
@@ -58,6 +66,7 @@ export class ListFirstPostService {
         quantity,
         universityId,
         tags,
+        userId,
       );
       if (!posts) {
         throw new NotFoundPostException();
