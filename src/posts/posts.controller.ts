@@ -101,6 +101,7 @@ export class PostsController {
     const posts = await this.listFirstPostService.execute(
       Number(quantity),
       authUser.universityId,
+      authUser.id,
       lastId ? Number(lastId) : undefined,
       tagsArray,
     );
@@ -122,6 +123,7 @@ export class PostsController {
             post.imageUrls,
             post.upvotes,
             post.downvotes,
+            post.voted,
           ),
       ),
       nextId,
@@ -135,8 +137,14 @@ export class PostsController {
     summary: 'Listar nodes filhos de um post',
     description: 'Lista todos os nodes filhos (sub posts) de um post pai',
   })
-  async listPostChildren(@Param('id') id: number): Promise<PostDto[]> {
-    const posts = await this.listPostChildrenService.execute(Number(id));
+  async listPostChildren(
+    @Param('id') id: number,
+    @CurrentUser() authUser: AuthUser,
+  ): Promise<PostDto[]> {
+    const posts = await this.listPostChildrenService.execute(
+      Number(id),
+      authUser.id,
+    );
 
     return posts.map(
       (post) =>
@@ -153,6 +161,7 @@ export class PostsController {
           post.imageUrls,
           post.upvotes,
           post.downvotes,
+          post.voted,
         ),
     );
   }
@@ -184,8 +193,14 @@ export class PostsController {
     description: 'Post retornado com sucesso',
     type: PostDto,
   })
-  async getPost(@Param('id') id: number): Promise<PostDto> {
-    const post = await this.getPostByIdService.execute(Number(id));
+  async getPost(
+    @Param('id') id: number,
+    @CurrentUser() authUser: AuthUser,
+  ): Promise<PostDto> {
+    const post = await this.getPostByIdService.execute(
+      Number(id),
+      Number(authUser.id),
+    );
 
     return new PostDto(
       post.id,
@@ -200,6 +215,7 @@ export class PostsController {
       post.imageUrls,
       post.upvotes,
       post.downvotes,
+      post.voted,
     );
   }
 

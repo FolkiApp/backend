@@ -84,17 +84,19 @@ describe('ListPostChildrenService', () => {
         mockChildren,
       );
 
-      const result = await service.execute(1);
+      const result = await service.execute(1, 1);
 
       expect(result).toEqual(mockChildren);
-      expect(postsRepository.getPostById).toHaveBeenCalledWith(1);
-      expect(postsRepository.listChildrenByParentId).toHaveBeenCalledWith(1);
+      expect(postsRepository.getPostById).toHaveBeenCalledWith(1, 1);
+      expect(postsRepository.listChildrenByParentId).toHaveBeenCalledWith(1, 1);
     });
 
     it('should throw NotFoundPostException when parent does not exist', async () => {
       mockPostsRepository.getPostById.mockResolvedValue(null);
 
-      await expect(service.execute(999)).rejects.toThrow(NotFoundPostException);
+      await expect(service.execute(999, 1)).rejects.toThrow(
+        NotFoundPostException,
+      );
 
       expect(postsRepository.listChildrenByParentId).not.toHaveBeenCalled();
     });
@@ -104,7 +106,7 @@ describe('ListPostChildrenService', () => {
         new Error('Database error'),
       );
 
-      await expect(service.execute(1)).rejects.toThrow(
+      await expect(service.execute(1, 1)).rejects.toThrow(
         PostInternalErrorException,
       );
     });

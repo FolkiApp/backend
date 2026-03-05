@@ -10,11 +10,11 @@ export class GetPostByIdService {
 
   constructor(private readonly postRepository: PostRepository) {}
 
-  async execute(postId: number): Promise<Post> {
+  async execute(postId: number, userId: number): Promise<Post> {
     this.logger.log({ message: 'Getting post by ID', postId });
 
     try {
-      const post = await this.postRepository.getPostById(postId);
+      const post = await this.postRepository.getPostById(postId, userId);
 
       if (!post) {
         throw new NotFoundPostException();

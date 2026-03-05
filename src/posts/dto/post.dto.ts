@@ -41,6 +41,13 @@ export class PostDto {
   downvotes: number;
 
   @ApiProperty({
+    example: 'up',
+    nullable: true,
+    description: 'Voto do usuário no post (up, down ou null)',
+  })
+  voted: 'up' | 'down' | null;
+
+  @ApiProperty({
     example: ['Value', 'Value2'],
     type: [String],
   })
@@ -66,6 +73,7 @@ export class PostDto {
     imageUrls?: string[],
     upvotes = 0,
     downvotes = 0,
+    voted: 'up' | 'down' | null = null,
   ) {
     this.id = id;
     this.postDate = postDate;
@@ -77,6 +85,7 @@ export class PostDto {
     this.commentsCount = commentsCount;
     this.upvotes = upvotes;
     this.downvotes = downvotes;
+    this.voted = voted;
     this.tags = tags ?? [];
     this.imageUrls = imageUrls ?? [];
   }

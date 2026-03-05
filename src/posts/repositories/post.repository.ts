@@ -112,6 +112,7 @@ export class PostRepository {
     quantity = 10,
     universityId: number | null,
     tags?: string[],
+    userId?: number,
   ): Promise<Post[]> {
     const posts = await this.prisma.post.findMany({
       take: quantity,
@@ -145,6 +146,18 @@ export class PostRepository {
       },
       orderBy: { id: 'desc' },
     });
+
+    const postIds = posts.map((p) => p.id);
+    const votes = userId
+      ? await this.prisma.vote.findMany({
+          where: {
+            postId: { in: postIds },
+            userId,
+          },
+        })
+      : [];
+    const voteMap = new Map(votes.map((v) => [v.postId, v.up ? 'up' : 'down']));
+
     return posts.map((post) => {
       const postWithUser = post as unknown as PostWithUser;
       const nameParts: string[] = postWithUser.user.name.trim().split(/\s+/);
@@ -157,6 +170,8 @@ export class PostRepository {
       const keys = postImages.map((img) => img.key);
       const imageUrls =
         keys.length > 0 ? this.s3Service.getPublicUrls(keys) : [];
+
+      const voted = (voteMap.get(post.id) as 'up' | 'down') ?? null;
 
       return new Post(
         post.id,
@@ -172,6 +187,7 @@ export class PostRepository {
         imageUrls,
         post.upvotes,
         post.downvotes,
+        voted,
       );
     });
   }
@@ -181,6 +197,7 @@ export class PostRepository {
     quantity = 10,
     universityId: number | null,
     tags?: string[],
+    userId?: number,
   ): Promise<Post[]> {
     const posts = await this.prisma.post.findMany({
       take: quantity,
@@ -216,6 +233,18 @@ export class PostRepository {
       },
       orderBy: { id: 'desc' },
     });
+
+    const postIds = posts.map((p) => p.id);
+    const votes = userId
+      ? await this.prisma.vote.findMany({
+          where: {
+            postId: { in: postIds },
+            userId,
+          },
+        })
+      : [];
+    const voteMap = new Map(votes.map((v) => [v.postId, v.up ? 'up' : 'down']));
+
     return posts.map((post) => {
       const postWithUser = post as unknown as PostWithUser;
       const nameParts: string[] = postWithUser.user.name.trim().split(/\s+/);
@@ -228,6 +257,8 @@ export class PostRepository {
       const keys = postImages.map((img) => img.key);
       const imageUrls =
         keys.length > 0 ? this.s3Service.getPublicUrls(keys) : [];
+
+      const voted = (voteMap.get(post.id) as 'up' | 'down') ?? null;
 
       return new Post(
         post.id,
@@ -243,11 +274,15 @@ export class PostRepository {
         imageUrls,
         post.upvotes,
         post.downvotes,
+        voted,
       );
     });
   }
 
-  async listChildrenByParentId(parentId: number): Promise<Post[]> {
+  async listChildrenByParentId(
+    parentId: number,
+    userId?: number,
+  ): Promise<Post[]> {
     const posts = await this.prisma.post.findMany({
       where: { parentId },
       include: {
@@ -269,6 +304,18 @@ export class PostRepository {
       },
       orderBy: { id: 'asc' },
     });
+
+    const postIds = posts.map((p) => p.id);
+    const votes = userId
+      ? await this.prisma.vote.findMany({
+          where: {
+            postId: { in: postIds },
+            userId,
+          },
+        })
+      : [];
+    const voteMap = new Map(votes.map((v) => [v.postId, v.up ? 'up' : 'down']));
+
     return posts.map((post) => {
       const postWithUser = post as unknown as PostWithUser;
       const nameParts: string[] = postWithUser.user.name.trim().split(/\s+/);
@@ -281,6 +328,8 @@ export class PostRepository {
       const keys = postImages.map((img) => img.key);
       const imageUrls =
         keys.length > 0 ? this.s3Service.getPublicUrls(keys) : [];
+
+      const voted = (voteMap.get(post.id) as 'up' | 'down') ?? null;
 
       return new Post(
         post.id,
@@ -296,11 +345,12 @@ export class PostRepository {
         imageUrls,
         post.upvotes,
         post.downvotes,
+        voted,
       );
     });
   }
 
-  async getPostById(id: number): Promise<Post | null> {
+  async getPostById(id: number, userId?: number): Promise<Post | null> {
     const post = await this.prisma.post.findUnique({
       where: { id },
       include: {
@@ -338,6 +388,19 @@ export class PostRepository {
     const keys = postImages.map((img) => img.key);
     const imageUrls = keys.length > 0 ? this.s3Service.getPublicUrls(keys) : [];
 
+    let voted: 'up' | 'down' | null = null;
+    if (userId) {
+      const vote = await this.prisma.vote.findUnique({
+        where: {
+          postId_userId: {
+            postId: id,
+            userId,
+          },
+        },
+      });
+      voted = vote ? (vote.up ? 'up' : 'down') : null;
+    }
+
     return new Post(
       post.id,
       post.postDate,
@@ -352,6 +415,7 @@ export class PostRepository {
       imageUrls,
       post.upvotes,
       post.downvotes,
+      voted,
     );
   }
 

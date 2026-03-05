@@ -46,34 +46,38 @@ describe('GetPostByIdService', () => {
 
       postRepository.getPostById.mockResolvedValue(mockPost);
 
-      const result = await service.execute(1);
+      const result = await service.execute(1, 1);
 
       expect(result).toEqual(mockPost);
-      expect(postRepository.getPostById).toHaveBeenCalledWith(1);
+      expect(postRepository.getPostById).toHaveBeenCalledWith(1, 1);
       expect(postRepository.getPostById).toHaveBeenCalledTimes(1);
     });
 
     it('should throw NotFoundPostException when post is not found', async () => {
       postRepository.getPostById.mockResolvedValue(null);
 
-      await expect(service.execute(999)).rejects.toThrow(NotFoundPostException);
-      expect(postRepository.getPostById).toHaveBeenCalledWith(999);
+      await expect(service.execute(999, 1)).rejects.toThrow(
+        NotFoundPostException,
+      );
+      expect(postRepository.getPostById).toHaveBeenCalledWith(999, 1);
     });
 
     it('should throw PostInternalErrorException when repository throws an error', async () => {
       postRepository.getPostById.mockRejectedValue(new Error('Database error'));
 
-      await expect(service.execute(1)).rejects.toThrow(
+      await expect(service.execute(1, 1)).rejects.toThrow(
         PostInternalErrorException,
       );
-      expect(postRepository.getPostById).toHaveBeenCalledWith(1);
+      expect(postRepository.getPostById).toHaveBeenCalledWith(1, 1);
     });
 
     it('should rethrow NotFoundPostException when repository throws it', async () => {
       postRepository.getPostById.mockRejectedValue(new NotFoundPostException());
 
-      await expect(service.execute(1)).rejects.toThrow(NotFoundPostException);
-      expect(postRepository.getPostById).toHaveBeenCalledWith(1);
+      await expect(service.execute(1, 1)).rejects.toThrow(
+        NotFoundPostException,
+      );
+      expect(postRepository.getPostById).toHaveBeenCalledWith(1, 1);
     });
   });
 });

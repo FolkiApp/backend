@@ -10,19 +10,22 @@ export class ListPostChildrenService {
 
   constructor(private readonly postRepository: PostRepository) {}
 
-  async execute(parentId: number): Promise<Post[]> {
+  async execute(parentId: number, userId: number): Promise<Post[]> {
     this.logger.log({ message: 'Listing children posts' });
-    return this.listChildren(parentId);
+    return this.listChildren(parentId, userId);
   }
 
-  async listChildren(parentId: number): Promise<Post[]> {
+  async listChildren(parentId: number, userId: number): Promise<Post[]> {
     try {
-      const parent = await this.postRepository.getPostById(parentId);
+      const parent = await this.postRepository.getPostById(parentId, userId);
       if (!parent) {
         throw new NotFoundPostException('Parent post not found');
       }
 
-      const posts = await this.postRepository.listChildrenByParentId(parentId);
+      const posts = await this.postRepository.listChildrenByParentId(
+        parentId,
+        userId,
+      );
       return posts;
     } catch (error: unknown) {
       this.logger.error({

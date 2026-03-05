@@ -13,5 +13,6 @@ export class Post {
     public imageUrls: string[] = [],
     public upvotes: number = 0,
     public downvotes: number = 0,
+    public voted: 'up' | 'down' | null = null,
   ) {}
 }
