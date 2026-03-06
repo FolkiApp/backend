@@ -92,8 +92,6 @@ export class UsersController {
   }
 
   @Get('cool-numbers')
-  @Auth()
-  @ApiBearerAuth()
   @ApiOperation({
     summary: 'Retorna a quantidade de usuários',
   })
