@@ -4,12 +4,17 @@ import { PostRepository } from '../repositories/post.repository';
 import { PostInternalErrorException } from '../exceptions/post-internal-error.exception';
 import { NotFoundPostException } from '../exceptions/not-found-post.exception';
 import { InvalidVoteException } from '../exceptions/invalid-vote-exception';
+import { NotificationQueueService } from '../../notifications/services/notification-queue.service';
 
 @Injectable()
 export class VotePostService {
   private readonly logger = new Logger(VotePostService.name);
+  private readonly UPVOTE_MILESTONES = [2, 6, 11, 21, 51, 101];
 
-  constructor(private readonly postsRepository: PostRepository) {}
+  constructor(
+    private readonly postsRepository: PostRepository,
+    private readonly notificationQueueService: NotificationQueueService,
+  ) {}
 
   async execute(
     postId: number,
@@ -37,8 +42,20 @@ export class VotePostService {
       }
 
       const isUpvote = upvote === 1;
+      const previousUpvotes = post.upvotes;
 
-      return await this.postsRepository.votePost(postId, userId, isUpvote);
+      await this.postsRepository.votePost(postId, userId, isUpvote);
+
+      await this.checkAndSendUpvoteMilestoneNotification(
+        postId,
+        post.userId,
+        post.parentId,
+        previousUpvotes,
+        isUpvote,
+        userId,
+      );
+
+      return true;
     } catch (error: unknown) {
       this.logger.error({
         message: 'Error voting post',
@@ -55,6 +72,58 @@ export class VotePostService {
       }
 
       throw new PostInternalErrorException();
+    }
+  }
+
+  private async checkAndSendUpvoteMilestoneNotification(
+    postId: number,
+    postOwnerId: number,
+    parentId: number | null,
+    previousUpvotes: number,
+    isUpvote: boolean,
+    userId: number,
+  ): Promise<void> {
+    if (!isUpvote || userId === postOwnerId) return;
+
+    const newUpvotes = previousUpvotes + 1;
+
+    const crossedMilestone = this.UPVOTE_MILESTONES.find(
+      (milestone) => previousUpvotes < milestone && newUpvotes >= milestone,
+    );
+
+    if (!crossedMilestone) return;
+
+    const isFirstMilestone = crossedMilestone === this.UPVOTE_MILESTONES[0];
+    const isComment = parentId !== null;
+    if (isFirstMilestone && isComment) return;
+
+    try {
+      const targetPostId = parentId || postId;
+      const milestoneDisplay = crossedMilestone - 1;
+
+      await this.notificationQueueService.addNotificationJob({
+        title: `${milestoneDisplay} upvotes!`,
+        message: isComment
+          ? `Seu comentário atingiu ${milestoneDisplay} upvotes`
+          : `Sua publicação atingiu ${milestoneDisplay} upvotes`,
+        userIds: [postOwnerId],
+        webUrl: `https://web.folki.com.br/#/Board?postId=${targetPostId}`,
+        appUrl: `folki://Board?postId=${targetPostId}`,
+      });
+
+      this.logger.log({
+        message: 'Upvote milestone notification sent',
+        postId,
+        milestone: crossedMilestone,
+        actualUpvotes: milestoneDisplay,
+      });
+    } catch (error) {
+      this.logger.error({
+        message: 'Failed to send upvote milestone notification',
+        postId,
+        milestone: crossedMilestone,
+        error: error instanceof Error ? error.message : String(error),
+      });
     }
   }
 }

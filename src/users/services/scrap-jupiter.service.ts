@@ -105,7 +105,7 @@ export class ScrapJupiterService {
         'https://uspdigital.usp.br/jupiterweb/gradeHoraria?codmnu=4759',
         {
           waitUntil: 'domcontentloaded',
-          timeout: 10000,
+          timeout: 10001,
         },
       );
 

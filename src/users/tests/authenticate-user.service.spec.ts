@@ -172,5 +172,17 @@ describe('AuthenticateUserService', () => {
         AuthenticationException,
       );
     });
+
+    it('deve re-lançar InvalidCredentialsException lançada pelo serviço subjacente', async () => {
+      const dto = { ...baseAuthDto, universityId: 2 };
+
+      mockAccessUFSCarSigaaService.execute.mockRejectedValue(
+        new InvalidCredentialsException(),
+      );
+
+      await expect(service.execute(dto)).rejects.toThrow(
+        InvalidCredentialsException,
+      );
+    });
   });
 });
