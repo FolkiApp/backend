@@ -56,6 +56,10 @@ describe('PostPostService', () => {
     0,
     ['tag1', 'tag2'],
     null,
+    [],
+    1,
+    0,
+    'up',
   );
 
   beforeEach(async () => {
@@ -153,6 +157,10 @@ describe('PostPostService', () => {
           0,
           tags,
           null,
+          [],
+          1,
+          0,
+          'up',
         ),
       );
       mockPostsRepository.getPostById.mockResolvedValue(null);

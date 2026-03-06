@@ -73,6 +73,9 @@ export class PostsController {
       post.commentsCount,
       post.tags,
       post.imageUrls,
+      post.upvotes,
+      post.downvotes,
+      post.voted,
     );
   }
 

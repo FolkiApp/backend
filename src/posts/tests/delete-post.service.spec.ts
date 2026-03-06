@@ -52,6 +52,10 @@ describe('DeletePostService', () => {
     0,
     ['tag1', 'tag2'],
     null,
+    [],
+    0,
+    0,
+    null,
   );
 
   beforeEach(async () => {
