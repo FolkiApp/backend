@@ -75,9 +75,18 @@ export class AuthenticateUserService {
 
       return new AuthResponseDto(token, userResponse);
     } catch (error: unknown) {
+      if (
+        error instanceof InvalidCredentialsException ||
+        error instanceof UniversitySystemTimeoutException ||
+        error instanceof InvalidUniversityException
+      ) {
+        throw error;
+      }
+
       if (error instanceof Error) {
         // Invalid credentials
         if (
+          error.message.includes('Navigation timeout of 10001 ms exceeded') ||
           error.message.includes(
             "Waiting for selector `a[href='gradeHoraria?codmnu=4759']` failed",
           )
