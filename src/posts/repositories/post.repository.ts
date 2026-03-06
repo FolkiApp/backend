@@ -42,6 +42,7 @@ export class PostRepository {
           userId,
           universityId,
           commentsCount: 0,
+          upvotes: 1,
           tags: tags,
           parentId: parentId ?? null,
           postKeys:
@@ -67,6 +68,14 @@ export class PostRepository {
               key: true,
             },
           },
+        },
+      });
+
+      await tx.vote.create({
+        data: {
+          postId: created.id,
+          userId,
+          up: true,
         },
       });
 
@@ -105,6 +114,7 @@ export class PostRepository {
       imageUrls,
       post.upvotes,
       post.downvotes,
+      'up',
     );
   }
 

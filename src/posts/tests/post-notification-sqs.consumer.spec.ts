@@ -87,6 +87,10 @@ describe('PostNotificationSqsConsumer', () => {
       3,
       ['tag1'],
       1,
+      [],
+      0,
+      0,
+      null,
     );
 
     it('should process notification successfully', async () => {
@@ -164,6 +168,10 @@ describe('PostNotificationSqsConsumer', () => {
         0,
         [],
         1,
+        [],
+        0,
+        0,
+        null,
       );
 
       postRepository.getPostById.mockResolvedValue(mockPostAsAuthor);

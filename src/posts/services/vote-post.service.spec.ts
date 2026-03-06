@@ -39,6 +39,7 @@ describe('VotePostService', () => {
     [],
     5,
     2,
+    null,
   );
 
   beforeEach(async () => {

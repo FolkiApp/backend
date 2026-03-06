@@ -25,6 +25,10 @@ describe('ListFirstPostService', () => {
       0,
       ['tag3'],
       null,
+      [],
+      0,
+      0,
+      null,
     ),
     new Post(
       2,
@@ -37,6 +41,10 @@ describe('ListFirstPostService', () => {
       5,
       ['tag2'],
       null,
+      [],
+      0,
+      0,
+      null,
     ),
     new Post(
       1,
@@ -48,6 +56,10 @@ describe('ListFirstPostService', () => {
       null,
       10,
       ['tag1'],
+      null,
+      [],
+      0,
+      0,
       null,
     ),
   ];

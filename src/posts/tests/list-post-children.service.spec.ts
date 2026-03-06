@@ -27,6 +27,10 @@ describe('ListPostChildrenService', () => {
     2,
     ['tag1'],
     null,
+    [],
+    0,
+    0,
+    null,
   );
 
   const mockChildren: Post[] = [
@@ -41,6 +45,10 @@ describe('ListPostChildrenService', () => {
       0,
       ['tag2'],
       null,
+      [],
+      0,
+      0,
+      null,
     ),
     new Post(
       3,
@@ -52,6 +60,10 @@ describe('ListPostChildrenService', () => {
       1,
       0,
       ['tag3'],
+      null,
+      [],
+      0,
+      0,
       null,
     ),
   ];

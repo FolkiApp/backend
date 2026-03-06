@@ -39,9 +39,14 @@ describe('GetPostByIdService', () => {
         123,
         'João Silva',
         null,
+        null,
         5,
         ['tag1', 'tag2'],
         1,
+        [],
+        0,
+        0,
+        null,
       );
 
       postRepository.getPostById.mockResolvedValue(mockPost);

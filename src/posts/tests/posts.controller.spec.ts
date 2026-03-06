@@ -77,6 +77,10 @@ describe('PostsController', () => {
     0,
     ['tag1', 'tag2'],
     null,
+    [],
+    0,
+    0,
+    null,
   );
 
   const mockPosts = [
@@ -91,6 +95,10 @@ describe('PostsController', () => {
       null,
       5,
       ['tag3'],
+      null,
+      [],
+      0,
+      0,
       null,
     ),
   ];
