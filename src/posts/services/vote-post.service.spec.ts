@@ -134,7 +134,7 @@ describe('VotePostService', () => {
 
       expect(notificationQueueService.addNotificationJob).toHaveBeenCalledWith({
         title: '5 upvotes!',
-        message: 'Sua publicação atingiu 5 upvotes',
+        message: 'Sua publicação atingiu 5 upvotes ;)',
         userIds: [2],
         webUrl: 'https://web.folki.com.br/#/Board?postId=1',
         appUrl: 'folki://Board?postId=1',
@@ -222,7 +222,7 @@ describe('VotePostService', () => {
 
       expect(notificationQueueService.addNotificationJob).toHaveBeenCalledWith({
         title: '5 upvotes!',
-        message: 'Seu comentário atingiu 5 upvotes',
+        message: 'Seu comentário atingiu 5 upvotes ;)',
         userIds: [2],
         webUrl: 'https://web.folki.com.br/#/Board?postId=1',
         appUrl: 'folki://Board?postId=1',
@@ -264,8 +264,8 @@ describe('VotePostService', () => {
       await service.execute(1, mockAuthUser, 1);
 
       expect(notificationQueueService.addNotificationJob).toHaveBeenCalledWith({
-        title: '1 upvotes!',
-        message: 'Sua publicação atingiu 1 upvotes',
+        title: '1 upvote!',
+        message: 'Sua publicação atingiu 1 upvote ;)',
         userIds: [2],
         webUrl: 'https://web.folki.com.br/#/Board?postId=1',
         appUrl: 'folki://Board?postId=1',
@@ -297,7 +297,7 @@ describe('VotePostService', () => {
 
       expect(notificationQueueService.addNotificationJob).toHaveBeenCalledWith({
         title: '10 upvotes!',
-        message: 'Sua publicação atingiu 10 upvotes',
+        message: 'Sua publicação atingiu 10 upvotes ;)',
         userIds: [2],
         webUrl: 'https://web.folki.com.br/#/Board?postId=1',
         appUrl: 'folki://Board?postId=1',

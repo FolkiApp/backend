@@ -100,12 +100,13 @@ export class VotePostService {
     try {
       const targetPostId = parentId || postId;
       const milestoneDisplay = crossedMilestone - 1;
+      const upvoteText = milestoneDisplay === 1 ? 'upvote' : 'upvotes';
 
       await this.notificationQueueService.addNotificationJob({
-        title: `${milestoneDisplay} upvotes!`,
+        title: `${milestoneDisplay} ${upvoteText}!`,
         message: isComment
-          ? `Seu comentário atingiu ${milestoneDisplay} upvotes`
-          : `Sua publicação atingiu ${milestoneDisplay} upvotes`,
+          ? `Seu comentário atingiu ${milestoneDisplay} ${upvoteText} ;)`
+          : `Sua publicação atingiu ${milestoneDisplay} ${upvoteText} ;)`,
         userIds: [postOwnerId],
         webUrl: `https://web.folki.com.br/#/Board?postId=${targetPostId}`,
         appUrl: `folki://Board?postId=${targetPostId}`,
