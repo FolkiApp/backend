@@ -48,4 +48,8 @@ export class UpdateActivityDto {
   @IsBoolean()
   @IsOptional()
   isPrivate?: boolean;
+
+  @ApiProperty({ example: null, required: false, nullable: true })
+  @IsOptional()
+  deletedAt?: Date | null;
 }

@@ -106,4 +106,34 @@ describe('UpdateActivityService', () => {
       mockNotificationQueueService.addNotificationJob,
     ).not.toHaveBeenCalled();
   });
+
+  it('deve permitir recover de atividade deletada (deletedAt: null)', async () => {
+    const deletedActivity = {
+      ...mockActivity,
+      deletedAt: new Date('2025-01-01'),
+    };
+
+    const recoveredActivity = {
+      ...mockActivity,
+      deletedAt: null,
+    };
+
+    mockActivitiesRepository.findById.mockResolvedValue(deletedActivity);
+    mockSubjectClassRepository.findByIdAndUserId.mockResolvedValue({});
+    mockActivitiesRepository.update.mockResolvedValue(recoveredActivity);
+
+    const result = await service.execute(
+      mockUser,
+      10,
+      makeUpdateDto({ deletedAt: null }),
+    );
+
+    expect(mockActivitiesRepository.update).toHaveBeenCalledWith(
+      10,
+      expect.objectContaining({
+        deletedAt: null,
+      }),
+    );
+    expect(result.deletedAt).toBeNull();
+  });
 });

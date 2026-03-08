@@ -138,6 +138,7 @@ export class UpdateActivityService {
         updateActivityDto.type,
         finishDate,
         updateActivityDto.isPrivate,
+        updateActivityDto.deletedAt,
       );
 
       const activity = await this.activitiesRepository.update(

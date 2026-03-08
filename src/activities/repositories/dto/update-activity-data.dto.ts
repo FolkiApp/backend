@@ -8,5 +8,6 @@ export class UpdateActivityData {
     public type?: ActivityType,
     public finishDate?: Date,
     public isPrivate?: boolean,
+    public deletedAt?: Date | null,
   ) {}
 }
