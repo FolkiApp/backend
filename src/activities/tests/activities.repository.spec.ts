@@ -91,5 +91,32 @@ describe('ActivitiesRepository', () => {
       expect(result[0].checked).toBe(true);
       expect(result[0].ignored).toBe(false);
     });
+
+    it('não deve retornar atividades de disciplinas que o usuário não cursa mais (deletedAt != null)', async () => {
+      mockPrismaService.activity.findMany.mockResolvedValue([]);
+
+      const result = await repository.findAllByUser(1, 2025);
+
+      expect(result).toHaveLength(0);
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      expect(mockPrismaService.activity.findMany).toHaveBeenCalledWith(
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        expect.objectContaining({
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+          where: expect.objectContaining({
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+            OR: expect.arrayContaining([
+              // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+              expect.objectContaining({
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+                subjectClass: expect.objectContaining({
+                  user_subject: { some: { userId: 1, deletedAt: null } },
+                }),
+              }),
+            ]),
+          }),
+        }),
+      );
+    });
   });
 });

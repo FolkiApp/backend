@@ -24,14 +24,14 @@ export class ActivitiesRepository {
         OR: [
           {
             subjectClass: {
-              user_subject: { some: { userId } },
+              user_subject: { some: { userId, deletedAt: null } },
               year: currentYear,
             },
             isPrivate: false,
           },
           {
             subjectClass: {
-              user_subject: { some: { userId } },
+              user_subject: { some: { userId, deletedAt: null } },
               year: currentYear,
             },
             userId,
@@ -339,6 +339,9 @@ export class ActivitiesRepository {
         subjectClass: {
           include: {
             user_subject: {
+              where: {
+                deletedAt: null,
+              },
               select: {
                 userId: true,
               },
