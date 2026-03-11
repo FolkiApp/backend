@@ -52,6 +52,9 @@ export class UserResponseDto {
   })
   university: University | null;
 
+  @ApiProperty({ nullable: true, example: '🎓' })
+  badge: string | null;
+
   constructor(
     id: number,
     email: string,
@@ -63,6 +66,7 @@ export class UserResponseDto {
     userVersion: string | null,
     institute: Institute | null,
     university: University | null,
+    badge: string | null,
   ) {
     this.id = id;
     this.email = email;
@@ -74,5 +78,6 @@ export class UserResponseDto {
     this.userVersion = userVersion;
     this.institute = institute;
     this.university = university;
+    this.badge = badge;
   }
 }

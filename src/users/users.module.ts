@@ -15,6 +15,7 @@ import { UserNotificationIdRepository } from './repositories/user-notification-i
 import { CoolNumbersService } from './services/cool-numbers.service';
 import { FindUserSubjectsService } from './services/find-user-subjects.service';
 import { AccessUnicampEdacService } from './services/access-unicamp-edac.service';
+import { AddBadgeService } from './services/add-badge.service';
 
 @Module({
   imports: [PrismaModule, CoursesModule, InstitutesModule, SubjectsModule],
@@ -31,6 +32,7 @@ import { AccessUnicampEdacService } from './services/access-unicamp-edac.service
     CoolNumbersService,
     FindUserSubjectsService,
     AccessUnicampEdacService,
+    AddBadgeService,
   ],
   exports: [UserRepository],
 })

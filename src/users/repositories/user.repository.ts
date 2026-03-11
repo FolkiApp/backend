@@ -24,6 +24,7 @@ export class UserRepository {
         createdAt: true,
         lastLogin: true,
         lastAccess: true,
+        badge: true,
       },
     });
 
@@ -65,6 +66,13 @@ export class UserRepository {
     });
   }
 
+  async addBadge(id: number, badge: string | null): Promise<void> {
+    await this.prisma.user.update({
+      where: { id },
+      data: { badge },
+    });
+  }
+
   async update(id: number, updateData: UpdateUserData): Promise<User> {
     const updatedUser = await this.prisma.user.update({
       where: { id },
@@ -82,6 +90,7 @@ export class UserRepository {
         createdAt: true,
         lastLogin: true,
         lastAccess: true,
+        badge: true,
       },
     });
 

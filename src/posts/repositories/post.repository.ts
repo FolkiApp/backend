@@ -14,6 +14,7 @@ interface PostWithImages {
 interface UserInfo {
   name: string;
   institute: { name: string } | null;
+  badge: string | null;
 }
 
 interface PostWithUser {
@@ -56,6 +57,7 @@ export class PostRepository {
           user: {
             select: {
               name: true,
+              badge: true,
               institute: {
                 select: {
                   name: true,
@@ -115,6 +117,7 @@ export class PostRepository {
       post.upvotes,
       post.downvotes,
       'up',
+      postWithUser.user.badge,
     );
   }
 
@@ -141,6 +144,7 @@ export class PostRepository {
         user: {
           select: {
             name: true,
+            badge: true,
             institute: {
               select: {
                 name: true,
@@ -198,6 +202,7 @@ export class PostRepository {
         post.upvotes,
         post.downvotes,
         voted,
+        postWithUser.user.badge,
       );
     });
   }
@@ -228,6 +233,7 @@ export class PostRepository {
         user: {
           select: {
             name: true,
+            badge: true,
             institute: {
               select: {
                 name: true,
@@ -285,6 +291,7 @@ export class PostRepository {
         post.upvotes,
         post.downvotes,
         voted,
+        postWithUser.user.badge,
       );
     });
   }
@@ -299,6 +306,7 @@ export class PostRepository {
         user: {
           select: {
             name: true,
+            badge: true,
             institute: {
               select: {
                 name: true,
@@ -356,6 +364,7 @@ export class PostRepository {
         post.upvotes,
         post.downvotes,
         voted,
+        postWithUser.user.badge,
       );
     });
   }
@@ -367,6 +376,7 @@ export class PostRepository {
         user: {
           select: {
             name: true,
+            badge: true,
             institute: {
               select: {
                 name: true,
@@ -426,6 +436,7 @@ export class PostRepository {
       post.upvotes,
       post.downvotes,
       voted,
+      postWithUser.user.badge,
     );
   }
 

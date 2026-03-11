@@ -60,6 +60,13 @@ export class PostDto {
   })
   imageUrls: string[];
 
+  @ApiProperty({
+    example: '🎓',
+    nullable: true,
+    description: 'Badge do usuário que criou o post',
+  })
+  userBadge: string | null;
+
   constructor(
     id: number,
     postDate: Date,
@@ -74,6 +81,7 @@ export class PostDto {
     upvotes = 0,
     downvotes = 0,
     voted: 'up' | 'down' | null = null,
+    userBadge: string | null = null,
   ) {
     this.id = id;
     this.postDate = postDate;
@@ -88,5 +96,6 @@ export class PostDto {
     this.voted = voted;
     this.tags = tags ?? [];
     this.imageUrls = imageUrls ?? [];
+    this.userBadge = userBadge;
   }
 }

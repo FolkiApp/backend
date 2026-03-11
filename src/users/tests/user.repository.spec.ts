@@ -89,6 +89,7 @@ describe('UserRepository', () => {
           createdAt: true,
           lastLogin: true,
           lastAccess: true,
+          badge: true,
         },
       });
     });
@@ -222,6 +223,7 @@ describe('UserRepository', () => {
           createdAt: true,
           lastLogin: true,
           lastAccess: true,
+          badge: true,
         },
       });
     });

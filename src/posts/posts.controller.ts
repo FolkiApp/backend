@@ -76,6 +76,7 @@ export class PostsController {
       post.upvotes,
       post.downvotes,
       post.voted,
+      post.userBadge,
     );
   }
 
@@ -127,6 +128,7 @@ export class PostsController {
             post.upvotes,
             post.downvotes,
             post.voted,
+            post.userBadge,
           ),
       ),
       nextId,
@@ -165,6 +167,7 @@ export class PostsController {
           post.upvotes,
           post.downvotes,
           post.voted,
+          post.userBadge,
         ),
     );
   }
@@ -219,6 +222,7 @@ export class PostsController {
       post.upvotes,
       post.downvotes,
       post.voted,
+      post.userBadge,
     );
   }
 
