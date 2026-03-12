@@ -141,7 +141,7 @@ export class AccessUFSCarSigaaService {
       // Map weekdays from Portuguese to lowercase
       const dayMap: { [key: string]: string } = {
         SEGUNDA: 'seg',
-        TERÇA: 'ter',
+        TERCA: 'ter',
         QUARTA: 'qua',
         QUINTA: 'qui',
         SEXTA: 'sex',
