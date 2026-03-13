@@ -404,8 +404,8 @@ export class ScrapJupiterService {
       });
       await page.goto(userInfoJupiterLink, { waitUntil: 'load' });
 
-      await page.waitForSelector('font', { timeout: 5000 });
-      await page.waitForSelector("td[width='77%'] font", { timeout: 5000 });
+      await page.waitForSelector('font', { timeout: 9000 });
+      await page.waitForSelector("td[width='77%'] font", { timeout: 9000 });
 
       const allFontsTexts = await page.evaluate(() =>
         Array.from(document.querySelectorAll('font')).map(
