@@ -107,6 +107,7 @@ model user {
   user_activity_check    user_activity_check[]
   user_activity_ignore   user_activity_ignore[]
   user_notification_id   user_notification_id[]
+  badge                  String?
   posts                  post[]
   votes                  vote[]
 }

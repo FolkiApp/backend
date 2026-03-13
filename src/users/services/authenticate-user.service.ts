@@ -62,6 +62,7 @@ export class AuthenticateUserService {
         user.userVersion,
         null,
         null,
+        user.badge,
       );
 
       this.logger.log({

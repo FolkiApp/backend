@@ -6,6 +6,7 @@ import { AuthenticateUserService } from '../services/authenticate-user.service';
 import { UpdateMeService } from '../services/update-me.service';
 import { FindUserSubjectsService } from '../services/find-user-subjects.service';
 import { CoolNumbersService } from '../services/cool-numbers.service';
+import { AddBadgeService } from '../services/add-badge.service';
 import { CustomLogger } from '../../common/logger/custom-logger.service';
 
 import { AuthDto } from '../dto/auth.dto';
@@ -31,6 +32,7 @@ describe('UsersController', () => {
   const mockUpdateMeService = { execute: jest.fn() };
   const mockCoolNumbersService = { execute: jest.fn() };
   const mockFindUserSubjectsService = { execute: jest.fn() };
+  const mockAddBadgeService = { execute: jest.fn() };
 
   const mockCustomLogger = {
     log: jest.fn(),
@@ -55,6 +57,10 @@ describe('UsersController', () => {
         {
           provide: FindUserSubjectsService,
           useValue: mockFindUserSubjectsService,
+        },
+        {
+          provide: AddBadgeService,
+          useValue: mockAddBadgeService,
         },
         {
           provide: CustomLogger,
@@ -94,6 +100,9 @@ describe('UsersController', () => {
           false,
           1,
           '1.0.0',
+          null,
+          null,
+          null,
         ),
       };
 
@@ -118,6 +127,9 @@ describe('UsersController', () => {
         isBlocked: false,
         universityId: 1,
         userVersion: '1.0.0',
+        institute: null,
+        university: null,
+        badge: null,
       };
 
       mockFindUserByIdService.execute.mockReturnValue(authUser);
@@ -135,6 +147,9 @@ describe('UsersController', () => {
             false,
             1,
             '1.0.0',
+            null,
+            null,
+            null,
           ),
         ),
       );
@@ -155,6 +170,9 @@ describe('UsersController', () => {
         isBlocked: false,
         universityId: 1,
         userVersion: '1.0.0',
+        institute: null,
+        university: null,
+        badge: null,
       };
 
       const updateUserDto: UpdateUserDto = {
@@ -182,6 +200,9 @@ describe('UsersController', () => {
           false,
           1,
           '2.0.0',
+          null,
+          null,
+          null,
         ),
       );
 
@@ -216,6 +237,7 @@ describe('UsersController', () => {
         userVersion: '1.0.0',
         institute: null,
         university: null,
+        badge: null,
       };
 
       const mockSubjects = [

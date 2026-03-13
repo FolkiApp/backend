@@ -6,11 +6,13 @@ import type { AuthUser } from '../common/guards/auth.guard';
 import { FindUserByIdService } from './services/find-user-by-id.service';
 import { AuthenticateUserService } from './services/authenticate-user.service';
 import { UpdateMeService } from './services/update-me.service';
+import { AddBadgeService } from './services/add-badge.service';
 import { UserResponseDto } from './dto/user-response.dto';
 import { MeResponseDto } from './dto/me-response.dto';
 import { AuthDto } from './dto/auth.dto';
 import { AuthResponseDto } from './dto/auth-response.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { AddBadgeDto } from './dto/add-badge.dto';
 
 import { FindUserSubjectsService } from './services/find-user-subjects.service';
 import { UserSubjectDto } from './dto/user-subject.dto';
@@ -28,6 +30,7 @@ export class UsersController {
     private readonly updateMeService: UpdateMeService,
     private readonly coolNumbersService: CoolNumbersService,
     private readonly findUserSubjectsService: FindUserSubjectsService,
+    private readonly addBadgeService: AddBadgeService,
   ) {}
 
   @Post('auth')
@@ -60,6 +63,7 @@ export class UsersController {
         user.userVersion,
         authUser.institute,
         authUser.university,
+        user.badge,
       ),
     );
   }
@@ -88,6 +92,7 @@ export class UsersController {
       user.userVersion,
       authUser.institute,
       authUser.university,
+      user.badge,
     );
   }
 
@@ -97,6 +102,21 @@ export class UsersController {
   })
   async count(): Promise<CoolNumbersDto> {
     return await this.coolNumbersService.execute();
+  }
+
+  @Patch('me/badge')
+  @Auth()
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Atualiza o badge do usuário autenticado',
+    description:
+      'Define ou remove o badge do usuário. Envie null para remover.',
+  })
+  async updateBadge(
+    @CurrentUser() authUser: AuthUser,
+    @Body() addBadgeDto: AddBadgeDto,
+  ): Promise<void> {
+    await this.addBadgeService.execute(authUser, addBadgeDto.badge ?? null);
   }
 
   @Get('me/subjects')

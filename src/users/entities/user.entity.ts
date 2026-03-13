@@ -11,6 +11,7 @@ export class User {
   createdAt: Date;
   lastLogin: Date | null;
   lastAccess: Date | null;
+  badge: string | null;
 
   constructor(partial: Partial<User>) {
     Object.assign(this, partial);

@@ -27,6 +27,7 @@ export interface AuthUser {
   userVersion: string | null;
   institute: Institute | null;
   university: University | null;
+  badge: string | null;
 }
 
 @Injectable()
@@ -99,6 +100,7 @@ export class AuthGuard implements CanActivate {
           universityId: true,
           institute: true,
           university: true,
+          badge: true,
         },
       });
 

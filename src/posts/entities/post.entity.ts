@@ -14,5 +14,6 @@ export class Post {
     public upvotes: number = 0,
     public downvotes: number = 0,
     public voted: 'up' | 'down' | null = null,
+    public userBadge: string | null = null,
   ) {}
 }
