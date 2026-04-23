@@ -200,7 +200,7 @@ export class ScrapJupiterService {
 
     const options = await page.evaluate(() =>
       Array.from(document.querySelectorAll('option')).map(
-        (element) => (element as HTMLOptionElement).value,
+        (element) => element.value,
       ),
     );
 
@@ -227,19 +227,24 @@ export class ScrapJupiterService {
     await page.waitForSelector('#unidade', { timeout: 5000 });
 
     const courseElement = await page.$('#curso');
-    const brokeCourseText = (
-      await page.evaluate((el) => el?.textContent, courseElement)
-    )?.split(' - ');
+    const brokeCourseText =
+      (await page.evaluate((el) => el?.textContent, courseElement))?.split(
+        ' - ',
+      ) ?? [];
 
     const instituteElement = await page.$('#unidade');
     const jupiterWebInstitute = (
       await page.evaluate((el) => el?.textContent, instituteElement)
     )?.split(' - ')[1];
 
-    const jupiterWebCourse = this.pickCourseName(brokeCourseText!);
+    if (!jupiterWebInstitute) {
+      throw new Error('Failed to extract institute from JupiterWeb');
+    }
+
+    const jupiterWebCourse = this.pickCourseName(brokeCourseText);
 
     const institute = await this.instituteRepository.findOrCreate(
-      jupiterWebInstitute!,
+      jupiterWebInstitute,
       USP_UNIVERSITY_ID,
     );
     const course = await this.courseRepository.findOrCreate(
@@ -258,12 +263,7 @@ export class ScrapJupiterService {
   }
 
   private pickCourseName(brokeCourseText: string[]): string {
-    for (const text of brokeCourseText) {
-      if (isNaN(text as any)) {
-        return text;
-      }
-    }
-    return '';
+    return brokeCourseText.find((text) => Number.isNaN(Number(text))) ?? '';
   }
 
   private async collectScheduleHash(page: Page): Promise<SubjectScheduleHash> {
@@ -367,7 +367,7 @@ export class ScrapJupiterService {
         'div[class="adicionado"] > table > tbody > tr > td[class="obstur"]',
       );
       const observationsText = await page.evaluate(
-        (el) => el?.textContent?.replace(/\n/g, ' '),
+        (el) => el?.textContent?.replaceAll('\n', ' '),
         observationsElement,
       );
 
@@ -565,15 +565,15 @@ export class ScrapJupiterService {
     await page.waitForSelector("td[width='77%'] font", { timeout: 9000 });
 
     const allFontsTexts = await page.evaluate(() =>
-      Array.from(document.querySelectorAll('font')).map(
+      Array.from(document.querySelectorAll<HTMLElement>('font')).map(
         (element) => element.textContent,
       ),
     );
 
     const all77WidthFontTexts = await page.evaluate(() =>
-      Array.from(document.querySelectorAll("td[width='77%'] font")).map(
-        (element) => element.textContent,
-      ),
+      Array.from(
+        document.querySelectorAll<HTMLElement>("td[width='77%'] font"),
+      ).map((element) => element.textContent),
     );
 
     // Special name mappings for specific users
@@ -586,11 +586,11 @@ export class ScrapJupiterService {
     const name =
       nameOverrides[nUsp] || all77WidthFontTexts[1] || 'Estudante USP';
 
-    const emails = allFontsTexts.filter((text: string) => text!.includes('@'));
+    const emails = allFontsTexts.filter(
+      (text): text is string => text !== null && text.includes('@'),
+    );
     const email =
-      emails.find((email: string) => email!.includes('usp.br')) ||
-      emails[0] ||
-      nUsp;
+      emails.find((email) => email.includes('usp.br')) || emails[0] || nUsp;
 
     return { name, email };
   }
