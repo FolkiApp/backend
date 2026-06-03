@@ -122,7 +122,8 @@ export class ScrapJupiterService {
       args: ['--no-sandbox'],
       headless: true,
       executablePath:
-        process.env.PUPPETEER_EXECUTABLE_PATH || '/usr/bin/google-chrome-stable',
+        process.env.PUPPETEER_EXECUTABLE_PATH ||
+        '/usr/bin/google-chrome-stable',
     });
     const page: Page = await browser.newPage();
     await page.setUserAgent(
@@ -328,7 +329,9 @@ export class ScrapJupiterService {
         firstTime,
         nUsp,
       );
-      hash[subjectCode].observations = observations ?? '';
+      if (observations !== null) {
+        hash[subjectCode].observations = observations;
+      }
       firstTime = false;
     }
   }
@@ -359,9 +362,24 @@ export class ScrapJupiterService {
       await page.click('a[href="#div_oferecimento"]');
       await page.waitForSelector('.blockOverlay', { hidden: true });
 
+      // If there's explicitly no offering for this discipline, skip waiting
+      const noOffering = await page.evaluate(() =>
+        document.body.textContent?.includes(
+          'Não há oferecimento para esta disciplina!',
+        ),
+      );
+      if (noOffering) {
+        this.logger.log({
+          message: 'No offering for subject, skipping observations',
+          subject: subjectCode,
+          nUsp,
+        });
+        return null;
+      }
+
       await page.waitForSelector(
         'div[class="adicionado"] > table > tbody > tr > td[class="obstur"]',
-        { timeout: 5000 },
+        { timeout: 3000 },
       );
       const observationsElement = await page.$(
         'div[class="adicionado"] > table > tbody > tr > td[class="obstur"]',
@@ -531,7 +549,10 @@ export class ScrapJupiterService {
       );
 
     if (dbSubjectClass) {
-      if (dbSubjectClass.observations !== subjectClass.observations) {
+      if (
+        subjectClass.observations &&
+        dbSubjectClass.observations !== subjectClass.observations
+      ) {
         await this.subjectClassRepository.updateObservations(
           dbSubjectClass.id,
           subjectClass.observations,

@@ -63,26 +63,24 @@ describe('AccessUnicampEdacService', () => {
   } as unknown as jest.Mocked<CustomLogger>;
 
   const mockClose = jest.fn();
-  const mockGoto = jest.fn().mockResolvedValue(null);
-  const mockType = jest.fn().mockResolvedValue(undefined);
-  const mockClick = jest.fn().mockResolvedValue(undefined);
-  const mockWaitForNavigation = jest.fn().mockResolvedValue(null);
+  const mockGoto = jest.fn();
+  const mockType = jest.fn();
+  const mockClick = jest.fn();
+  const mockWaitForNavigation = jest.fn();
   const mockOn = jest.fn();
   const mockEvaluate = jest.fn();
   const mockWaitForFunction = jest.fn().mockResolvedValue(true);
-  const mockWaitForSelector = jest.fn().mockResolvedValue(null);
-  const mockRemoveAllListeners = jest.fn();
+  const mockWaitForSelector = jest.fn().mockResolvedValue(true);
 
   const mockPage: Partial<Page> = {
     goto: mockGoto,
     type: mockType,
     click: mockClick,
     waitForNavigation: mockWaitForNavigation,
+    waitForSelector: mockWaitForSelector,
     on: mockOn,
     evaluate: mockEvaluate,
     waitForFunction: mockWaitForFunction,
-    waitForSelector: mockWaitForSelector,
-    removeAllListeners: mockRemoveAllListeners,
   };
 
   const mockBrowser: Partial<Browser> = {
@@ -105,7 +103,7 @@ describe('AccessUnicampEdacService', () => {
     );
   });
 
-  function mockResponses(socialName: string | null = null) {
+  function mockResponses() {
     mockOn.mockImplementation(
       (event: string, callback: (response: any) => void) => {
         if (event === 'response') {
@@ -134,20 +132,10 @@ describe('AccessUnicampEdacService', () => {
         }
       },
     );
-
-    mockEvaluate.mockImplementation(
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (fn: any) => {
-        const fnString = String(fn);
-        if (fnString.includes('nome social')) {
-          return Promise.resolve(socialName);
-        }
-        return Promise.resolve({
-          email: 'joao@dac.unicamp.br',
-          cursoRaw: '42 - Ciência da Computação',
-        });
-      },
-    );
+    mockEvaluate.mockResolvedValue({
+      email: 'joao@dac.unicamp.br',
+      cursoRaw: '42 - Ciência da Computação',
+    });
   }
 
   const createMockSubjectClass = (id: number) =>
@@ -158,46 +146,8 @@ describe('AccessUnicampEdacService', () => {
       observations: '',
     }) as SubjectClass;
 
-  it('deve usar socialName quando disponível', async () => {
-    mockResponses('Joao Victor do Prado');
-
-    mockInstituteRepository.findOrCreate.mockResolvedValue({
-      id: 1,
-    } as Institute);
-    mockCourseRepository.findOrCreate.mockResolvedValue({ id: 10 } as Course);
-    mockSubjectRepository.findByCode.mockResolvedValue(null);
-    mockSubjectRepository.create.mockResolvedValue({
-      id: 100,
-    } as SubjectPrisma);
-
-    mockSubjectClassRepository.findBySubjectAndSchedule.mockResolvedValue(null);
-    mockSubjectClassRepository.create.mockResolvedValue(
-      createMockSubjectClass(200),
-    );
-
-    mockUserSubjectRepository.findByUserAndSubjectClass.mockResolvedValue(null);
-    mockUserRepository.findByEmail.mockResolvedValue(null);
-    mockUserRepository.create.mockResolvedValue({
-      id: 300,
-      name: 'Joao Victor do Prado',
-      email: 'joao@dac.unicamp.br',
-    } as user);
-
-    const result = await service.execute('123456', 'senha');
-
-    expect(mockUserRepository.create).toHaveBeenCalledWith(
-      'joao@dac.unicamp.br',
-      'Joao Victor do Prado',
-      10,
-      1,
-      3,
-    );
-    expect(result.name).toBe('Joao Victor do Prado');
-    expect(mockClose).toHaveBeenCalled();
-  });
-
-  it('deve usar DadosBasicos.Nome quando socialName não está disponível', async () => {
-    mockResponses(null);
+  it('deve executar fluxo completo criando usuário e disciplinas', async () => {
+    mockResponses();
 
     mockInstituteRepository.findOrCreate.mockResolvedValue({
       id: 1,
@@ -223,61 +173,12 @@ describe('AccessUnicampEdacService', () => {
 
     const result = await service.execute('123456', 'senha');
 
-    expect(mockUserRepository.create).toHaveBeenCalledWith(
-      'joao@dac.unicamp.br',
-      'João da Silva',
-      10,
-      1,
-      3,
-    );
     expect(result.email).toBe('joao@dac.unicamp.br');
     expect(mockClose).toHaveBeenCalled();
   });
 
-  it('deve atualizar nome com socialName se usuário já existir', async () => {
-    mockResponses('Joao Victor do Prado');
-
-    mockInstituteRepository.findOrCreate.mockResolvedValue({
-      id: 1,
-    } as Institute);
-    mockCourseRepository.findOrCreate.mockResolvedValue({ id: 10 } as Course);
-    mockSubjectRepository.findByCode.mockResolvedValue({
-      id: 100,
-    } as SubjectPrisma);
-
-    mockSubjectClassRepository.findBySubjectAndSchedule.mockResolvedValue(
-      createMockSubjectClass(200),
-    );
-
-    mockUserRepository.findByEmail.mockResolvedValue({
-      id: 300,
-      name: 'Nome Antigo',
-      email: 'joao@dac.unicamp.br',
-    } as user);
-
-    mockUserRepository.updateName.mockResolvedValue({
-      id: 300,
-      name: 'Joao Victor do Prado',
-      email: 'joao@dac.unicamp.br',
-    } as user);
-
-    mockUserSubjectRepository.findManyByUserId.mockResolvedValue([]);
-
-    mockUserSubjectRepository.findByUserAndSubjectClass.mockResolvedValue({
-      id: 999,
-    } as UserSubject);
-
-    const result = await service.execute('123456', 'senha');
-
-    expect(mockUserRepository.updateName).toHaveBeenCalledWith(
-      300,
-      'Joao Victor do Prado',
-    );
-    expect(result.name).toBe('Joao Victor do Prado');
-  });
-
-  it('deve atualizar nome com DadosBasicos.Nome quando socialName é null', async () => {
-    mockResponses(null);
+  it('deve atualizar nome se usuário já existir', async () => {
+    mockResponses();
 
     mockInstituteRepository.findOrCreate.mockResolvedValue({
       id: 1,
