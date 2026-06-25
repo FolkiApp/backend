@@ -31,7 +31,7 @@ describe('NotificationSqsConsumer', () => {
       MessageId: 'test-message-id-123',
       Body: JSON.stringify(body),
       ReceiptHandle: 'test-receipt-handle',
-    } as Message;
+    };
   };
 
   beforeEach(async () => {
@@ -143,7 +143,7 @@ describe('NotificationSqsConsumer', () => {
       MessageId: 'test-message-id-123',
       Body: 'invalid json',
       ReceiptHandle: 'test-receipt-handle',
-    } as Message;
+    };
 
     await expect(consumer.handleMessage(message)).rejects.toThrow();
 
@@ -227,7 +227,7 @@ describe('NotificationSqsConsumer', () => {
     const error = new Error('Processing error');
     const message: Message = {
       MessageId: 'test-message-id-123',
-    } as Message;
+    };
 
     consumer.onProcessingError(error, message);
 

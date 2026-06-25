@@ -141,7 +141,7 @@ describe('GradesController', () => {
         value: createGradeDto.value,
         userSubjectId: createGradeDto.userSubjectId,
         createdAt: new Date(),
-      } as Grade;
+      };
 
       mockCreateGradeService.execute.mockResolvedValue(mockGrade);
 

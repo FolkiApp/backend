@@ -21,7 +21,9 @@ export class EmailController {
 
   @Post()
   @ApiKey()
-  @ApiOperation({ summary: 'Enfileira um email para envio via AWS SES (uso administrativo).' })
+  @ApiOperation({
+    summary: 'Enfileira um email para envio via AWS SES (uso administrativo).',
+  })
   @HttpCode(HttpStatus.NO_CONTENT)
   async sendEmail(@Body() dto: SendEmailDto): Promise<void> {
     this.logger.log({

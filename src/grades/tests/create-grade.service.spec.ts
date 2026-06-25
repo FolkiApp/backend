@@ -6,7 +6,6 @@ import { CustomLogger } from '../../common/logger/custom-logger.service';
 import { CreateGradeDto } from '../dto/create-grade.dto';
 import { UserSubjectNotFoundException } from '../exceptions/user-subject-not-found.exception';
 import { GradeCreateException } from '../exceptions/grade-create.exception';
-import { Grade } from '../entities/grade.entity';
 
 describe('CreateGradeService', () => {
   let service: CreateGradeService;
@@ -87,7 +86,7 @@ describe('CreateGradeService', () => {
         value: mockCreateGradeDto.value,
         userSubjectId: mockCreateGradeDto.userSubjectId,
         createdAt: new Date(),
-      } as Grade;
+      };
 
       mockUserSubjectsRepository.findByIdAndUserId.mockResolvedValue(
         mockUserSubject,

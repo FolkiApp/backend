@@ -183,7 +183,11 @@ describe('EmailQueueService', () => {
     });
 
     it('should send email synchronously when SQS is not configured', async () => {
-      const emails = ['a@dac.unicamp.br', 'b@dac.unicamp.br', 'c@dac.unicamp.br'];
+      const emails = [
+        'a@dac.unicamp.br',
+        'b@dac.unicamp.br',
+        'c@dac.unicamp.br',
+      ];
       mockUserRepository.findEmailsByIds.mockResolvedValue(emails);
       mockEmailService.sendEmail.mockResolvedValue(undefined);
 

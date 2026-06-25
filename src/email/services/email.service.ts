@@ -38,8 +38,7 @@ export class EmailService {
 
     if (!this.verifyConfiguration()) {
       this.logger.warn({
-        message:
-          'AWS SES sender not configured. Skipping email.',
+        message: 'AWS SES sender not configured. Skipping email.',
         subject,
       });
       return;
@@ -64,9 +63,7 @@ export class EmailService {
               Subject: { Data: subject, Charset: 'UTF-8' },
               Body: {
                 Html: { Data: html, Charset: 'UTF-8' },
-                ...(text
-                  ? { Text: { Data: text, Charset: 'UTF-8' } }
-                  : {}),
+                ...(text ? { Text: { Data: text, Charset: 'UTF-8' } } : {}),
               },
             },
           },

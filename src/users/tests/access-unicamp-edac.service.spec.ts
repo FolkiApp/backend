@@ -84,7 +84,7 @@ describe('AccessUnicampEdacService', () => {
   };
 
   const mockBrowser: Partial<Browser> = {
-    newPage: jest.fn().mockResolvedValue(mockPage as Page),
+    newPage: jest.fn().mockResolvedValue(mockPage),
     close: mockClose,
   };
 

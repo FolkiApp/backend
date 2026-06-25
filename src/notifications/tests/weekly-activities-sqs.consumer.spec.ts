@@ -36,7 +36,7 @@ describe('WeeklyActivitiesSqsConsumer', () => {
       MessageId: 'test-message-id-123',
       Body: JSON.stringify({}),
       ReceiptHandle: 'test-receipt-handle',
-    } as Message;
+    };
   };
 
   beforeEach(async () => {
@@ -282,7 +282,7 @@ describe('WeeklyActivitiesSqsConsumer', () => {
     const error = new Error('Processing error');
     const message: Message = {
       MessageId: 'test-message-id-123',
-    } as Message;
+    };
 
     consumer.onProcessingError(error, message);
 
