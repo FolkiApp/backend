@@ -9,7 +9,10 @@ export class CountNewPostsService {
   constructor(private readonly postRepository: PostRepository) {}
 
   async execute(universityId: number | null): Promise<number> {
-    this.logger.log({ message: 'Counting new posts from last 24h', universityId });
+    this.logger.log({
+      message: 'Counting new posts from last 24h',
+      universityId,
+    });
 
     try {
       return await this.postRepository.countPostsInLast24Hours(universityId);

@@ -50,7 +50,9 @@ describe('CountNewPostsService', () => {
       const result = await service.execute(null);
 
       expect(result).toBe(10);
-      expect(postsRepository.countPostsInLast24Hours).toHaveBeenCalledWith(null);
+      expect(postsRepository.countPostsInLast24Hours).toHaveBeenCalledWith(
+        null,
+      );
     });
 
     it('should throw PostInternalErrorException when repository throws an error', async () => {

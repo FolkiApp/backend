@@ -22,7 +22,6 @@ describe('PostsController', () => {
   let listFirstPostsService: ListFirstPostService;
   let deletePostService: DeletePostService;
   let listPostChildrenService: ListPostChildrenService;
-  let countNewPostsService: CountNewPostsService;
 
   const mockCreatePostService: jest.Mocked<Pick<PostPostService, 'execute'>> = {
     execute: jest.fn(),
@@ -155,7 +154,6 @@ describe('PostsController', () => {
     listPostChildrenService = module.get<ListPostChildrenService>(
       ListPostChildrenService,
     );
-    countNewPostsService = module.get<CountNewPostsService>(CountNewPostsService);
 
     jest.clearAllMocks();
   });
@@ -276,13 +274,19 @@ describe('PostsController', () => {
 
       expect(result).toBeInstanceOf(PostsInfoResponseDto);
       expect(result.newPosts).toBe(12);
-      expect(mockCountNewPostsService.execute).toHaveBeenCalledWith(mockAuthUser.universityId);
+      expect(mockCountNewPostsService.execute).toHaveBeenCalledWith(
+        mockAuthUser.universityId,
+      );
     });
 
     it('should propagate errors from count service', async () => {
-      mockCountNewPostsService.execute.mockRejectedValue(new Error('Count error'));
+      mockCountNewPostsService.execute.mockRejectedValue(
+        new Error('Count error'),
+      );
 
-      await expect(controller.getNewPostsCount(mockAuthUser)).rejects.toThrow('Count error');
+      await expect(controller.getNewPostsCount(mockAuthUser)).rejects.toThrow(
+        'Count error',
+      );
     });
   });
 
