@@ -7,10 +7,21 @@ import {
   IsOptional,
   IsPositive,
   IsString,
+  IsUUID,
 } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class SendEmailDto {
+  @ApiPropertyOptional({
+    description:
+      'ID de idempotência (UUID v4). Gerado automaticamente se não fornecido.',
+    example: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
+    format: 'uuid',
+  })
+  @IsUUID()
+  @IsOptional()
+  idempotencyId?: string;
+
   @ApiProperty({
     description:
       'IDs dos usuários destinatários. Os emails são obtidos a partir desses IDs.',
@@ -22,7 +33,7 @@ export class SendEmailDto {
   @ArrayNotEmpty()
   @IsInt({ each: true })
   @IsPositive({ each: true })
-  userIds: number[];
+  userIds!: number[];
 
   @ApiProperty({
     description: 'Assunto do email.',
@@ -31,7 +42,7 @@ export class SendEmailDto {
   })
   @IsString()
   @IsNotEmpty()
-  subject: string;
+  subject!: string;
 
   @ApiProperty({
     description: 'Corpo do email em HTML.',
@@ -40,7 +51,7 @@ export class SendEmailDto {
   })
   @IsString()
   @IsNotEmpty()
-  html: string;
+  html!: string;
 
   @ApiPropertyOptional({
     description:
