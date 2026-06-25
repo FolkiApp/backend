@@ -1,4 +1,4 @@
-import { PrismaModule } from 'src/prisma/prisma.module';
+import { PrismaModule } from '../prisma/prisma.module';
 import { PostsController } from './posts.controller';
 import { Module } from '@nestjs/common';
 import { PostPostService } from './services/post-post.service';

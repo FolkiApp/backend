@@ -8,7 +8,7 @@ import { PermissionDeniedToDeleteException } from '../exceptions/permission-deni
 import { UserBlockedException } from '../exceptions/user-blocked.exception';
 import { ActivityDeleteException } from '../exceptions/activity-delete.exception';
 import { SubjectClassRepository } from '../../subjects/repositories/subject-class.repository';
-import { SubjectClass } from 'src/subjects/entities/subject-class.entity';
+import { SubjectClass } from '../../subjects/entities/subject-class.entity';
 
 @Injectable()
 export class DeleteActivityService {

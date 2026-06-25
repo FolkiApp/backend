@@ -1,4 +1,4 @@
-import { SubjectClass } from 'src/subjects/entities/subject-class.entity';
+import { SubjectClass } from '../../subjects/entities/subject-class.entity';
 
 export class UserSubject {
   id?: number;

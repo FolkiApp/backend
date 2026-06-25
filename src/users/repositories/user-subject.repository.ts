@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { UserSubject } from '../entities/user-subject.entity';
-import { AvailableDay } from 'src/subjects/entities/available-days.entity';
+import { AvailableDay } from '../../subjects/entities/available-days.entity';
 
 @Injectable()
 export class UserSubjectRepository {
