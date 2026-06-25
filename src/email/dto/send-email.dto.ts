@@ -2,23 +2,27 @@ import {
   ArrayNotEmpty,
   IsArray,
   IsEmail,
+  IsInt,
   IsNotEmpty,
   IsOptional,
+  IsPositive,
   IsString,
 } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class SendEmailDto {
   @ApiProperty({
-    description: 'Destinatários do email.',
-    example: ['aluno@dac.unicamp.br'],
-    type: [String],
+    description:
+      'IDs dos usuários destinatários. Os emails são obtidos a partir desses IDs.',
+    example: [1, 2, 3],
+    type: [Number],
     minItems: 1,
   })
   @IsArray()
   @ArrayNotEmpty()
-  @IsEmail({}, { each: true })
-  to: string[];
+  @IsInt({ each: true })
+  @IsPositive({ each: true })
+  userIds: number[];
 
   @ApiProperty({
     description: 'Assunto do email.',
