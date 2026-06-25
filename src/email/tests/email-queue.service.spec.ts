@@ -180,8 +180,8 @@ describe('EmailQueueService', () => {
       await service.addEmailJob(mockDto);
 
       expect(mockEmailService.sendEmailToUserIds).toHaveBeenCalledWith(
-        mockDto.userIds,
         expect.objectContaining({
+          userIds: mockDto.userIds,
           subject: mockDto.subject,
           html: mockDto.html,
         }) as Record<string, unknown>,

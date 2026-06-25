@@ -3,6 +3,7 @@ import { SESv2Client, SendEmailCommand } from '@aws-sdk/client-sesv2';
 import { CustomLogger } from '../../common/logger/custom-logger.service';
 import { EmailSendException } from '../exceptions/email-send.exception';
 import { UserRepository } from '../../users/repositories/user.repository';
+import { SendEmailDto } from '../dto/send-email.dto';
 
 export interface SendEmailParams {
   to: string[];
@@ -11,8 +12,6 @@ export interface SendEmailParams {
   text?: string;
   replyTo?: string;
 }
-
-export type EmailContent = Omit<SendEmailParams, 'to'>;
 
 @Injectable()
 export class EmailService {
@@ -95,17 +94,20 @@ export class EmailService {
    * Returns the resolved recipients; when none are found, nothing is sent
    * and an empty array is returned so callers can log the appropriate context.
    */
-  async sendEmailToUserIds(
-    userIds: number[],
-    content: EmailContent,
-  ): Promise<string[]> {
-    const to = await this.userRepository.findEmailsByIds(userIds);
+  async sendEmailToUserIds(data: SendEmailDto): Promise<string[]> {
+    const to = await this.userRepository.findEmailsByIds(data.userIds);
 
     if (!to.length) {
       return [];
     }
 
-    await this.sendEmail({ to, ...content });
+    await this.sendEmail({
+      to,
+      subject: data.subject,
+      html: data.html,
+      text: data.text,
+      replyTo: data.replyTo,
+    });
 
     return to;
   }

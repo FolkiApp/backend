@@ -140,7 +140,8 @@ describe('EmailService', () => {
         mockUserRepository.findEmailsByIds.mockResolvedValue(emails);
         mockSend.mockResolvedValue(undefined);
 
-        const result = await service.sendEmailToUserIds([1, 2], {
+        const result = await service.sendEmailToUserIds({
+          userIds: [1, 2],
           subject: params.subject,
           html: params.html,
         });
@@ -157,7 +158,8 @@ describe('EmailService', () => {
       it('should return empty array and not send when no emails found', async () => {
         mockUserRepository.findEmailsByIds.mockResolvedValue([]);
 
-        const result = await service.sendEmailToUserIds([1, 2], {
+        const result = await service.sendEmailToUserIds({
+          userIds: [1, 2],
           subject: params.subject,
           html: params.html,
         });

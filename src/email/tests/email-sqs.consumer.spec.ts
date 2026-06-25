@@ -79,13 +79,11 @@ describe('EmailSqsConsumer', () => {
     );
 
     expect(mockEmailService.sendEmailToUserIds).toHaveBeenCalledWith(
-      [1, 2, 3],
-      {
+      expect.objectContaining({
+        userIds: [1, 2, 3],
         subject: 'Bem-vindo ao Folki',
         html: '<h1>Olá!</h1>',
-        text: undefined,
-        replyTo: undefined,
-      },
+      }),
     );
 
     expect(mockCustomLogger.log).toHaveBeenCalledWith(

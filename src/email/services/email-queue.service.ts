@@ -36,15 +36,8 @@ export class EmailQueueService {
 
     if (!this.useSqs) {
       try {
-        const recipients = await this.emailService.sendEmailToUserIds(
-          data.userIds,
-          {
-            subject: messageBody.subject,
-            html: messageBody.html,
-            text: messageBody.text,
-            replyTo: messageBody.replyTo,
-          },
-        );
+        const recipients =
+          await this.emailService.sendEmailToUserIds(messageBody);
 
         if (!recipients.length) {
           this.logger.warn({

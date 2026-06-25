@@ -29,15 +29,7 @@ export class EmailSqsConsumer {
         userIdsCount: body.userIds.length,
       });
 
-      const recipients = await this.emailService.sendEmailToUserIds(
-        body.userIds,
-        {
-          subject: body.subject,
-          html: body.html,
-          text: body.text,
-          replyTo: body.replyTo,
-        },
-      );
+      const recipients = await this.emailService.sendEmailToUserIds(body);
 
       if (!recipients.length) {
         this.logger.warn({
