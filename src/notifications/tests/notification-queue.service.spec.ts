@@ -5,6 +5,7 @@ import { PipoNotificationService } from '../services/pipo-notification.service';
 import { UserSubjectsRepository } from '../../subjects/repositories/user-subjects.repository';
 import { CustomLogger } from '../../common/logger/custom-logger.service';
 import { SendNotificationDto } from '../dto/send-notification.dto';
+import { NotificationRepository } from '../repositories/notification.repository';
 
 describe('NotificationQueueService', () => {
   let service: NotificationQueueService;
@@ -28,6 +29,10 @@ describe('NotificationQueueService', () => {
     warn: jest.fn(),
     debug: jest.fn(),
     verbose: jest.fn(),
+  };
+
+  const mockNotificationRepository = {
+    createNotification: jest.fn(),
   };
 
   const mockDto: SendNotificationDto = {
@@ -60,10 +65,17 @@ describe('NotificationQueueService', () => {
             provide: CustomLogger,
             useValue: mockCustomLogger,
           },
+          {
+            provide: NotificationRepository,
+            useValue: mockNotificationRepository,
+          },
         ],
       }).compile();
 
       service = module.get<NotificationQueueService>(NotificationQueueService);
+      mockNotificationRepository.createNotification.mockResolvedValue(
+        undefined,
+      );
     });
 
     afterEach(() => {
@@ -144,6 +156,36 @@ describe('NotificationQueueService', () => {
         }),
       );
     });
+
+    it('should save notification and link users in the database', async () => {
+      mockSqsService.send.mockResolvedValue(undefined);
+      mockNotificationRepository.createNotification.mockResolvedValue(
+        undefined,
+      );
+
+      await service.addNotificationJob(mockDto);
+
+      expect(
+        mockNotificationRepository.createNotification,
+      ).toHaveBeenCalledWith(mockDto.title, mockDto.message, mockDto.userIds);
+    });
+
+    it('should log error when database save fails, but not block SQS queuing', async () => {
+      mockSqsService.send.mockResolvedValue(undefined);
+      mockNotificationRepository.createNotification.mockRejectedValue(
+        new Error('DB error'),
+      );
+
+      await service.addNotificationJob(mockDto);
+
+      expect(mockCustomLogger.error).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: 'Failed to save notification to database',
+          error: 'DB error',
+        }),
+      );
+      expect(mockSqsService.send).toHaveBeenCalled();
+    });
   });
 
   describe('without SQS configured (synchronous mode)', () => {
@@ -165,10 +207,17 @@ describe('NotificationQueueService', () => {
             provide: CustomLogger,
             useValue: mockCustomLogger,
           },
+          {
+            provide: NotificationRepository,
+            useValue: mockNotificationRepository,
+          },
         ],
       }).compile();
 
       service = module.get<NotificationQueueService>(NotificationQueueService);
+      mockNotificationRepository.createNotification.mockResolvedValue(
+        undefined,
+      );
     });
 
     afterEach(() => {
