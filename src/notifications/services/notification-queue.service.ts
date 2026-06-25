@@ -5,6 +5,7 @@ import { SendNotificationDto } from '../dto/send-notification.dto';
 import { CustomLogger } from '../../common/logger/custom-logger.service';
 import { PipoNotificationService } from './pipo-notification.service';
 import { UserSubjectsRepository } from '../../subjects/repositories/user-subjects.repository';
+import { NotificationRepository } from '../repositories/notification.repository';
 
 const DELAY_SECONDS = 0;
 
@@ -18,6 +19,7 @@ export class NotificationQueueService {
     @Optional() private readonly sqsService: SqsService,
     private readonly pipoNotificationService: PipoNotificationService,
     private readonly userSubjectsRepository: UserSubjectsRepository,
+    private readonly notificationRepository: NotificationRepository,
     logger: CustomLogger,
   ) {
     this.logger = logger;
@@ -35,6 +37,23 @@ export class NotificationQueueService {
   async addNotificationJob(data: SendNotificationDto): Promise<void> {
     const idempotencyId = data.idempotencyId || uuidv4();
     const messageBody = { ...data, idempotencyId };
+
+    try {
+      this.logger.log({
+        message: 'Saving notification to database',
+        userIdsCount: data.userIds.length,
+      });
+      await this.notificationRepository.createNotification(
+        data.title,
+        data.message,
+        data.userIds,
+      );
+    } catch (dbError) {
+      this.logger.error({
+        message: 'Failed to save notification to database',
+        error: dbError instanceof Error ? dbError.message : String(dbError),
+      });
+    }
 
     if (!this.useSqs) {
       try {

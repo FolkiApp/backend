@@ -110,6 +110,7 @@ model user {
   badge                  String?
   posts                  post[]
   votes                  vote[]
+  notifications          user_notification[]
 }
 
 model user_subject {
@@ -289,6 +290,25 @@ model post_image {
   key       String   @unique
   postId    Int
   post      post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+}
+
+model notification {
+  id        Int                 @id @default(autoincrement())
+  title     String
+  message   String
+  createdAt DateTime            @default(now())
+  users     user_notification[]
+}
+
+model user_notification {
+  notificationId Int
+  userId         Int
+  notification   notification @relation(fields: [notificationId], references: [id], onDelete: Cascade)
+  user           user         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([notificationId, userId])
+  @@index([notificationId])
+  @@index([userId])
 }
 
 

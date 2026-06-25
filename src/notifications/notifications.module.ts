@@ -10,6 +10,7 @@ import { SubjectsModule } from '../subjects/subjects.module';
 import { ActivitiesModule } from '../activities/activities.module';
 import { UsersModule } from '../users/users.module';
 import { ImportantDateModule } from '../importantdates/important-date.module';
+import { NotificationRepository } from './repositories/notification.repository';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { ImportantDateModule } from '../importantdates/important-date.module';
     WeeklyActivitiesSqsConsumer,
     WeeklyAbsencesSqsConsumer,
     WeeklyImportantDateSqsConsumer,
+    NotificationRepository,
   ],
   exports: [PipoNotificationService, NotificationQueueService],
 })

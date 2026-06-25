@@ -132,7 +132,12 @@ describe('AccessUnicampEdacService', () => {
         }
       },
     );
-    mockEvaluate.mockResolvedValue({
+    // First evaluate call (socialName)
+    mockEvaluate.mockResolvedValueOnce(null);
+    // Second evaluate call (roomMap)
+    mockEvaluate.mockResolvedValueOnce({});
+    // Third evaluate call (coursePageData)
+    mockEvaluate.mockResolvedValueOnce({
       email: 'joao@dac.unicamp.br',
       cursoRaw: '42 - Ciência da Computação',
     });
