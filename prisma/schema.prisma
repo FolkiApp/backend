@@ -54,6 +54,8 @@ model course {
   university   university? @relation(fields: [universityId], references: [id])
   universityId Int?
   users        user[]
+
+  @@index([universityId, name])
 }
 
 model subject {
@@ -81,36 +83,37 @@ model subject_class {
   activity      activity[]
 
   @@index([subjectId, year, semester, universityId])
+  @@index([universityId, year(sort: Desc), semester(sort: Desc)])
 }
 
 model user {
-  id                     Int                      @id @default(autoincrement())
-  email                  String                   @unique
-  name                   String
-  institute              institute?               @relation(fields: [instituteId], references: [id])
-  course                 course?                  @relation(fields: [courseId], references: [id])
-  courseId               Int?
-  instituteId            Int?
-  isAdmin                Boolean                  @default(false)
-  isBlocked              Boolean                  @default(false)
-  securePin              String?                  @default("1234")
-  createdAt              DateTime                 @default(now())
-  deletedAt              DateTime?
-  updatedAt              DateTime                 @updatedAt
-  lastLogin              DateTime?
-  lastAccess             DateTime?
-  userVersion            String?
-  university             university?              @relation(fields: [universityId], references: [id])
-  universityId           Int?
-  user_subject           user_subject[]
-  activity               activity[]
-  user_activity_check    user_activity_check[]
-  user_activity_ignore   user_activity_ignore[]
-  user_notification_id   user_notification_id[]
-  badge                  String?
-  posts                  post[]
-  votes                  vote[]
-  notifications          user_notification[]
+  id                   Int                    @id @default(autoincrement())
+  email                String                 @unique
+  name                 String
+  institute            institute?             @relation(fields: [instituteId], references: [id])
+  course               course?                @relation(fields: [courseId], references: [id])
+  courseId             Int?
+  instituteId          Int?
+  isAdmin              Boolean                @default(false)
+  isBlocked            Boolean                @default(false)
+  securePin            String?                @default("1234")
+  createdAt            DateTime               @default(now())
+  deletedAt            DateTime?
+  updatedAt            DateTime               @updatedAt
+  lastLogin            DateTime?
+  lastAccess           DateTime?
+  userVersion          String?
+  university           university?            @relation(fields: [universityId], references: [id])
+  universityId         Int?
+  user_subject         user_subject[]
+  activity             activity[]
+  user_activity_check  user_activity_check[]
+  user_activity_ignore user_activity_ignore[]
+  user_notification_id user_notification_id[]
+  badge                String?
+  posts                post[]
+  votes                vote[]
+  notifications        user_notification[]
 }
 
 model user_subject {
@@ -127,6 +130,7 @@ model user_subject {
   grade          grade[]
 
   @@index([userId, subjectClassId])
+  @@index([subjectClassId, deletedAt])
 }
 
 model user_absence {
@@ -136,6 +140,8 @@ model user_absence {
   userSubject   user_subject @relation(fields: [userSubjectId], references: [id])
   userId        Int
   userSubjectId Int
+
+  @@index([userId, date(sort: Desc)])
 }
 
 model activity {
@@ -155,6 +161,9 @@ model activity {
   deletedAt            DateTime?
   user_activity_check  user_activity_check[]
   user_activity_ignore user_activity_ignore[]
+
+  @@index([subjectClassId, type, finishDate])
+  @@index([finishDate, deletedAt])
 }
 
 model group {
@@ -255,41 +264,42 @@ model user_notification_id {
 }
 
 model post {
-  id            Int       @id @default(autoincrement())
-  postDate      DateTime  @default(now())
+  id            Int          @id @default(autoincrement())
+  postDate      DateTime     @default(now())
   content       String
   userId        Int
   universityId  Int?
   parentId      Int?
-  commentsCount Int       @default(0)
-  upvotes       Int       @default(0)
-  downvotes     Int       @default(0)
-  user          user      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  university    university? @relation(fields: [universityId], references: [id])
-  parent        post?     @relation("post_children", fields: [parentId], references: [id], onDelete: Cascade)
-  children      post[]    @relation("post_children")
+  commentsCount Int          @default(0)
+  upvotes       Int          @default(0)
+  downvotes     Int          @default(0)
+  user          user         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  university    university?  @relation(fields: [universityId], references: [id])
+  parent        post?        @relation("post_children", fields: [parentId], references: [id], onDelete: Cascade)
+  children      post[]       @relation("post_children")
   votes         vote[]
   tags          String[]
   postKeys      post_image[]
 
-
   @@index([universityId])
+  @@index([parentId])
 }
 
 model vote {
-  postId        Int
-  userId        Int
-  up            Boolean
-  user          user      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  post          post      @relation(fields: [postId], references: [id], onDelete: Cascade)
+  postId Int
+  userId Int
+  up     Boolean
+  user   user    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post   post    @relation(fields: [postId], references: [id], onDelete: Cascade)
+
   @@id([postId, userId])
 }
 
 model post_image {
-  id        Int      @id @default(autoincrement())
-  key       String   @unique
-  postId    Int
-  post      post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  id     Int    @id @default(autoincrement())
+  key    String @unique
+  postId Int
+  post   post   @relation(fields: [postId], references: [id], onDelete: Cascade)
 }
 
 model notification {
@@ -310,7 +320,6 @@ model user_notification {
   @@index([notificationId])
   @@index([userId])
 }
-
 
 enum ActivityType {
   EXAM
