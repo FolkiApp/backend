@@ -1,20 +1,15 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import type { Message } from '@aws-sdk/client-sqs';
-import { NotificationSqsConsumer } from '../consumers/notification-sqs.consumer';
-import { PipoNotificationService } from '../services/pipo-notification.service';
-import { UserSubjectsRepository } from '../../subjects/repositories/user-subjects.repository';
+import { EmailSqsConsumer } from '../consumers/email-sqs.consumer';
+import { EmailService } from '../services/email.service';
 import { CustomLogger } from '../../common/logger/custom-logger.service';
-import { SendNotificationDto } from '../dto/send-notification.dto';
+import { SendEmailDto } from '../dto/send-email.dto';
 
-describe('NotificationSqsConsumer', () => {
-  let consumer: NotificationSqsConsumer;
+describe('EmailSqsConsumer', () => {
+  let consumer: EmailSqsConsumer;
 
-  const mockPipoNotificationService = {
-    sendNotification: jest.fn(),
-  };
-
-  const mockUserSubjectsRepository = {
-    getNotificationIdsByUserIds: jest.fn(),
+  const mockEmailService = {
+    sendEmailToUserIds: jest.fn(),
   };
 
   const mockCustomLogger = {
@@ -26,7 +21,7 @@ describe('NotificationSqsConsumer', () => {
     verbose: jest.fn(),
   };
 
-  const createMockMessage = (body: SendNotificationDto): Message => {
+  const createMockMessage = (body: SendEmailDto): Message => {
     return {
       MessageId: 'test-message-id-123',
       Body: JSON.stringify(body),
@@ -37,14 +32,10 @@ describe('NotificationSqsConsumer', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
-        NotificationSqsConsumer,
+        EmailSqsConsumer,
         {
-          provide: PipoNotificationService,
-          useValue: mockPipoNotificationService,
-        },
-        {
-          provide: UserSubjectsRepository,
-          useValue: mockUserSubjectsRepository,
+          provide: EmailService,
+          useValue: mockEmailService,
         },
         {
           provide: CustomLogger,
@@ -53,7 +44,7 @@ describe('NotificationSqsConsumer', () => {
       ],
     }).compile();
 
-    consumer = module.get<NotificationSqsConsumer>(NotificationSqsConsumer);
+    consumer = module.get<EmailSqsConsumer>(EmailSqsConsumer);
   });
 
   afterEach(() => {
@@ -64,46 +55,40 @@ describe('NotificationSqsConsumer', () => {
     expect(consumer).toBeDefined();
   });
 
-  it('should process notification message successfully', async () => {
-    const messageBody: SendNotificationDto = {
-      title: 'Test Notification',
-      message: 'Test message',
+  it('should process email message successfully', async () => {
+    const messageBody: SendEmailDto = {
       userIds: [1, 2, 3],
+      subject: 'Bem-vindo ao Folki',
+      html: '<h1>Olá!</h1>',
       idempotencyId: 'test-idempotency-id',
     };
     const message = createMockMessage(messageBody);
-    const playerIds = ['player-1', 'player-2', 'player-3'];
+    const emails = ['a@dac.unicamp.br', 'b@dac.unicamp.br', 'c@dac.unicamp.br'];
 
-    mockUserSubjectsRepository.getNotificationIdsByUserIds.mockResolvedValue(
-      playerIds,
-    );
-    mockPipoNotificationService.sendNotification.mockResolvedValue(undefined);
+    mockEmailService.sendEmailToUserIds.mockResolvedValue(emails);
 
     await consumer.handleMessage(message);
 
     expect(mockCustomLogger.log).toHaveBeenCalledWith(
       expect.objectContaining({
-        message: 'Processing notification from SQS',
+        message: 'Processing email from SQS',
         messageId: 'test-message-id-123',
         idempotencyId: 'test-idempotency-id',
         userIdsCount: 3,
       }),
     );
 
-    expect(
-      mockUserSubjectsRepository.getNotificationIdsByUserIds,
-    ).toHaveBeenCalledWith([1, 2, 3]);
-
-    expect(mockPipoNotificationService.sendNotification).toHaveBeenCalledWith({
-      title: 'Test Notification',
-      message: 'Test message',
-      playerIds,
-      idempotencyId: 'test-idempotency-id',
-    });
+    expect(mockEmailService.sendEmailToUserIds).toHaveBeenCalledWith(
+      expect.objectContaining({
+        userIds: [1, 2, 3],
+        subject: 'Bem-vindo ao Folki',
+        html: '<h1>Olá!</h1>',
+      }),
+    );
 
     expect(mockCustomLogger.log).toHaveBeenCalledWith(
       expect.objectContaining({
-        message: 'Notification processed successfully from SQS',
+        message: 'Email processed successfully from SQS',
         messageId: 'test-message-id-123',
         idempotencyId: 'test-idempotency-id',
         recipientsCount: 3,
@@ -111,31 +96,27 @@ describe('NotificationSqsConsumer', () => {
     );
   });
 
-  it('should log warning when no player IDs found', async () => {
-    const messageBody: SendNotificationDto = {
-      title: 'Test Notification',
-      message: 'Test message',
+  it('should log warning when no emails found', async () => {
+    const messageBody: SendEmailDto = {
       userIds: [1, 2, 3],
+      subject: 'Bem-vindo ao Folki',
+      html: '<h1>Olá!</h1>',
       idempotencyId: 'test-idempotency-id',
     };
     const message = createMockMessage(messageBody);
 
-    mockUserSubjectsRepository.getNotificationIdsByUserIds.mockResolvedValue(
-      [],
-    );
+    mockEmailService.sendEmailToUserIds.mockResolvedValue([]);
 
     await consumer.handleMessage(message);
 
     expect(mockCustomLogger.warn).toHaveBeenCalledWith(
       expect.objectContaining({
-        message: 'No notification IDs found for users',
+        message: 'No emails found for users',
         messageId: 'test-message-id-123',
         idempotencyId: 'test-idempotency-id',
         userIdsCount: 3,
       }),
     );
-
-    expect(mockPipoNotificationService.sendNotification).not.toHaveBeenCalled();
   });
 
   it('should handle malformed JSON gracefully', async () => {
@@ -149,53 +130,48 @@ describe('NotificationSqsConsumer', () => {
 
     expect(mockCustomLogger.error).toHaveBeenCalledWith(
       expect.objectContaining({
-        message: 'Failed to process notification from SQS',
+        message: 'Failed to process email from SQS',
         messageId: 'test-message-id-123',
       }),
     );
   });
 
-  it('should log error and throw when notification fails', async () => {
-    const messageBody: SendNotificationDto = {
-      title: 'Test Notification',
-      message: 'Test message',
+  it('should log error and throw when email send fails', async () => {
+    const messageBody: SendEmailDto = {
       userIds: [1, 2, 3],
+      subject: 'Bem-vindo ao Folki',
+      html: '<h1>Olá!</h1>',
       idempotencyId: 'test-idempotency-id',
     };
     const message = createMockMessage(messageBody);
-    const error = new Error('Notification service error');
+    const error = new Error('Email service error');
 
-    mockUserSubjectsRepository.getNotificationIdsByUserIds.mockResolvedValue([
-      'player-1',
-    ]);
-    mockPipoNotificationService.sendNotification.mockRejectedValue(error);
+    mockEmailService.sendEmailToUserIds.mockRejectedValue(error);
 
     await expect(consumer.handleMessage(message)).rejects.toThrow(
-      'Notification service error',
+      'Email service error',
     );
 
     expect(mockCustomLogger.error).toHaveBeenCalledWith(
       expect.objectContaining({
-        message: 'Failed to process notification from SQS',
+        message: 'Failed to process email from SQS',
         messageId: 'test-message-id-123',
-        error: 'Notification service error',
+        error: 'Email service error',
       }),
     );
   });
 
-  it('should log error and throw when user subjects query fails', async () => {
-    const messageBody: SendNotificationDto = {
-      title: 'Test Notification',
-      message: 'Test message',
+  it('should log error and throw when user query fails', async () => {
+    const messageBody: SendEmailDto = {
       userIds: [1, 2, 3],
+      subject: 'Bem-vindo ao Folki',
+      html: '<h1>Olá!</h1>',
       idempotencyId: 'test-idempotency-id',
     };
     const message = createMockMessage(messageBody);
     const error = new Error('Database error');
 
-    mockUserSubjectsRepository.getNotificationIdsByUserIds.mockRejectedValue(
-      error,
-    );
+    mockEmailService.sendEmailToUserIds.mockRejectedValue(error);
 
     await expect(consumer.handleMessage(message)).rejects.toThrow(
       'Database error',
@@ -203,7 +179,7 @@ describe('NotificationSqsConsumer', () => {
 
     expect(mockCustomLogger.error).toHaveBeenCalledWith(
       expect.objectContaining({
-        message: 'Failed to process notification from SQS',
+        message: 'Failed to process email from SQS',
         messageId: 'test-message-id-123',
         error: 'Database error',
       }),

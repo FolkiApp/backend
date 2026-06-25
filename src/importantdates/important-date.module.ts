@@ -1,4 +1,4 @@
-import { PrismaModule } from 'src/prisma/prisma.module';
+import { PrismaModule } from '../prisma/prisma.module';
 import { ImportantDateController } from './important-date.controller';
 import { FindAllImportantDateService } from './services/find-all-important-date.service';
 import { Module } from '@nestjs/common';

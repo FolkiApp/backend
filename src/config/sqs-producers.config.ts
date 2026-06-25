@@ -17,4 +17,13 @@ export const sqsProducers = [
         },
       ]
     : []),
+  ...(process.env.AWS_SQS_EMAIL_QUEUE_URL
+    ? [
+        {
+          name: 'email',
+          queueUrl: process.env.AWS_SQS_EMAIL_QUEUE_URL,
+          region: process.env.AWS_REGION || 'us-east-1',
+        },
+      ]
+    : []),
 ];

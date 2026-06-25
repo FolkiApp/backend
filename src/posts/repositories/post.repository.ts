@@ -475,7 +475,7 @@ export class PostRepository {
       return [];
     }
 
-    const postImages = (post as unknown as PostWithImages).postKeys;
+    const postImages = post.postKeys;
     return postImages.map((img) => img.key);
   }
 

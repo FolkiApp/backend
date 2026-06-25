@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { User } from '../entities/user.entity';
 import { CustomLogger } from '../../common/logger/custom-logger.service';
-import { AuthUser } from 'src/common/guards/auth.guard';
+import { AuthUser } from '../../common/guards/auth.guard';
 
 @Injectable()
 export class FindUserByIdService {

@@ -240,7 +240,7 @@ export class AccessUnicampEdacService {
           }
           return map;
         })
-        .catch(() => ({}) as Record<string, string>);
+        .catch((): Record<string, string> => ({}));
 
       await page.goto(`${UNICAMP_LOGIN_URL}app/meu-curso/dados-curso`, {
         waitUntil: 'networkidle2',

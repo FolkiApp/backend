@@ -189,7 +189,7 @@ describe('AbsenceController', () => {
       await expect(
         controller.postAbsence(
           8,
-          { date: '2025-05-01T00:00:00.000Z' } as CreateAbsenceDto,
+          { date: '2025-05-01T00:00:00.000Z' },
           mockAuthUser,
         ),
       ).rejects.toThrow(error);

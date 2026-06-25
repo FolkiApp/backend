@@ -153,7 +153,9 @@ export class PostsController {
   async getNewPostsCount(
     @CurrentUser() authUser: AuthUser,
   ): Promise<PostsInfoResponseDto> {
-    const count = await this.countNewPostsService.execute(authUser.universityId);
+    const count = await this.countNewPostsService.execute(
+      authUser.universityId,
+    );
     return new PostsInfoResponseDto(count);
   }
 

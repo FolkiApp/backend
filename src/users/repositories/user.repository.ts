@@ -101,6 +101,15 @@ export class UserRepository {
     return this.prisma.user.count();
   }
 
+  async findEmailsByIds(ids: number[]): Promise<string[]> {
+    const users = await this.prisma.user.findMany({
+      where: { id: { in: ids } },
+      select: { email: true },
+    });
+
+    return users.map((user) => user.email);
+  }
+
   async findAllActive(): Promise<
     Array<{ id: number; email: string; universityId: number | null }>
   > {

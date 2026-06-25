@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { CustomLogger } from '../../common/logger/custom-logger.service';
 import { UserRepository } from '../repositories/user.repository';
-import { AuthUser } from 'src/common/guards/auth.guard';
+import { AuthUser } from '../../common/guards/auth.guard';
 import { AddBadgeException } from '../exceptions/add-badge.exception';
 
 @Injectable()

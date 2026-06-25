@@ -19,7 +19,6 @@ import { UserSubjectDto } from './dto/user-subject.dto';
 import { UserSubjectsResponseDto } from './dto/user-subjects-response.dto';
 import { CoolNumbersDto } from './dto/cool-numbers.dto';
 import { CoolNumbersService } from './services/cool-numbers.service';
-import { SubjectClass } from '../subjects/entities/subject-class.entity';
 
 @ApiTags('users')
 @Controller('users')
@@ -136,12 +135,7 @@ export class UsersController {
     return new UserSubjectsResponseDto(
       userSubjects.map(
         (us) =>
-          new UserSubjectDto(
-            us.subjectClass as unknown as SubjectClass,
-            us.id,
-            us.absences,
-            us.grading,
-          ),
+          new UserSubjectDto(us.subjectClass, us.id, us.absences, us.grading),
       ),
     );
   }

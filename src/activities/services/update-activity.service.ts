@@ -10,7 +10,7 @@ import { UserBlockedException } from '../exceptions/user-blocked.exception';
 import { ActivityUpdateException } from '../exceptions/activity-update.exception';
 import { SubjectClassRepository } from '../../subjects/repositories/subject-class.repository';
 import { UpdateActivityData } from '../repositories/dto/update-activity-data.dto';
-import { SubjectClass } from 'src/subjects/entities/subject-class.entity';
+import { SubjectClass } from '../../subjects/entities/subject-class.entity';
 import { UserSubjectsRepository } from '../../subjects/repositories/user-subjects.repository';
 import { NotificationQueueService } from '../../notifications/services/notification-queue.service';
 

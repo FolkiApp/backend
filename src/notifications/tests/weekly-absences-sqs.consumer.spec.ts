@@ -30,7 +30,7 @@ describe('WeeklyAbsencesSqsConsumer', () => {
       MessageId: 'test-message-id-123',
       Body: JSON.stringify({}),
       ReceiptHandle: 'test-receipt-handle',
-    } as Message;
+    };
   };
 
   beforeEach(async () => {

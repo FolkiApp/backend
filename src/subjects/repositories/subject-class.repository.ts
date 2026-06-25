@@ -3,7 +3,6 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { Prisma } from '@prisma/client';
 import { SubjectClass } from '../entities/subject-class.entity';
 import { AvailableDay } from '../entities/available-days.entity';
-import { Subject } from '../entities/subject.entity';
 
 @Injectable()
 export class SubjectClassRepository {
@@ -53,7 +52,7 @@ export class SubjectClassRepository {
     return new SubjectClass(
       data.id,
       this.parseAvailableDays(data.availableDays),
-      data.subject as Subject,
+      data.subject,
       data.observations ?? undefined,
     );
   }
@@ -83,7 +82,7 @@ export class SubjectClassRepository {
     return new SubjectClass(
       data.id,
       this.parseAvailableDays(data.availableDays),
-      data.subject as Subject,
+      data.subject,
       data.observations ?? undefined,
     );
   }
@@ -103,7 +102,7 @@ export class SubjectClassRepository {
     return new SubjectClass(
       data.id,
       this.parseAvailableDays(data.availableDays),
-      data.subject as Subject,
+      data.subject,
       data.observations ?? undefined,
     );
   }
@@ -129,7 +128,7 @@ export class SubjectClassRepository {
     return new SubjectClass(
       data.id,
       this.parseAvailableDays(data.availableDays),
-      data.subject as Subject,
+      data.subject,
       data.observations ?? undefined,
     );
   }
