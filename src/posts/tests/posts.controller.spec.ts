@@ -13,6 +13,8 @@ import { VotePostDto } from '../dto/vote-post.dto';
 import { AuthUser } from '../../common/guards/auth.guard';
 import { NotFoundPostException } from '../exceptions/not-found-post.exception';
 import { UnauthorizedPostException } from '../exceptions/unauthorized-post.exception';
+import { CountNewPostsService } from '../services/count-new-posts.service';
+import { PostsInfoResponseDto } from '../dto/posts-info-response.dto';
 
 describe('PostsController', () => {
   let controller: PostsController;
@@ -20,6 +22,7 @@ describe('PostsController', () => {
   let listFirstPostsService: ListFirstPostService;
   let deletePostService: DeletePostService;
   let listPostChildrenService: ListPostChildrenService;
+  let countNewPostsService: CountNewPostsService;
 
   const mockCreatePostService: jest.Mocked<Pick<PostPostService, 'execute'>> = {
     execute: jest.fn(),
@@ -49,6 +52,12 @@ describe('PostsController', () => {
   };
 
   const mockVotePostService: jest.Mocked<Pick<VotePostService, 'execute'>> = {
+    execute: jest.fn(),
+  };
+
+  const mockCountNewPostsService: jest.Mocked<
+    Pick<CountNewPostsService, 'execute'>
+  > = {
     execute: jest.fn(),
   };
 
@@ -131,6 +140,10 @@ describe('PostsController', () => {
           provide: VotePostService,
           useValue: mockVotePostService,
         },
+        {
+          provide: CountNewPostsService,
+          useValue: mockCountNewPostsService,
+        },
       ],
     }).compile();
 
@@ -142,6 +155,7 @@ describe('PostsController', () => {
     listPostChildrenService = module.get<ListPostChildrenService>(
       ListPostChildrenService,
     );
+    countNewPostsService = module.get<CountNewPostsService>(CountNewPostsService);
 
     jest.clearAllMocks();
   });
@@ -251,6 +265,24 @@ describe('PostsController', () => {
       expect(result.posts[1].content).toBe(mockPosts[1].content);
       expect(result.posts[1].upvotes).toBe(mockPosts[1].upvotes);
       expect(result.posts[1].downvotes).toBe(mockPosts[1].downvotes);
+    });
+  });
+
+  describe('getNewPostsCount', () => {
+    it('should return count of posts successfully', async () => {
+      mockCountNewPostsService.execute.mockResolvedValue(12);
+
+      const result = await controller.getNewPostsCount(mockAuthUser);
+
+      expect(result).toBeInstanceOf(PostsInfoResponseDto);
+      expect(result.newPosts).toBe(12);
+      expect(mockCountNewPostsService.execute).toHaveBeenCalledWith(mockAuthUser.universityId);
+    });
+
+    it('should propagate errors from count service', async () => {
+      mockCountNewPostsService.execute.mockRejectedValue(new Error('Count error'));
+
+      await expect(controller.getNewPostsCount(mockAuthUser)).rejects.toThrow('Count error');
     });
   });
 

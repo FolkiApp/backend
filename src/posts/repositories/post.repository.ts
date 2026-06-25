@@ -579,4 +579,17 @@ export class PostRepository {
 
     return true;
   }
+
+  async countPostsInLast24Hours(universityId: number | null): Promise<number> {
+    const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    return this.prisma.post.count({
+      where: {
+        postDate: {
+          gte: twentyFourHoursAgo,
+        },
+        parentId: null,
+        ...(universityId ? { universityId } : {}),
+      },
+    });
+  }
 }

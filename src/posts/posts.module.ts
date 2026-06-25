@@ -10,6 +10,7 @@ import { GetPostByIdService } from './services/get-post-by-id.service';
 import { NotificationsModule } from '../notifications/notifications.module';
 import { PostNotificationSqsConsumer } from './consumers/post-notification-sqs.consumer';
 import { VotePostService } from './services/vote-post.service';
+import { CountNewPostsService } from './services/count-new-posts.service';
 
 @Module({
   imports: [PrismaModule, NotificationsModule],
@@ -23,6 +24,7 @@ import { VotePostService } from './services/vote-post.service';
     GetPostByIdService,
     PostNotificationSqsConsumer,
     VotePostService,
+    CountNewPostsService,
   ],
 })
 export class PostsModule {}

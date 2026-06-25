@@ -29,6 +29,8 @@ import { ListPostResponseDto } from './dto/list-post-response.dto';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { VotePostService } from './services/vote-post.service';
 import { VotePostDto } from './dto/vote-post.dto';
+import { CountNewPostsService } from './services/count-new-posts.service';
+import { PostsInfoResponseDto } from './dto/posts-info-response.dto';
 
 @Controller()
 export class PostsController {
@@ -39,6 +41,7 @@ export class PostsController {
     private readonly listPostChildrenService: ListPostChildrenService,
     private readonly getPostByIdService: GetPostByIdService,
     private readonly votePostService: VotePostService,
+    private readonly countNewPostsService: CountNewPostsService,
   ) {}
 
   @Post('posts')
@@ -133,6 +136,25 @@ export class PostsController {
       ),
       nextId,
     };
+  }
+
+  @Get('posts/info')
+  @Auth()
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Obter informações de posts das últimas 24 horas',
+    description: 'Retorna o número de posts criados nas últimas 24 horas',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Informações de posts retornadas com sucesso',
+    type: PostsInfoResponseDto,
+  })
+  async getNewPostsCount(
+    @CurrentUser() authUser: AuthUser,
+  ): Promise<PostsInfoResponseDto> {
+    const count = await this.countNewPostsService.execute(authUser.universityId);
+    return new PostsInfoResponseDto(count);
   }
 
   @Get('posts/:id/children')
