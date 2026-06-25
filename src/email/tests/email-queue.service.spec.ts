@@ -2,7 +2,6 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { SqsService } from '@ssut/nestjs-sqs';
 import { EmailQueueService } from '../services/email-queue.service';
 import { EmailService } from '../services/email.service';
-import { UserRepository } from '../../users/repositories/user.repository';
 import { CustomLogger } from '../../common/logger/custom-logger.service';
 import { SendEmailDto } from '../dto/send-email.dto';
 
@@ -14,11 +13,7 @@ describe('EmailQueueService', () => {
   };
 
   const mockEmailService = {
-    sendEmail: jest.fn(),
-  };
-
-  const mockUserRepository = {
-    findEmailsByIds: jest.fn(),
+    sendEmailToUserIds: jest.fn(),
   };
 
   const mockCustomLogger = {
@@ -51,10 +46,6 @@ describe('EmailQueueService', () => {
           {
             provide: EmailService,
             useValue: mockEmailService,
-          },
-          {
-            provide: UserRepository,
-            useValue: mockUserRepository,
           },
           {
             provide: CustomLogger,
@@ -98,7 +89,7 @@ describe('EmailQueueService', () => {
           }) as Record<string, unknown>,
         }) as Record<string, unknown>,
       );
-      expect(mockEmailService.sendEmail).not.toHaveBeenCalled();
+      expect(mockEmailService.sendEmailToUserIds).not.toHaveBeenCalled();
       expect(mockCustomLogger.log).toHaveBeenCalledWith(
         expect.objectContaining({
           message: 'Email sent to SQS',
@@ -157,10 +148,6 @@ describe('EmailQueueService', () => {
             useValue: mockEmailService,
           },
           {
-            provide: UserRepository,
-            useValue: mockUserRepository,
-          },
-          {
             provide: CustomLogger,
             useValue: mockCustomLogger,
           },
@@ -188,17 +175,13 @@ describe('EmailQueueService', () => {
         'b@dac.unicamp.br',
         'c@dac.unicamp.br',
       ];
-      mockUserRepository.findEmailsByIds.mockResolvedValue(emails);
-      mockEmailService.sendEmail.mockResolvedValue(undefined);
+      mockEmailService.sendEmailToUserIds.mockResolvedValue(emails);
 
       await service.addEmailJob(mockDto);
 
-      expect(mockUserRepository.findEmailsByIds).toHaveBeenCalledWith(
+      expect(mockEmailService.sendEmailToUserIds).toHaveBeenCalledWith(
         mockDto.userIds,
-      );
-      expect(mockEmailService.sendEmail).toHaveBeenCalledWith(
         expect.objectContaining({
-          to: emails,
           subject: mockDto.subject,
           html: mockDto.html,
         }) as Record<string, unknown>,
@@ -212,7 +195,7 @@ describe('EmailQueueService', () => {
     });
 
     it('should log warning when no emails found in synchronous mode', async () => {
-      mockUserRepository.findEmailsByIds.mockResolvedValue([]);
+      mockEmailService.sendEmailToUserIds.mockResolvedValue([]);
 
       await service.addEmailJob(mockDto);
 
@@ -222,15 +205,11 @@ describe('EmailQueueService', () => {
           userIdsCount: 3,
         }),
       );
-      expect(mockEmailService.sendEmail).not.toHaveBeenCalled();
     });
 
     it('should log error and throw when synchronous send fails', async () => {
       const error = new Error('Email service error');
-      mockUserRepository.findEmailsByIds.mockResolvedValue([
-        'a@dac.unicamp.br',
-      ]);
-      mockEmailService.sendEmail.mockRejectedValue(error);
+      mockEmailService.sendEmailToUserIds.mockRejectedValue(error);
 
       await expect(service.addEmailJob(mockDto)).rejects.toThrow(
         'Email service error',

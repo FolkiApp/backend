@@ -4,7 +4,6 @@ import type { Message } from '@aws-sdk/client-sqs';
 import { EmailService } from '../services/email.service';
 import { CustomLogger } from '../../common/logger/custom-logger.service';
 import { SendEmailDto } from '../dto/send-email.dto';
-import { UserRepository } from '../../users/repositories/user.repository';
 
 @Injectable()
 export class EmailSqsConsumer {
@@ -12,7 +11,6 @@ export class EmailSqsConsumer {
 
   constructor(
     private readonly emailService: EmailService,
-    private readonly userRepository: UserRepository,
     logger: CustomLogger,
   ) {
     this.logger = logger;
@@ -31,9 +29,17 @@ export class EmailSqsConsumer {
         userIdsCount: body.userIds.length,
       });
 
-      const to = await this.userRepository.findEmailsByIds(body.userIds);
+      const recipients = await this.emailService.sendEmailToUserIds(
+        body.userIds,
+        {
+          subject: body.subject,
+          html: body.html,
+          text: body.text,
+          replyTo: body.replyTo,
+        },
+      );
 
-      if (!to.length) {
+      if (!recipients.length) {
         this.logger.warn({
           message: 'No emails found for users',
           messageId: message.MessageId,
@@ -43,19 +49,11 @@ export class EmailSqsConsumer {
         return;
       }
 
-      await this.emailService.sendEmail({
-        to,
-        subject: body.subject,
-        html: body.html,
-        text: body.text,
-        replyTo: body.replyTo,
-      });
-
       this.logger.log({
         message: 'Email processed successfully from SQS',
         messageId: message.MessageId,
         idempotencyId: body.idempotencyId,
-        recipientsCount: to.length,
+        recipientsCount: recipients.length,
       });
     } catch (error: unknown) {
       this.logger.error({

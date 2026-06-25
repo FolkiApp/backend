@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { EmailService } from '../services/email.service';
 import { EmailSendException } from '../exceptions/email-send.exception';
 import { CustomLogger } from '../../common/logger/custom-logger.service';
+import { UserRepository } from '../../users/repositories/user.repository';
 
 const mockSend = jest.fn();
 
@@ -28,6 +29,10 @@ describe('EmailService', () => {
     verbose: jest.fn(),
   };
 
+  const mockUserRepository = {
+    findEmailsByIds: jest.fn(),
+  };
+
   const params = {
     to: ['a@dac.unicamp.br', 'b@dac.unicamp.br'],
     subject: 'Bem-vindo ao Folki',
@@ -41,6 +46,10 @@ describe('EmailService', () => {
         {
           provide: CustomLogger,
           useValue: mockCustomLogger,
+        },
+        {
+          provide: UserRepository,
+          useValue: mockUserRepository,
         },
       ],
     }).compile();
@@ -123,6 +132,39 @@ describe('EmailService', () => {
           error: 'SES failure',
         }),
       );
+    });
+
+    describe('sendEmailToUserIds', () => {
+      it('should resolve recipients, send the email and return them', async () => {
+        const emails = ['a@dac.unicamp.br', 'b@dac.unicamp.br'];
+        mockUserRepository.findEmailsByIds.mockResolvedValue(emails);
+        mockSend.mockResolvedValue(undefined);
+
+        const result = await service.sendEmailToUserIds([1, 2], {
+          subject: params.subject,
+          html: params.html,
+        });
+
+        expect(mockUserRepository.findEmailsByIds).toHaveBeenCalledWith([1, 2]);
+        expect(result).toEqual(emails);
+        expect(SendEmailCommand).toHaveBeenCalledWith(
+          expect.objectContaining({
+            Destination: { ToAddresses: emails },
+          }),
+        );
+      });
+
+      it('should return empty array and not send when no emails found', async () => {
+        mockUserRepository.findEmailsByIds.mockResolvedValue([]);
+
+        const result = await service.sendEmailToUserIds([1, 2], {
+          subject: params.subject,
+          html: params.html,
+        });
+
+        expect(result).toEqual([]);
+        expect(mockSend).not.toHaveBeenCalled();
+      });
     });
   });
 

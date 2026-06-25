@@ -4,7 +4,6 @@ import { v4 as uuidv4 } from 'uuid';
 import { SendEmailDto } from '../dto/send-email.dto';
 import { CustomLogger } from '../../common/logger/custom-logger.service';
 import { EmailService } from './email.service';
-import { UserRepository } from '../../users/repositories/user.repository';
 
 const DELAY_SECONDS = 0;
 
@@ -17,7 +16,6 @@ export class EmailQueueService {
   constructor(
     @Optional() private readonly sqsService: SqsService,
     private readonly emailService: EmailService,
-    private readonly userRepository: UserRepository,
     logger: CustomLogger,
   ) {
     this.logger = logger;
@@ -38,9 +36,17 @@ export class EmailQueueService {
 
     if (!this.useSqs) {
       try {
-        const to = await this.userRepository.findEmailsByIds(data.userIds);
+        const recipients = await this.emailService.sendEmailToUserIds(
+          data.userIds,
+          {
+            subject: messageBody.subject,
+            html: messageBody.html,
+            text: messageBody.text,
+            replyTo: messageBody.replyTo,
+          },
+        );
 
-        if (!to.length) {
+        if (!recipients.length) {
           this.logger.warn({
             message: 'No emails found for users (synchronous)',
             idempotencyId,
@@ -49,18 +55,10 @@ export class EmailQueueService {
           return;
         }
 
-        await this.emailService.sendEmail({
-          to,
-          subject: messageBody.subject,
-          html: messageBody.html,
-          text: messageBody.text,
-          replyTo: messageBody.replyTo,
-        });
-
         this.logger.log({
           message: 'Email sent synchronously (SQS not configured)',
           idempotencyId,
-          recipientsCount: to.length,
+          recipientsCount: recipients.length,
         });
       } catch (error) {
         this.logger.error({

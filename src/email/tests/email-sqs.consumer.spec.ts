@@ -2,7 +2,6 @@ import { Test, TestingModule } from '@nestjs/testing';
 import type { Message } from '@aws-sdk/client-sqs';
 import { EmailSqsConsumer } from '../consumers/email-sqs.consumer';
 import { EmailService } from '../services/email.service';
-import { UserRepository } from '../../users/repositories/user.repository';
 import { CustomLogger } from '../../common/logger/custom-logger.service';
 import { SendEmailDto } from '../dto/send-email.dto';
 
@@ -10,11 +9,7 @@ describe('EmailSqsConsumer', () => {
   let consumer: EmailSqsConsumer;
 
   const mockEmailService = {
-    sendEmail: jest.fn(),
-  };
-
-  const mockUserRepository = {
-    findEmailsByIds: jest.fn(),
+    sendEmailToUserIds: jest.fn(),
   };
 
   const mockCustomLogger = {
@@ -41,10 +36,6 @@ describe('EmailSqsConsumer', () => {
         {
           provide: EmailService,
           useValue: mockEmailService,
-        },
-        {
-          provide: UserRepository,
-          useValue: mockUserRepository,
         },
         {
           provide: CustomLogger,
@@ -74,8 +65,7 @@ describe('EmailSqsConsumer', () => {
     const message = createMockMessage(messageBody);
     const emails = ['a@dac.unicamp.br', 'b@dac.unicamp.br', 'c@dac.unicamp.br'];
 
-    mockUserRepository.findEmailsByIds.mockResolvedValue(emails);
-    mockEmailService.sendEmail.mockResolvedValue(undefined);
+    mockEmailService.sendEmailToUserIds.mockResolvedValue(emails);
 
     await consumer.handleMessage(message);
 
@@ -88,15 +78,15 @@ describe('EmailSqsConsumer', () => {
       }),
     );
 
-    expect(mockUserRepository.findEmailsByIds).toHaveBeenCalledWith([1, 2, 3]);
-
-    expect(mockEmailService.sendEmail).toHaveBeenCalledWith({
-      to: emails,
-      subject: 'Bem-vindo ao Folki',
-      html: '<h1>Olá!</h1>',
-      text: undefined,
-      replyTo: undefined,
-    });
+    expect(mockEmailService.sendEmailToUserIds).toHaveBeenCalledWith(
+      [1, 2, 3],
+      {
+        subject: 'Bem-vindo ao Folki',
+        html: '<h1>Olá!</h1>',
+        text: undefined,
+        replyTo: undefined,
+      },
+    );
 
     expect(mockCustomLogger.log).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -117,7 +107,7 @@ describe('EmailSqsConsumer', () => {
     };
     const message = createMockMessage(messageBody);
 
-    mockUserRepository.findEmailsByIds.mockResolvedValue([]);
+    mockEmailService.sendEmailToUserIds.mockResolvedValue([]);
 
     await consumer.handleMessage(message);
 
@@ -129,8 +119,6 @@ describe('EmailSqsConsumer', () => {
         userIdsCount: 3,
       }),
     );
-
-    expect(mockEmailService.sendEmail).not.toHaveBeenCalled();
   });
 
   it('should handle malformed JSON gracefully', async () => {
@@ -160,8 +148,7 @@ describe('EmailSqsConsumer', () => {
     const message = createMockMessage(messageBody);
     const error = new Error('Email service error');
 
-    mockUserRepository.findEmailsByIds.mockResolvedValue(['a@dac.unicamp.br']);
-    mockEmailService.sendEmail.mockRejectedValue(error);
+    mockEmailService.sendEmailToUserIds.mockRejectedValue(error);
 
     await expect(consumer.handleMessage(message)).rejects.toThrow(
       'Email service error',
@@ -186,7 +173,7 @@ describe('EmailSqsConsumer', () => {
     const message = createMockMessage(messageBody);
     const error = new Error('Database error');
 
-    mockUserRepository.findEmailsByIds.mockRejectedValue(error);
+    mockEmailService.sendEmailToUserIds.mockRejectedValue(error);
 
     await expect(consumer.handleMessage(message)).rejects.toThrow(
       'Database error',

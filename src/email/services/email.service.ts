@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { SESv2Client, SendEmailCommand } from '@aws-sdk/client-sesv2';
 import { CustomLogger } from '../../common/logger/custom-logger.service';
 import { EmailSendException } from '../exceptions/email-send.exception';
+import { UserRepository } from '../../users/repositories/user.repository';
 
 export interface SendEmailParams {
   to: string[];
@@ -11,13 +12,18 @@ export interface SendEmailParams {
   replyTo?: string;
 }
 
+export type EmailContent = Omit<SendEmailParams, 'to'>;
+
 @Injectable()
 export class EmailService {
   private readonly logger: CustomLogger;
   private readonly sesClient: SESv2Client;
   private readonly fromEmail: string;
 
-  constructor(logger: CustomLogger) {
+  constructor(
+    logger: CustomLogger,
+    private readonly userRepository: UserRepository,
+  ) {
     this.logger = logger;
     this.logger.setContext(EmailService.name);
 
@@ -82,6 +88,26 @@ export class EmailService {
       });
       throw new EmailSendException();
     }
+  }
+
+  /**
+   * Resolves recipient emails from user IDs and sends the email.
+   * Returns the resolved recipients; when none are found, nothing is sent
+   * and an empty array is returned so callers can log the appropriate context.
+   */
+  async sendEmailToUserIds(
+    userIds: number[],
+    content: EmailContent,
+  ): Promise<string[]> {
+    const to = await this.userRepository.findEmailsByIds(userIds);
+
+    if (!to.length) {
+      return [];
+    }
+
+    await this.sendEmail({ to, ...content });
+
+    return to;
   }
 
   private verifyConfiguration(): boolean {
